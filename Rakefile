@@ -1,6 +1,6 @@
 require 'rubygems/package_task'
 
-spec = Gem::Specification.load('faye-websocket.gemspec')
+spec = Gem::Specification.load('faye-websocket-parser.gemspec')
 
 Gem::PackageTask.new(spec) do |pkg|
 end
