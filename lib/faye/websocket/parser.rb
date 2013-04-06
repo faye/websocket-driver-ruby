@@ -15,7 +15,7 @@ require 'uri'
 module Faye
   class WebSocket
 
-    root = File.expand_path('../websocket', __FILE__)
+    root = File.expand_path('..', __FILE__)
     require root + '/../../faye_websocket_mask'
 
     def self.jruby?
