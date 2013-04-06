@@ -1,5 +1,128 @@
 = faye-websocket-parser {<img src="https://secure.travis-ci.org/faye/faye-websocket-parser-ruby.png" />}[http://travis-ci.org/faye/faye-websocket-ruby]
 
+This library is a set of WebSocket parsers extracted from the
+{Faye}[http://faye.jcoglan.com] project. It provides parsing and serialization
+functionality for the {draft-75}[http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-75],
+{draft-76}[http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76],
+and {hybi-07}[http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-07]
+and later versions of the protocol, and can select the right parser to use
+based on the client handshake. It can be used with any Ruby TCP library to
+create both servers and clients.
+
+
+== Usage
+
+For building server-side sockets, you need to provide a Rack-style +env+ hash
+representing the client handshake for Faye to select the right parser for you.
+For client-side sockets, only the <tt>Faye::WebSocket::HybiParser</tt> may be
+used.
+
+
+=== Server-side
+
+To process the server side of a WebSocket connection, you need to build a Rack
++env+ hash. This hash will contain a subset of following keys as strings, which
+map to string header values unless states otherwise. The set of keys present
+will depend on which version of the protocol the client is using.
+
+* +HTTP_CONNECTION+
+* +HTTP_HOST+
+* +HTTP_ORIGIN+
+* +HTTP_UPGRADE+
+* +HTTP_SEC_WEBSOCKET_KEY+
+* +HTTP_SEC_WEBSOCKET_KEY1+
+* +HTTP_SEC_WEBSOCKET_KEY2+
+* +HTTP_SEC_WEBSOCKET_PROTOCOL+
+* +HTTP_SEC_WEBSOCKET_VERSION+
+* +HTTP_X_FORWARDED_PROTO+, should have the value <tt>'https'</tt> if the
+  socket is using an encrypted connection
+* <tt>rack.input</tt>, an +IO+ object representing the request body
+* +REQUEST_METHOD+, the request's HTTP verb
+* +REQUEST_URI+, the request's path and query string
+
+Given an +env+ hash, the first thing to do is check whether it represents a
+valid WebSocket request.
+
+    is_websocket = Faye::WebSocket.websocket?(env)
+
+If it is a valid WebSocket, you can get a parser for it like so:
+
+    parser = Faye::WebSocket.parser(env).new(handler, options)
+
+See 'Parser API' below for the +parser+ interface and the API expected on the
++handler+ object. +options+ is an optional hash containing:
+
+* <tt>:masking</tt> - optional, boolean flag saying whether to mask outgoing
+  message frames. This is not required for server-side handlers.
+* <tt>:protocols</tt> - optional, an array of strings that will be used to set
+  the <tt>Sec-WebSocket-Protocol</tt> header for subprotocol negotiation.
+
+To complete the connection, you need to send a response to the client's
+handshake, which you do by writing <tt>parser.handshake_response</tt> to the
+TCP socket:
+
+    socket.write(parser.handshake_response)
+
+At this point the handshake might still not be complete. In some situations
+part of the client's handshake is deferred until the server has sent this
+response, and the server should not begin sending message frames until the
+handshake is done. You should check the connection is ready to exchange
+messages using:
+
+    can_send_messages = parser.open?
+
+After this setup is done, use the parser API detailed below to process data.
+
+
+=== Client-side
+
+If you're building a client, construct a parser like this:
+
+    parser = Faye::WebSocket:HybiParser.new(handler, options)
+
+The +parser+ interface and the required +handler+ API is documented below under
+'Parser API'. +options+ is a hash containing the following keys:
+
+* <tt>:masking</tt> - must have the value +true+.
+* <tt>:protocols</tt> - optional, an array of strings that will be used to set
+  the <tt>Sec-WebSocket-Protocol</tt> header for subprotocol negotiation.
+
+To make a connection, you must send a WebSocket handshake request over TCP to
+the target server.
+
+    handshake = parser.create_handshake
+    socket.write(handshake.request_data)
+
+<tt>handshake.request_data</tt> is a string containing the handshake format.
+Send this over an open TCP socket, then parse any data you receive over the
+socket. Here, +chunk+ is a string representing a chunk of input read from the
+socket.
+
+    overflow_bytes = handshake.parse(chunk)
+
+If the handshake is complete, any bytes received after the end of the handshake
+are returned as an array of ints. After parsing each chunk of input, use the
+following to check for handshake completion:
+
+* <tt>handshake.complete?</tt> returns +true+ if a whole handshake response has
+  been received from the server
+* <tt>handshake.valid?</tt> returns +true+ if the server's response is valid
+  and allows the client to connect
+* <tt>handshake.protocol</tt> is either +nil+ or a string containing the first
+  selected subprotocol that matches both our <tt>:protocols</tt> setting and
+  the server's <tt>Sec-WebSocket-Protocol</tt> response
+
+Once you know you have a valid connection, you should have the parser process
+the overflow bytes from the handshake parser:
+
+    parser.parse(overflow_bytes)
+
+After this, use the parser API detailed below to handle data tranfer on the
+connection.
+
+
+=== Parser API
+
 
 == License
 
