@@ -95,7 +95,8 @@ module Faye
       end
 
       def parse(data)
-        @reader.put(data.bytes.to_a)
+        data = data.bytes.to_a if data.respond_to?(:bytes)
+        @reader.put(data)
         buffer = true
         while buffer
           case @stage
