@@ -71,10 +71,12 @@ module Faye
     end
 
     def self.websocket?(env)
+      connection = env['HTTP_CONNECTION'] || ''
+      upgrade    = env['HTTP_UPGRADE']    || ''
+
       env['REQUEST_METHOD'] == 'GET' and
-      env['HTTP_CONNECTION'] and
-      env['HTTP_CONNECTION'].downcase.split(/\s*,\s*/).include?('upgrade') and
-      env['HTTP_UPGRADE'].downcase == 'websocket'
+      connection.downcase.split(/\s*,\s*/).include?('upgrade') and
+      upgrade.downcase == 'websocket'
     end
 
     def self.parser(env)

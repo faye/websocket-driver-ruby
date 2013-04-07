@@ -58,16 +58,16 @@ module Faye
           response = Net::HTTPResponse.read_new(Net::BufferedIO.new(StringIO.new(data)))
           return false unless response.code.to_i == 101
 
-          upgrade    = response['Upgrade']
-          connection = response['Connection']
+          connection = response['Connection'] || ''
+          upgrade    = response['Upgrade'] || ''
           protocol   = response['Sec-WebSocket-Protocol']
 
           @protocol = @protocols && @protocols.include?(protocol) ?
                       protocol :
                       nil
 
-          upgrade and upgrade =~ /^websocket$/i and
-          connection and connection.split(/\s*,\s*/).include?('Upgrade') and
+          connection.downcase.split(/\s*,\s*/).include?('upgrade') and
+          upgrade.downcase == 'websocket' and
           ((!@protocols and !protocol) or @protocol) and
           response['Sec-WebSocket-Accept'] == @accept
         end
@@ -76,3 +76,4 @@ module Faye
     end
   end
 end
+
