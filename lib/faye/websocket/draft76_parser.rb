@@ -43,12 +43,12 @@ module Faye
 
       def parse(data)
         return super if @handshake_complete
-        handshake_signature(data)
+        @socket.write(handshake_signature(data))
       end
 
       def close(code = nil, reason = nil, &callback)
         return if @closed
-        @socket.send([0xFF, 0x00]) if @closing
+        @socket.write("\xFF\x00") if @closing
         @closed = true
         callback.call if callback
       end

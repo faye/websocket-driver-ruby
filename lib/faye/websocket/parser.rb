@@ -15,6 +15,23 @@ require 'uri'
 module Faye
   class WebSocket
 
+    class Parser
+      def dispatch(event, *args)
+        handler = __send__(event)
+        handler.call(*args) if handler
+      end
+
+      def onmessage(&block)
+        @onmessage = block if block_given?
+        @onmessage
+      end
+
+      def onclose(&block)
+        @onclose = block if block_given?
+        @onclose
+      end
+    end
+
     root = File.expand_path('..', __FILE__)
     require root + '/../../faye_websocket_mask'
 

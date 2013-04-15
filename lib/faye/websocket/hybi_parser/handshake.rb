@@ -7,7 +7,8 @@ module Faye
 
         attr_reader :protocol
 
-        def initialize(uri, protocols)
+        def initialize(parser, uri, protocols)
+          @parser    = parser
           @uri       = uri
           @protocols = protocols
           @key       = Base64.encode64((1..16).map { rand(255).chr } * '').strip
@@ -45,7 +46,7 @@ module Faye
               complete ||= complete?
             end
           end
-          message
+          @parser.parse(message)
         end
 
         def complete?

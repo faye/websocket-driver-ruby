@@ -1,7 +1,7 @@
 module Faye
   class WebSocket
 
-    class Draft75Parser
+    class Draft75Parser < Parser
       attr_reader :protocol
 
       def initialize(web_socket, options = {})
@@ -38,10 +38,10 @@ module Faye
               @length = value + 128 * @length
 
               if @closing and @length.zero?
-                @socket.close(nil, nil, false)
+                dispatch(:onclose, nil, nil)
               elsif (0x80 & data) != 0x80
                 if @length.zero?
-                  @socket.receive('')
+                  dispatch(:onmessage, '')
                   @stage = 0
                 else
                   @buffer = []
@@ -51,7 +51,7 @@ module Faye
 
             when 2 then
               if data == 0xFF
-                @socket.receive(WebSocket.encode(@buffer))
+                dispatch(:onmessage, WebSocket.encode(@buffer))
                 @stage = 0
               else
                 @buffer << data
@@ -61,8 +61,6 @@ module Faye
               end
           end
         end
-
-        nil
       end
 
       def parse_leading_byte(data)
@@ -78,7 +76,8 @@ module Faye
 
       def frame(data, type = nil, error_type = nil)
         return WebSocket.encode(data) if Array === data
-        ["\x00", data, "\xFF"].map(&WebSocket.method(:encode)) * ''
+        frame = ["\x00", data, "\xFF"].map(&WebSocket.method(:encode)) * ''
+        @socket.write(frame)
       end
     end
 

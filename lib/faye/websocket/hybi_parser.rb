@@ -1,7 +1,7 @@
 module Faye
   class WebSocket
 
-    class HybiParser
+    class HybiParser < Parser
       root = File.expand_path('../hybi_parser', __FILE__)
       autoload :Handshake, root + '/handshake'
       autoload :StreamReader, root + '/stream_reader'
@@ -87,7 +87,7 @@ module Faye
       end
 
       def create_handshake
-        Handshake.new(@socket.uri, @protocols)
+        Handshake.new(self, @socket.uri, @protocols)
       end
 
       def open?
@@ -128,12 +128,13 @@ module Faye
               end
           end
         end
-
-        nil
       end
 
       def frame(data, type = nil, code = nil)
-        return nil if @closed
+        return if @closed
+
+        data = data.to_s unless Array === data
+        data = WebSocket.encode(data) if String === data
 
         is_text = (String === data)
         opcode  = OPCODES[type || (is_text ? :text : :binary)]
@@ -177,26 +178,29 @@ module Faye
 
         frame.concat(buffer)
 
-        WebSocket.encode(frame)
+        @socket.write(WebSocket.encode(frame))
       end
 
       def ping(message = '', &callback)
         @ping_callbacks[message] = callback if callback
-        @socket.send(message, :ping)
+        frame(message, :ping)
       end
 
-      def close(code = nil, reason = nil, &callback)
-        return if @closed
-        @closing_callback ||= callback
-        @socket.send(reason || '', :close, code || ERRORS[:normal_closure])
+      def close(code = nil, reason = nil)
+        frame(reason || '', :close, code || ERRORS[:normal_closure])
         @closed = true
       end
 
     private
 
+      def shutdown(code, reason)
+        frame(reason, :close, code)
+        dispatch(:onclose, code, reason)
+      end
+
       def parse_opcode(data)
         if [RSV1, RSV2, RSV3].any? { |rsv| (data & rsv) == rsv }
-          return @socket.close(ERRORS[:protocol_error], nil, false)
+          return shutdown(ERRORS[:protocol_error], nil)
         end
 
         @final   = (data & FIN) == FIN
@@ -205,15 +209,15 @@ module Faye
         @payload = []
 
         unless OPCODES.values.include?(@opcode)
-          return @socket.close(ERRORS[:protocol_error], nil, false)
+          return shutdown(ERRORS[:protocol_error], nil)
         end
 
         unless FRAGMENTED_OPCODES.include?(@opcode) or @final
-          return @socket.close(ERRORS[:protocol_error], nil, false)
+          return shutdown(ERRORS[:protocol_error], nil)
         end
 
         if @mode and OPENING_OPCODES.include?(@opcode)
-          return @socket.close(ERRORS[:protocol_error], nil, false)
+          return shutdown(ERRORS[:protocol_error], nil)
         end
 
         @stage = 1
@@ -241,16 +245,16 @@ module Faye
 
         case @opcode
           when OPCODES[:continuation] then
-            return @socket.close(ERRORS[:protocol_error], nil, false) unless @mode
+            return shutdown(ERRORS[:protocol_error], nil) unless @mode
             @buffer.concat(payload)
             if @final
               message = @buffer
               message = WebSocket.encode(message, true) if @mode == :text
               reset
               if message
-                @socket.receive(message)
+                dispatch(:onmessage, message)
               else
-                @socket.close(ERRORS[:encoding_error], nil, false)
+                shutdown(ERRORS[:encoding_error], nil)
               end
             end
 
@@ -258,9 +262,9 @@ module Faye
             if @final
               message = WebSocket.encode(payload, true)
               if message
-                @socket.receive(message)
+                dispatch(:onmessage, message)
               else
-                @socket.close(ERRORS[:encoding_error], nil, false)
+                shutdown(ERRORS[:encoding_error], nil)
               end
             else
               @mode = :text
@@ -269,7 +273,7 @@ module Faye
 
           when OPCODES[:binary] then
             if @final
-              @socket.receive(payload)
+              dispatch(:onmessage, payload)
             else
               @mode = :binary
               @buffer.concat(payload)
@@ -289,12 +293,11 @@ module Faye
             end
 
             reason = (payload.size > 2) ? WebSocket.encode(payload[2..-1], true) : nil
-            @socket.close(code, reason, false)
-            @closing_callback.call if @closing_callback
+            shutdown(code, reason)
 
           when OPCODES[:ping] then
-            return @socket.close(ERRORS[:protocol_error], nil, false) if payload.size > 125
-            @socket.send(payload, :pong)
+            return shutdown(ERRORS[:protocol_error], nil) if payload.size > 125
+            frame(payload, :pong)
 
           when OPCODES[:pong] then
             message = WebSocket.encode(payload, true)
