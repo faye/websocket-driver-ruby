@@ -43,8 +43,9 @@ module Faye
       attr_reader :protocol
 
       def initialize(web_socket, options = {})
+        super
         reset
-        @socket    = web_socket
+
         @reader    = StreamReader.new
         @stage     = 0
         @masking   = options[:masking]
@@ -56,34 +57,6 @@ module Faye
 
       def version
         "hybi-#{@socket.env['HTTP_SEC_WEBSOCKET_VERSION']}"
-      end
-
-      def handshake_response
-        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
-        return '' unless String === sec_key
-
-        accept    = Base64.encode64(Digest::SHA1.digest(sec_key + Handshake::GUID)).strip
-        protos    = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-        supported = @protocols
-        proto     = nil
-
-        headers = [
-          "HTTP/1.1 101 Switching Protocols",
-          "Upgrade: websocket",
-          "Connection: Upgrade",
-          "Sec-WebSocket-Accept: #{accept}"
-        ]
-
-        if protos and supported
-          protos = protos.split(/\s*,\s*/) if String === protos
-          proto = protos.find { |p| supported.include?(p) }
-          if proto
-            @protocol = proto
-            headers << "Sec-WebSocket-Protocol: #{proto}"
-          end
-        end
-
-        (headers + ['','']).join("\r\n")
       end
 
       def create_handshake
@@ -192,6 +165,34 @@ module Faye
       end
 
     private
+
+      def handshake_response
+        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
+        return '' unless String === sec_key
+
+        accept    = Base64.encode64(Digest::SHA1.digest(sec_key + Handshake::GUID)).strip
+        protos    = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
+        supported = @protocols
+        proto     = nil
+
+        headers = [
+          "HTTP/1.1 101 Switching Protocols",
+          "Upgrade: websocket",
+          "Connection: Upgrade",
+          "Sec-WebSocket-Accept: #{accept}"
+        ]
+
+        if protos and supported
+          protos = protos.split(/\s*,\s*/) if String === protos
+          proto = protos.find { |p| supported.include?(p) }
+          if proto
+            @protocol = proto
+            headers << "Sec-WebSocket-Protocol: #{proto}"
+          end
+        end
+
+        (headers + ['','']).join("\r\n")
+      end
 
       def shutdown(code, reason)
         frame(reason, :close, code)

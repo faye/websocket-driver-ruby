@@ -16,14 +16,38 @@ module Faye
   class WebSocket
 
     class Parser
+      def initialize(web_socket, options = {})
+        @socket  = web_socket
+        @options = {}
+        @role    = @socket.respond_to?(:env) ? :server : :client
+      end
+
+      def start
+        return if @started
+        case @role
+        when :server then @socket.write(handshake_response)
+        end
+        @started = true
+      end
+
       def dispatch(event, *args)
         handler = __send__(event)
         handler.call(*args) if handler
       end
 
+      def onopen(&block)
+        @onopen = block if block_given?
+        @onopen
+      end
+
       def onmessage(&block)
         @onmessage = block if block_given?
         @onmessage
+      end
+
+      def onerror(&block)
+        @onerror = block if block_given?
+        @onerror
       end
 
       def onclose(&block)

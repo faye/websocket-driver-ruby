@@ -5,22 +5,12 @@ module Faye
       attr_reader :protocol
 
       def initialize(web_socket, options = {})
-        @socket = web_socket
+        super
         @stage  = 0
       end
 
       def version
         'hixie-75'
-      end
-
-      def handshake_response
-        upgrade =  "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
-        upgrade << "Upgrade: WebSocket\r\n"
-        upgrade << "Connection: Upgrade\r\n"
-        upgrade << "WebSocket-Origin: #{@socket.env['HTTP_ORIGIN']}\r\n"
-        upgrade << "WebSocket-Location: #{@socket.url}\r\n"
-        upgrade << "\r\n"
-        upgrade
       end
 
       def open?
@@ -63,6 +53,24 @@ module Faye
         end
       end
 
+      def frame(data, type = nil, error_type = nil)
+        return WebSocket.encode(data) if Array === data
+        frame = ["\x00", data, "\xFF"].map(&WebSocket.method(:encode)) * ''
+        @socket.write(frame)
+      end
+
+    private
+
+      def handshake_response
+        upgrade =  "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
+        upgrade << "Upgrade: WebSocket\r\n"
+        upgrade << "Connection: Upgrade\r\n"
+        upgrade << "WebSocket-Origin: #{@socket.env['HTTP_ORIGIN']}\r\n"
+        upgrade << "WebSocket-Location: #{@socket.url}\r\n"
+        upgrade << "\r\n"
+        upgrade
+      end
+
       def parse_leading_byte(data)
         if (0x80 & data) == 0x80
           @length = 0
@@ -72,12 +80,6 @@ module Faye
           @buffer = []
           @stage = 2
         end
-      end
-
-      def frame(data, type = nil, error_type = nil)
-        return WebSocket.encode(data) if Array === data
-        frame = ["\x00", data, "\xFF"].map(&WebSocket.method(:encode)) * ''
-        @socket.write(frame)
       end
     end
 

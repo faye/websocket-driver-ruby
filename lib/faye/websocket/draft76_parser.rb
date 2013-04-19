@@ -6,6 +6,24 @@ module Faye
         'hixie-76'
       end
 
+      def open?
+        !!@handshake_complete
+      end
+
+      def parse(data)
+        return super if @handshake_complete
+        @socket.write(handshake_signature(data))
+      end
+
+      def close(code = nil, reason = nil, &callback)
+        return if @closed
+        @socket.write("\xFF\x00") if @closing
+        @closed = true
+        callback.call if callback
+      end
+
+    private
+
       def handshake_response
         env = @socket.env
         signature = handshake_signature(env['rack.input'].read)
@@ -36,24 +54,6 @@ module Faye
                            big_endian(value2) +
                            head)
       end
-
-      def open?
-        !!@handshake_complete
-      end
-
-      def parse(data)
-        return super if @handshake_complete
-        @socket.write(handshake_signature(data))
-      end
-
-      def close(code = nil, reason = nil, &callback)
-        return if @closed
-        @socket.write("\xFF\x00") if @closing
-        @closed = true
-        callback.call if callback
-      end
-
-    private
 
       def parse_leading_byte(data)
         return super unless data == 0xFF
