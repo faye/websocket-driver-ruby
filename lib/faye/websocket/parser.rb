@@ -18,7 +18,7 @@ module Faye
     class Parser
       def initialize(web_socket, options = {})
         @socket  = web_socket
-        @options = {}
+        @options = options
         @role    = @socket.respond_to?(:env) ? :server : :client
       end
 
