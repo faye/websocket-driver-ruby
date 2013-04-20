@@ -11,7 +11,7 @@ Due to this design, you get a lot of things for free. In particular, if you
 hook this module up to some I/O object, it will do all of this for you:
 
 * Select the correct server-side protocol handler to talk to the client
-* Generate and sent both server- and client-side handshakes
+* Generate and send both server- and client-side handshakes
 * Recognize when the handshake phase completes and the WS protocol begins
 * Negotiate subprotocol selection based on <tt>Sec-WebSocket-Protocol</tt>
 * Buffer sent messages until the handshake process is finished
@@ -19,7 +19,7 @@ hook this module up to some I/O object, it will do all of this for you:
 * Notify you when the socket is open and closed and when messages arrive
 * Recombine fragmented messages
 * Dispatch text, binary, ping and close frames
-* Manage the socket-closing handhake process
+* Manage the socket-closing handshake process
 * Automatically reply to ping frames with a matching pong
 * Apply masking to messages sent by the client
 
