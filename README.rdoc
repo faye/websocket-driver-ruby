@@ -151,7 +151,7 @@ keys:
 All handlers respond to the following API methods, but some of them are no-ops
 depending on whether the client supports the behaviour.
 
-Note that all of these methods are commands: if they produce data that should
+Note that most of these methods are commands: if they produce data that should
 be sent over the socket, they will give this to you by calling
 <tt>socket.write(string)</tt>.
 
