@@ -98,15 +98,15 @@ A simple example might be:
   end
 
 To explain what's going on here: the +WS+ class implements the +env+, +url+ and
-+write(string)+ methods as required. When instantiated with a Rack environment,
-it stores the environment and infers the complete URL from it. Having set up
-the +env+ and +url+, it asks <tt>WebSocket::Protocol</tt> for a server-side
-handler for the socket. Then it uses the Rack hijack API to gain access to the
-TCP stream, and uses EventMachine to stream in incoming data from the client,
-handing incoming data off to the handler for parsing. Finally, we tell the
-handler to +start+, which will begin sending the handshake response. This will
-invoke the <tt>WS#write</tt> method, which will send the response out over the
-TCP socket.
+<tt>write(string)</tt> methods as required. When instantiated with a Rack
+environment, it stores the environment and infers the complete URL from it.
+Having set up the +env+ and +url+, it asks <tt>WebSocket::Protocol</tt> for a
+server-side handler for the socket. Then it uses the Rack hijack API to gain
+access to the TCP stream, and uses EventMachine to stream in incoming data from
+the client, handing incoming data off to the handler for parsing. Finally, we
+tell the handler to +start+, which will begin sending the handshake response.
+This will invoke the <tt>WS#write</tt> method, which will send the response out
+over the TCP socket.
 
 Having defined this class we could use it like this when handling a request:
 
