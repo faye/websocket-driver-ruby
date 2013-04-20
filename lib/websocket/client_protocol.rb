@@ -32,7 +32,7 @@ module WebSocket
                 open
               else
                 @ready_state = 3
-                dispatch(:onclose)
+                dispatch(:onclose, CloseEvent.new(ERRORS[:protocol_error], ''))
               end
             end
           when 1 then

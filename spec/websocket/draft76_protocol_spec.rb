@@ -37,9 +37,9 @@ describe WebSocket::Draft76Protocol do
 
   let :protocol do
     protocol = WebSocket::Draft76Protocol.new(socket)
-    protocol.onopen    { @open = true }
-    protocol.onmessage { |message| @message += message }
-    protocol.onclose   { @close = true }
+    protocol.onopen    { |e| @open = true }
+    protocol.onmessage { |e| @message += e.data }
+    protocol.onclose   { |e| @close = true }
     protocol
   end
 

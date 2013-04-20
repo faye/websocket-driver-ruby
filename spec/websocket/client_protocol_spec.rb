@@ -20,9 +20,9 @@ describe WebSocket::ClientProtocol do
 
   let :protocol do
     protocol = WebSocket::ClientProtocol.new(socket, options)
-    protocol.onopen    { @open = true }
-    protocol.onmessage { |message| @message += message }
-    protocol.onclose   { |reason, code| @close = [code, reason] }
+    protocol.onopen    { |e| @open = true }
+    protocol.onmessage { |e| @message += e.data }
+    protocol.onclose   { |e| @close = [e.code, e.reason] }
     protocol
   end
 
@@ -128,7 +128,7 @@ describe WebSocket::ClientProtocol do
 
       it "changes the state to :closed" do
         @open.should == false
-        @close.should == [nil, nil]
+        @close.should == [1002, ""]
         protocol.state.should == :closed
       end
     end
@@ -141,7 +141,7 @@ describe WebSocket::ClientProtocol do
 
       it "changes the state to :closed" do
         @open.should == false
-        @close.should == [nil, nil]
+        @close.should == [1002, ""]
         protocol.state.should == :closed
       end
     end
@@ -175,7 +175,7 @@ describe WebSocket::ClientProtocol do
 
       it "changes the state to :closed" do
         @open.should == false
-        @close.should == [nil, nil]
+        @close.should == [1002, ""]
         protocol.state.should == :closed
       end
 

@@ -47,6 +47,10 @@ module WebSocket
   class Protocol
     STATES = [:connecting, :open, :closing, :closed]
 
+    class OpenEvent < Struct.new(nil) ; end
+    class MessageEvent < Struct.new(:data) ; end
+    class CloseEvent < Struct.new(:code, :reason) ; end
+
     attr_reader :protocol, :ready_state
 
     def initialize(socket, options = {})
@@ -83,7 +87,7 @@ module WebSocket
     def close
       return false unless @ready_state == 1
       @ready_state = 3
-      dispatch(:onclose)
+      dispatch(:onclose, CloseEvent.new(nil, nil))
       true
     end
 
@@ -113,12 +117,12 @@ module WebSocket
       @ready_state = 1
       @queue.each { |message| frame(*message) }
       @queue = []
-      dispatch(:onopen)
+      dispatch(:onopen, OpenEvent.new)
     end
 
-    def dispatch(event, *args)
-      handler = __send__(event)
-      handler.call(*args) if handler
+    def dispatch(name, event)
+      handler = __send__(name)
+      handler.call(event) if handler
     end
 
     def queue(message)

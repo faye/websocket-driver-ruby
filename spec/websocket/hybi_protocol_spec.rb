@@ -30,9 +30,9 @@ describe WebSocket::HybiProtocol do
 
   let :protocol do
     protocol = WebSocket::HybiProtocol.new(socket, options)
-    protocol.onopen    { @open = true }
-    protocol.onmessage { |message| @message += message }
-    protocol.onclose   { |reason, code| @close = [code, reason] }
+    protocol.onopen    { |e| @open = true }
+    protocol.onmessage { |e| @message += e.data }
+    protocol.onclose   { |e| @close = [e.code, e.reason] }
     protocol
   end
 
@@ -159,7 +159,7 @@ describe WebSocket::HybiProtocol do
 
       it "triggers the onclose event" do
         protocol.close
-        @close.should == [nil, nil]
+        @close.should == [1000, ""]
       end
 
       it "changes the state to :closed" do
