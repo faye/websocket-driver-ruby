@@ -180,10 +180,8 @@ describe WebSocket::Draft76Protocol do
 
     describe :close do
       it "writes a close message to the socket" do
-        frame = "\xFF\x00"
-        frame.force_encoding("ASCII-8BIT") if frame.respond_to?(:force_encoding)
-        socket.should_receive(:write).with(frame)
         protocol.close
+        @bytes.should == [0xFF, 0x00]
       end
     end
   end
