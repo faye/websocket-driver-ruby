@@ -67,6 +67,7 @@ module WebSocket
 
     def valid?
       data = Protocol.encode(@buffer)
+      @buffer = []
 
       response = Net::HTTPResponse.read_new(Net::BufferedIO.new(StringIO.new(data)))
       return false unless response.code.to_i == 101
