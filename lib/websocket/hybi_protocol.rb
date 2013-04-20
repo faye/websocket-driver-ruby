@@ -146,6 +146,14 @@ module WebSocket
       true
     end
 
+    def text(message)
+      frame(message, :text)
+    end
+
+    def binary(message)
+      frame(message, :binary)
+    end
+
     def ping(message = '', &callback)
       @ping_callbacks[message] = callback if callback
       frame(message, :ping)

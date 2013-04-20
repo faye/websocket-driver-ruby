@@ -68,6 +68,14 @@ module WebSocket
       true
     end
 
+    def text(message)
+      frame(message)
+    end
+
+    def binary(message)
+      false
+    end
+
     def ping(*args)
       false
     end
