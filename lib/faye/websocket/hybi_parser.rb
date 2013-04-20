@@ -3,8 +3,9 @@ module Faye
 
     class HybiParser < Parser
       root = File.expand_path('../hybi_parser', __FILE__)
-      autoload :Handshake, root + '/handshake'
       autoload :StreamReader, root + '/stream_reader'
+
+      GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
       BYTE       = 0b11111111
       FIN = MASK = 0b10000000
@@ -40,8 +41,6 @@ module Faye
 
       ERROR_CODES = ERRORS.values
 
-      attr_reader :protocol
-
       def initialize(web_socket, options = {})
         super
         reset
@@ -50,21 +49,13 @@ module Faye
         @stage     = 0
         @masking   = options[:masking]
         @protocols = options[:protocols]
-        @protocols = @protocols.split(/\s*,\s*/) if String === @protocols
+        @protocols = @protocols.strip.split(/\s*,\s*/) if String === @protocols
 
         @ping_callbacks = {}
       end
 
       def version
         "hybi-#{@socket.env['HTTP_SEC_WEBSOCKET_VERSION']}"
-      end
-
-      def create_handshake
-        Handshake.new(self, @socket.uri, @protocols)
-      end
-
-      def open?
-        true
       end
 
       def parse(data)
@@ -104,7 +95,8 @@ module Faye
       end
 
       def frame(data, type = nil, code = nil)
-        return if @closed
+        return queue([data, type, code]) if @ready_state == 0
+        return false unless @ready_state == 1
 
         data = data.to_s unless Array === data
         data = WebSocket.encode(data) if String === data
@@ -152,6 +144,7 @@ module Faye
         frame.concat(buffer)
 
         @socket.write(WebSocket.encode(frame))
+        true
       end
 
       def ping(message = '', &callback)
@@ -159,9 +152,19 @@ module Faye
         frame(message, :ping)
       end
 
-      def close(code = nil, reason = nil)
-        frame(reason || '', :close, code || ERRORS[:normal_closure])
-        @closed = true
+      def close(reason = nil, code = nil)
+        case @ready_state
+          when 0 then
+            @ready_state = 3
+            dispatch(:onclose)
+            true
+          when 1 then
+            frame(reason || '', :close, code || ERRORS[:normal_closure])
+            @ready_state = 2
+            true
+          else
+            false
+        end
       end
 
     private
@@ -170,7 +173,7 @@ module Faye
         sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
         return '' unless String === sec_key
 
-        accept    = Base64.encode64(Digest::SHA1.digest(sec_key + Handshake::GUID)).strip
+        accept    = Base64.encode64(Digest::SHA1.digest(sec_key + GUID)).strip
         protos    = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
         supported = @protocols
         proto     = nil
@@ -196,7 +199,8 @@ module Faye
 
       def shutdown(code, reason)
         frame(reason, :close, code)
-        dispatch(:onclose, code, reason)
+        @ready_state = 3
+        dispatch(:onclose, reason, code)
       end
 
       def parse_opcode(data)
@@ -293,7 +297,7 @@ module Faye
               code = ERRORS[:protocol_error]
             end
 
-            reason = (payload.size > 2) ? WebSocket.encode(payload[2..-1], true) : nil
+            reason = (payload.size > 2) ? WebSocket.encode(payload[2..-1], true) : ''
             shutdown(code, reason)
 
           when OPCODES[:ping] then

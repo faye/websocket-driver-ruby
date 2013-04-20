@@ -6,20 +6,22 @@ module Faye
 
       def initialize(web_socket, options = {})
         super
-        @stage  = 0
+        @stage = 0
       end
 
       def version
         'hixie-75'
       end
 
-      def open?
-        true
-      end
-
       def parse(buffer)
-        buffer.each_byte do |data|
+        buffer = buffer.bytes if buffer.respond_to?(:bytes)
+
+        buffer.each do |data|
           case @stage
+            when -1 then
+              @head << data
+              send_handshake_body
+
             when 0 then
               parse_leading_byte(data)
 
@@ -28,6 +30,7 @@ module Faye
               @length = value + 128 * @length
 
               if @closing and @length.zero?
+                @ready_state = 3
                 dispatch(:onclose, nil, nil)
               elsif (0x80 & data) != 0x80
                 if @length.zero?
@@ -54,9 +57,11 @@ module Faye
       end
 
       def frame(data, type = nil, error_type = nil)
-        return WebSocket.encode(data) if Array === data
+        return queue([data, type, error_type]) if @ready_state == 0
+        data = WebSocket.encode(data)
         frame = ["\x00", data, "\xFF"].map(&WebSocket.method(:encode)) * ''
         @socket.write(frame)
+        true
       end
 
     private

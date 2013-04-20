@@ -14,9 +14,5 @@ module EncodingHelper
   def bytes(string)
     string.bytes.to_a
   end
-
-  def parse(bytes)
-    @parser.parse(bytes.pack('C*'))
-  end
 end
 
