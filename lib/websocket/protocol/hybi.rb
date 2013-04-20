@@ -51,7 +51,8 @@ module WebSocket
         @protocols = options[:protocols]
         @protocols = @protocols.strip.split(/\s*,\s*/) if String === @protocols
 
-        @ping_callbacks = {}
+        @require_masking = options[:require_masking]
+        @ping_callbacks  = {}
       end
 
       def version
@@ -161,13 +162,16 @@ module WebSocket
       end
 
       def close(reason = nil, code = nil)
+        reason ||= ''
+        code   ||= ERRORS[:normal_closure]
+
         case @ready_state
           when 0 then
             @ready_state = 3
-            dispatch(:onclose, CloseEvent.new(code || 1000, reason || ''))
+            dispatch(:onclose, CloseEvent.new(code, reason))
             true
           when 1 then
-            frame(reason || '', :close, code || ERRORS[:normal_closure])
+            frame(reason, :close, code)
             @ready_state = 2
             true
           else
@@ -206,6 +210,9 @@ module WebSocket
       end
 
       def shutdown(code, reason)
+        code   ||= ERRORS[:normal_closure]
+        reason ||= ''
+
         frame(reason, :close, code)
         @ready_state = 3
         dispatch(:onclose, CloseEvent.new(code, reason))
@@ -238,6 +245,8 @@ module WebSocket
 
       def parse_length(data)
         @masked = (data & MASK) == MASK
+        return shutdown(ERRORS[:unacceptable], nil) if @require_masking and not @masked
+
         @length = (data & LENGTH)
 
         if @length <= 125

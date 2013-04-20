@@ -223,7 +223,7 @@ describe WebSocket::Protocol::Hybi do
       it "closes the socket if the frame has an unrecognized opcode" do
         protocol.parse [0x83, 0x00]
         @bytes.should == [0x88, 0x02, 0x03, 0xea]
-        @close.should == [1002, nil]
+        @close.should == [1002, ""]
         protocol.state.should == :closed
       end
 
@@ -354,6 +354,23 @@ describe WebSocket::Protocol::Hybi do
         protocol.close
         protocol.state.should == :closing
       end
+    end
+  end
+
+  describe "when masking is required" do
+    before do
+      options[:require_masking] = true
+      protocol.start
+    end
+
+    it "does not emit a message" do
+      protocol.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]
+      @messages.should == nil
+    end
+
+    it "returns an error" do
+      protocol.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]
+      @close.should == [1003, ""]
     end
   end
 

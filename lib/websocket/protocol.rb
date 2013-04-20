@@ -85,7 +85,7 @@ module WebSocket
       false
     end
 
-    def close
+    def close(reason = nil, code = nil)
       return false unless @ready_state == 1
       @ready_state = 3
       dispatch(:onclose, CloseEvent.new(nil, nil))
@@ -142,7 +142,7 @@ module WebSocket
     def self.server(socket, options = {})
       env = socket.env
       if env['HTTP_SEC_WEBSOCKET_VERSION']
-        Hybi.new(socket, options)
+        Hybi.new(socket, options.merge(:require_masking => true))
       elsif env['HTTP_SEC_WEBSOCKET_KEY1']
         Draft76.new(socket, options)
       else
