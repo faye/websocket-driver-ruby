@@ -71,7 +71,7 @@ A simple example might be:
       @env = env
 
       secure = Rack::Request.new(env).ssl?
-      scheme = secure ? 'ws:' : 'wss:'
+      scheme = secure ? 'wss:' : 'ws:'
       @url = scheme + '//' + env['HTTP_HOST'] + env['REQUEST_URI']
 
       @handler = WebSocket::Protocol.server(self)
