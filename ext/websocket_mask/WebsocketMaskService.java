@@ -1,4 +1,4 @@
-package com.jcoglan.faye;
+package com.jcoglan.websocket;
 
 import java.lang.Long;
 import java.io.IOException;
@@ -15,14 +15,14 @@ import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.load.BasicLibraryService;
 
-public class FayeWebsocketMaskService implements BasicLibraryService {
+public class WebsocketMaskService implements BasicLibraryService {
   private Ruby runtime;
 
   public boolean basicLoad(Ruby runtime) throws IOException {
     this.runtime = runtime;
-    RubyModule faye = runtime.defineModule("Faye");
+    RubyModule websocket = runtime.defineModule("WebSocket");
 
-    RubyClass webSocketMask = faye.defineClassUnder("WebSocketMask", runtime.getObject(), new ObjectAllocator() {
+    RubyClass webSocketMask = websocket.defineClassUnder("Mask", runtime.getObject(), new ObjectAllocator() {
       public IRubyObject allocate(Ruby runtime, RubyClass rubyClass) {
         return new WebsocketMask(runtime, rubyClass);
       }

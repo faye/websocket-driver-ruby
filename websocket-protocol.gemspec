@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
-  s.name              = "faye-websocket-parser"
+  s.name              = "websocket-protocol"
   s.version           = "0.1.0"
-  s.summary           = "Standards-compliant WebSocket parsers"
+  s.summary           = "Standards-compliant WebSocket protocol handlers"
   s.author            = "James Coglan"
   s.email             = "jcoglan@gmail.com"
-  s.homepage          = "http://github.com/faye/faye-websocket-parser-ruby"
+  s.homepage          = "http://github.com/faye/websocket-protocol-ruby"
 
   s.extra_rdoc_files  = %w[README.rdoc]
   s.rdoc_options      = %w[--main README.rdoc]
@@ -17,9 +17,9 @@ Gem::Specification.new do |s|
 
   if RUBY_PLATFORM =~ /java/
     s.platform = "java"
-    files << "lib/faye_websocket_mask.jar"
+    files << "lib/websocket_mask.jar"
   else
-    s.extensions << "ext/faye_websocket_mask/extconf.rb"
+    s.extensions << "ext/websocket_mask/extconf.rb"
   end
 
   s.files = files

@@ -1,10 +1,10 @@
 require "spec_helper"
 
-describe Faye::WebSocket::ClientParser do
+describe WebSocket::ClientProtocol do
   include EncodingHelper
 
   let :socket do
-    socket = mock(Faye::WebSocket)
+    socket = mock(WebSocket)
     socket.stub(:write) { |message| @bytes = bytes(message) }
     socket.stub(:url).and_return("ws://www.example.com/socket")
     socket
@@ -18,12 +18,12 @@ describe Faye::WebSocket::ClientParser do
     nil
   end
 
-  let :parser do
-    parser = Faye::WebSocket::ClientParser.new(socket, options)
-    parser.onopen    { @open = true }
-    parser.onmessage { |message| @message += message }
-    parser.onclose   { |reason, code| @close = [code, reason] }
-    parser
+  let :protocol do
+    protocol = WebSocket::ClientProtocol.new(socket, options)
+    protocol.onopen    { @open = true }
+    protocol.onmessage { |message| @message += message }
+    protocol.onclose   { |reason, code| @close = [code, reason] }
+    protocol
   end
 
   let :key do
@@ -39,14 +39,14 @@ describe Faye::WebSocket::ClientParser do
   end
 
   before do
-    Faye::WebSocket::ClientParser.stub(:generate_key).and_return(key)
+    WebSocket::ClientProtocol.stub(:generate_key).and_return(key)
     @open = @close = false
     @message = ""
   end
 
   describe "in the beginning state" do
     it "starts in no state" do
-      parser.state.should == nil
+      protocol.state.should == nil
     end
 
     describe :start do
@@ -59,11 +59,11 @@ describe Faye::WebSocket::ClientParser do
             "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
             "Sec-WebSocket-Version: 13\r\n" +
             "\r\n")
-        parser.start
+        protocol.start
       end
 
       it "returns true" do
-        parser.start.should == true
+        protocol.start.should == true
       end
 
       describe "with subprotocols" do
@@ -79,40 +79,40 @@ describe Faye::WebSocket::ClientParser do
               "Sec-WebSocket-Version: 13\r\n" +
               "Sec-WebSocket-Protocol: foo, bar, xmpp\r\n" +
               "\r\n")
-          parser.start
+          protocol.start
         end
       end
 
       it "changes the state to :connecting" do
-        parser.start
-        parser.state.should == :connecting
+        protocol.start
+        protocol.state.should == :connecting
       end
     end
   end
 
   describe "in the :connecting state" do
-    before { parser.start }
+    before { protocol.start }
 
     describe "with a valid response" do
-      before { parser.parse(response) }
+      before { protocol.parse(response) }
 
       it "changes the state to :open" do
         @open.should == true
         @close.should == false
-        parser.state.should == :open
+        protocol.state.should == :open
       end
     end
 
     describe "with a valid response followed by a frame" do
       before do
-        resp = response + Faye::WebSocket.encode([0x81, 0x02, 72, 105])
-        parser.parse(resp)
+        resp = response + WebSocket::Protocol.encode([0x81, 0x02, 72, 105])
+        protocol.parse(resp)
       end
 
       it "changes the state to :open" do
         @open.should == true
         @close.should == false
-        parser.state.should == :open
+        protocol.state.should == :open
       end
 
       it "parses the frame" do
@@ -123,26 +123,26 @@ describe Faye::WebSocket::ClientParser do
     describe "with a bad Upgrade header" do
       before do
         resp = response.gsub(/websocket/, "wrong")
-        parser.parse(resp)
+        protocol.parse(resp)
       end
 
       it "changes the state to :closed" do
         @open.should == false
         @close.should == [nil, nil]
-        parser.state.should == :closed
+        protocol.state.should == :closed
       end
     end
  
     describe "with a bad Accept header" do
       before do
         resp = response.gsub(/QV3/, "wrong")
-        parser.parse(resp)
+        protocol.parse(resp)
       end
 
       it "changes the state to :closed" do
         @open.should == false
         @close.should == [nil, nil]
-        parser.state.should == :closed
+        protocol.state.should == :closed
       end
     end
 
@@ -151,17 +151,17 @@ describe Faye::WebSocket::ClientParser do
 
       before do
         resp = response.gsub(/\r\n\r\n/, "\r\nSec-WebSocket-Protocol: xmpp\r\n\r\n")
-        parser.parse(resp)
+        protocol.parse(resp)
       end
 
       it "changes the state to :open" do
         @open.should == true
         @close.should == false
-        parser.state.should == :open
+        protocol.state.should == :open
       end
 
       it "selects the subprotocol" do
-        parser.protocol.should == "xmpp"
+        protocol.protocol.should == "xmpp"
       end
     end
 
@@ -170,17 +170,17 @@ describe Faye::WebSocket::ClientParser do
 
       before do
         resp = response.gsub(/\r\n\r\n/, "\r\nSec-WebSocket-Protocol: irc\r\n\r\n")
-        parser.parse(resp)
+        protocol.parse(resp)
       end
 
       it "changes the state to :closed" do
         @open.should == false
         @close.should == [nil, nil]
-        parser.state.should == :closed
+        protocol.state.should == :closed
       end
 
       it "selects no subprotocol" do
-        parser.protocol.should == nil
+        protocol.protocol.should == nil
       end
     end
   end

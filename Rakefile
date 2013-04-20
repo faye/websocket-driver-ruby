@@ -1,16 +1,16 @@
 require 'rubygems/package_task'
 
-spec = Gem::Specification.load('faye-websocket-parser.gemspec')
+spec = Gem::Specification.load('websocket-protocol.gemspec')
 
 Gem::PackageTask.new(spec) do |pkg|
 end
 
 if RUBY_PLATFORM =~ /java/
   require 'rake/javaextensiontask'
-  Rake::JavaExtensionTask.new('faye_websocket_mask', spec)
+  Rake::JavaExtensionTask.new('websocket_mask', spec)
 else
   require 'rake/extensiontask'
-  Rake::ExtensionTask.new('faye_websocket_mask', spec)
+  Rake::ExtensionTask.new('websocket_mask', spec)
 end
 
 task :clean do
