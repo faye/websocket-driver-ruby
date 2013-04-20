@@ -131,7 +131,7 @@ and send outgoing data.
 
 === Handler API
 
-Handlers are create using one of the following methods:
+Handlers are created using one of the following methods:
 
   handler = WebSocket::Protocol.server(socket, options)
   handler = WebSocket::Protocol.client(socket, options)
