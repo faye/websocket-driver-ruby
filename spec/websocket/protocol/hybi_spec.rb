@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe WebSocket::HybiProtocol do
+describe WebSocket::Protocol::Hybi do
   include EncodingHelper
 
   let :env do
@@ -29,7 +29,7 @@ describe WebSocket::HybiProtocol do
   end
 
   let :protocol do
-    protocol = WebSocket::HybiProtocol.new(socket, options)
+    protocol = WebSocket::Protocol::Hybi.new(socket, options)
     protocol.onopen    { |e| @open = true }
     protocol.onmessage { |e| @message += e.data }
     protocol.onclose   { |e| @close = [e.code, e.reason] }

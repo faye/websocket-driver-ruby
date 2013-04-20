@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe WebSocket::Draft75Protocol do
+describe WebSocket::Protocol::Draft75 do
   include EncodingHelper
 
   let :env do
@@ -23,7 +23,7 @@ describe WebSocket::Draft75Protocol do
   end
 
   let :protocol do
-    protocol = WebSocket::Draft75Protocol.new(socket)
+    protocol = WebSocket::Protocol::Draft75.new(socket)
     protocol.onopen    { |e| @open = true }
     protocol.onmessage { |e| @message += e.data }
     protocol.onclose   { |e| @close = true }

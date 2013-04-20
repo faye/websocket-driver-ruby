@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 
 require File.expand_path('../../lib/websocket/protocol', __FILE__)
-require File.expand_path('../websocket/draft75_protocol_examples', __FILE__)
+require File.expand_path('../websocket/protocol/draft75_examples', __FILE__)
 
 module EncodingHelper
   def encode(message)

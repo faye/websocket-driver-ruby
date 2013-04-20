@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe WebSocket::ClientProtocol do
+describe WebSocket::Protocol::Client do
   include EncodingHelper
 
   let :socket do
@@ -19,7 +19,7 @@ describe WebSocket::ClientProtocol do
   end
 
   let :protocol do
-    protocol = WebSocket::ClientProtocol.new(socket, options)
+    protocol = WebSocket::Protocol::Client.new(socket, options)
     protocol.onopen    { |e| @open = true }
     protocol.onmessage { |e| @message += e.data }
     protocol.onclose   { |e| @close = [e.code, e.reason] }
@@ -39,7 +39,7 @@ describe WebSocket::ClientProtocol do
   end
 
   before do
-    WebSocket::ClientProtocol.stub(:generate_key).and_return(key)
+    WebSocket::Protocol::Client.stub(:generate_key).and_return(key)
     @open = @close = false
     @message = ""
   end

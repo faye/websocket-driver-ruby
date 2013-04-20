@@ -12,44 +12,45 @@ require 'stringio'
 require 'uri'
 
 module WebSocket
-  root = File.expand_path('..', __FILE__)
-  require root + '/../websocket_mask'
-
-  def self.jruby?
-    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
-  end
-
-  def self.rbx?
-    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
-  end
-
-  if jruby?
-    require 'jruby'
-    com.jcoglan.websocket.WebsocketMaskService.new.basicLoad(JRuby.runtime)
-  end
-
-  unless Mask.respond_to?(:mask)
-    def Mask.mask(payload, mask)
-      @instance ||= new
-      @instance.mask(payload, mask)
-    end
-  end
-
-  unless String.instance_methods.include?(:force_encoding)
-    require root + '/utf8_match'
-  end
-
-  autoload :Draft75Protocol, root + '/draft75_protocol'
-  autoload :Draft76Protocol, root + '/draft76_protocol'
-  autoload :HybiProtocol,    root + '/hybi_protocol'
-  autoload :ClientProtocol,  root + '/client_protocol'
-
   class Protocol
+
+    root = File.expand_path('../protocol', __FILE__)
+    require root + '/../../websocket_mask'
+
+    def self.jruby?
+      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+    end
+
+    def self.rbx?
+      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
+    end
+
+    if jruby?
+      require 'jruby'
+      com.jcoglan.websocket.WebsocketMaskService.new.basicLoad(JRuby.runtime)
+    end
+
+    unless Mask.respond_to?(:mask)
+      def Mask.mask(payload, mask)
+        @instance ||= new
+        @instance.mask(payload, mask)
+      end
+    end
+
+    unless String.instance_methods.include?(:force_encoding)
+      require root + '/utf8_match'
+    end
+
     STATES = [:connecting, :open, :closing, :closed]
 
     class OpenEvent < Struct.new(nil) ; end
     class MessageEvent < Struct.new(:data) ; end
     class CloseEvent < Struct.new(:code, :reason) ; end
+
+    autoload :Draft75, root + '/draft75'
+    autoload :Draft76, root + '/draft76'
+    autoload :Hybi,    root + '/hybi'
+    autoload :Client,  root + '/client'
 
     attr_reader :protocol, :ready_state
 
@@ -141,16 +142,16 @@ module WebSocket
     def self.server(socket, options = {})
       env = socket.env
       if env['HTTP_SEC_WEBSOCKET_VERSION']
-        HybiProtocol.new(socket, options)
+        Hybi.new(socket, options)
       elsif env['HTTP_SEC_WEBSOCKET_KEY1']
-        Draft76Protocol.new(socket, options)
+        Draft76.new(socket, options)
       else
-        Draft75Protocol.new(socket, options)
+        Draft75.new(socket, options)
       end
     end
 
     def self.client(socket, options = {})
-      ClientProtocol.new(socket, options.merge(:masking => true))
+      Client.new(socket, options.merge(:masking => true))
     end
 
     def self.utf8_string(string)
