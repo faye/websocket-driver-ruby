@@ -210,6 +210,17 @@ no closing handshake, this will result in the immediate execution of the
 frame and +onclose+ will execute when a response is received or a protocol
 error occurs.
 
+==== <tt>handler.version</tt>
+
+Returns the WebSocket version in use as a string. Will either be
+<tt>hixie-75</tt>, <tt>hixie-76</tt> or <tt>hybi-$version</tt>.
+
+==== <tt>handler.protocol</tt>
+
+Returns a string containing the selected subprotocol, if any was agreed upon
+using the <tt>Sec-WebSocket-Protocol</tt> mechanism. This value becomes
+available after +onopen+ has fired.
+
 
 == License
 
