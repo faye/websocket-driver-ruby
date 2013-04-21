@@ -74,7 +74,7 @@ A simple example might be:
       scheme = secure ? 'wss:' : 'ws:'
       @url = scheme + '//' + env['HTTP_HOST'] + env['REQUEST_URI']
 
-      @handler = WebSocket::Protocol.server(self)
+      @handler = WebSocket::Protocol.rack(self)
 
       env['rack.hijack'].call
       @io = env['rack.hijack_io']
@@ -133,10 +133,10 @@ and send outgoing data.
 
 Handlers are created using one of the following methods:
 
-  handler = WebSocket::Protocol.server(socket, options)
+  handler = WebSocket::Protocol.rack(socket, options)
   handler = WebSocket::Protocol.client(socket, options)
 
-The +server+ method returns a handler chosen using the socket's +env+. The
+The +rack+ method returns a handler chosen using the socket's +env+. The
 +client+ method always returns a handler for the RFC version of the protocol
 with masking enabled on outgoing frames.
 

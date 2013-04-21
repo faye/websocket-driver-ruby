@@ -139,7 +139,11 @@ module WebSocket
       utf8_string(string)
     end
 
-    def self.server(socket, options = {})
+    def self.client(socket, options = {})
+      Client.new(socket, options.merge(:masking => true))
+    end
+
+    def self.rack(socket, options = {})
       env = socket.env
       if env['HTTP_SEC_WEBSOCKET_VERSION']
         Hybi.new(socket, options.merge(:require_masking => true))
@@ -148,10 +152,6 @@ module WebSocket
       else
         Draft75.new(socket, options)
       end
-    end
-
-    def self.client(socket, options = {})
-      Client.new(socket, options.merge(:masking => true))
     end
 
     def self.utf8_string(string)
