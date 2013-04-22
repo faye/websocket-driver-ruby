@@ -12,8 +12,7 @@ Gem::Specification.new do |s|
 
   files = %w[README.rdoc CHANGELOG.txt] +
           Dir.glob("ext/**/*.{c,java,rb}") +
-          Dir.glob("lib/**/*.rb") +
-          Dir.glob("spec/**/*")
+          Dir.glob("lib/**/*.rb")
 
   if RUBY_PLATFORM =~ /java/
     s.platform = "java"
