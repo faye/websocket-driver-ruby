@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name              = "websocket-protocol"
   s.version           = "0.0.0"
-  s.summary           = "Standards-compliant WebSocket protocol handlers"
+  s.summary           = "WebSocket protocol handler with pluggable I/O"
   s.author            = "James Coglan"
   s.email             = "jcoglan@gmail.com"
   s.homepage          = "http://github.com/faye/websocket-protocol-ruby"
