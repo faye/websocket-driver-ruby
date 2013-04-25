@@ -1,4 +1,5 @@
 require 'rubygems/package_task'
+require 'rspec/core/rake_task'
 
 spec = Gem::Specification.load('websocket-protocol.gemspec')
 
@@ -21,3 +22,5 @@ task :clean do
   FileUtils.rm_rf('./pkg')
   FileUtils.rm_rf('./tmp')
 end
+
+RSpec::Core::RakeTask.new(:spec)
