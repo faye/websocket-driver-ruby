@@ -9,6 +9,7 @@ module WebSocket
       def initialize(socket, options = {})
         super
 
+        @extra_headers = options[:headers] if options[:headers]
         @ready_state = -1
         @key         = Client.generate_key
         @accept      = Base64.encode64(Digest::SHA1.digest(@key + GUID)).strip
@@ -58,6 +59,12 @@ module WebSocket
                     "Sec-WebSocket-Key: #{@key}",
                     "Sec-WebSocket-Version: 13"
                   ]
+
+        if @extra_headers && @extra_headers.is_a?(Hash)
+          @extra_headers.each do |key, value|
+            headers << "#{key}: #{value}"
+          end
+        end
 
         if @protocols
           headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"
