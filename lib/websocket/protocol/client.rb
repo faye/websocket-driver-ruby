@@ -12,10 +12,12 @@ module WebSocket
         @ready_state = -1
         @key         = Client.generate_key
         @accept      = Base64.encode64(Digest::SHA1.digest(@key + GUID)).strip
+        @origin      = options.fetch(:origin) { nil }
       end
 
       def start
         return false unless @ready_state == -1
+        puts handshake_request
         @socket.write(handshake_request)
         @ready_state = 0
         true
@@ -43,7 +45,7 @@ module WebSocket
         parse(message) if @ready_state == 1
       end
 
-    private 
+    private
 
       def handshake_request
         uri   = URI.parse(@socket.url)
@@ -58,6 +60,10 @@ module WebSocket
                     "Sec-WebSocket-Key: #{@key}",
                     "Sec-WebSocket-Version: 13"
                   ]
+
+        if @origin
+          headers << "Origin: #{@origin}"
+        end
 
         if @protocols
           headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"
