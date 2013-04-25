@@ -16,6 +16,7 @@ module WebSocket
 
       def start
         return false unless @ready_state == -1
+        puts handshake_request
         @socket.write(handshake_request)
         @ready_state = 0
         true
@@ -43,7 +44,7 @@ module WebSocket
         parse(message) if @ready_state == 1
       end
 
-    private 
+    private
 
       def handshake_request
         uri   = URI.parse(@socket.url)
@@ -56,7 +57,8 @@ module WebSocket
                     "Upgrade: websocket",
                     "Connection: Upgrade",
                     "Sec-WebSocket-Key: #{@key}",
-                    "Sec-WebSocket-Version: 13"
+                    "Sec-WebSocket-Version: 13",
+                    "Origin: #{uri.scheme}://#{host}"
                   ]
 
         if @protocols

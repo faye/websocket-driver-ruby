@@ -58,6 +58,7 @@ describe WebSocket::Protocol::Client do
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
             "Sec-WebSocket-Version: 13\r\n" +
+            "Origin: ws://www.example.com\r\n" +
             "\r\n")
         protocol.start
       end
@@ -77,6 +78,7 @@ describe WebSocket::Protocol::Client do
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
               "Sec-WebSocket-Version: 13\r\n" +
+              "Origin: ws://www.example.com\r\n" +
               "Sec-WebSocket-Protocol: foo, bar, xmpp\r\n" +
               "\r\n")
           protocol.start
