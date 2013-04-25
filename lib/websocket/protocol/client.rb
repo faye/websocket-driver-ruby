@@ -12,6 +12,7 @@ module WebSocket
         @ready_state = -1
         @key         = Client.generate_key
         @accept      = Base64.encode64(Digest::SHA1.digest(@key + GUID)).strip
+        @origin      = options.fetch(:origin) { nil }
       end
 
       def start
@@ -57,9 +58,12 @@ module WebSocket
                     "Upgrade: websocket",
                     "Connection: Upgrade",
                     "Sec-WebSocket-Key: #{@key}",
-                    "Sec-WebSocket-Version: 13",
-                    "Origin: #{uri.scheme}://#{host}"
+                    "Sec-WebSocket-Version: 13"
                   ]
+
+        if @origin
+          headers << "Origin: #{@origin}"
+        end
 
         if @protocols
           headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"

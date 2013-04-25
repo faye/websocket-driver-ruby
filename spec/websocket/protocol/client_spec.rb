@@ -11,10 +11,14 @@ describe WebSocket::Protocol::Client do
   end
 
   let :options do
-    {:protocols => protocols}
+    {:protocols => protocols, origin: origin}
   end
 
   let :protocols do
+    nil
+  end
+
+  let :origin do
     nil
   end
 
@@ -52,13 +56,12 @@ describe WebSocket::Protocol::Client do
     describe :start do
       it "writes the handshake request to the socket" do
         socket.should_receive(:write).with(
-            "GET /socket HTTP/1.1\r\n" + 
+            "GET /socket HTTP/1.1\r\n" +
             "Host: www.example.com\r\n" +
             "Upgrade: websocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
             "Sec-WebSocket-Version: 13\r\n" +
-            "Origin: ws://www.example.com\r\n" +
             "\r\n")
         protocol.start
       end
@@ -67,18 +70,35 @@ describe WebSocket::Protocol::Client do
         protocol.start.should == true
       end
 
-      describe "with subprotocols" do
-        let(:protocols) { ["foo", "bar", "xmpp"] }
+      describe "with origin" do
+        let(:origin){ "http://www.example.com" }
 
-        it "writes the handshake with Sec-WebSocket-Protocol" do
+        it "writes the handshake with Origin" do
           socket.should_receive(:write).with(
-              "GET /socket HTTP/1.1\r\n" + 
+              "GET /socket HTTP/1.1\r\n" +
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
               "Sec-WebSocket-Version: 13\r\n" +
-              "Origin: ws://www.example.com\r\n" +
+              "Origin: http://www.example.com\r\n" +
+              "\r\n")
+          protocol.start
+        end
+      end
+
+
+      describe "with subprotocols" do
+        let(:protocols) { ["foo", "bar", "xmpp"] }
+
+        it "writes the handshake with Sec-WebSocket-Protocol" do
+          socket.should_receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" +
+              "Host: www.example.com\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
               "Sec-WebSocket-Protocol: foo, bar, xmpp\r\n" +
               "\r\n")
           protocol.start
