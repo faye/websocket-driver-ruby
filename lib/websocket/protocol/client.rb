@@ -11,7 +11,7 @@ module WebSocket
 
         @ready_state = -1
         @key         = Client.generate_key
-        @accept      = Base64.encode64(Digest::SHA1.digest(@key + GUID)).strip
+        @accept      = Hybi.generate_accept(@key)
       end
 
       def start

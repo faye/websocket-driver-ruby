@@ -92,23 +92,23 @@ module WebSocket
       true
     end
 
-    def onopen(&block)
-      @onopen = block if block_given?
+    def onopen(&callback)
+      @onopen = callback if block_given?
       @onopen
     end
 
-    def onmessage(&block)
-      @onmessage = block if block_given?
+    def onmessage(&callback)
+      @onmessage = callback if block_given?
       @onmessage
     end
 
-    def onerror(&block)
-      @onerror = block if block_given?
+    def onerror(&callback)
+      @onerror = callback if block_given?
       @onerror
     end
 
-    def onclose(&block)
-      @onclose = block if block_given?
+    def onclose(&callback)
+      @onclose = callback if block_given?
       @onclose
     end
 

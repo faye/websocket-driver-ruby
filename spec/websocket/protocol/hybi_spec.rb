@@ -77,6 +77,11 @@ describe WebSocket::Protocol::Hybi do
               "\r\n")
           protocol.start
         end
+
+        it "sets the subprotocol" do
+          protocol.start
+          protocol.protocol.should == "xmpp"
+        end
       end
 
       it "triggers the onopen event" do
@@ -112,12 +117,10 @@ describe WebSocket::Protocol::Hybi do
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
             "\r\n")
-        socket.should_receive(:write).with(WebSocket::Protocol.encode [0x81, 2, 72, 105])
+        socket.should_receive(:write).with(WebSocket::Protocol.encode [0x81, 0x02, 72, 105])
 
         protocol.frame("Hi")
         protocol.start
-
-        @bytes.should == [0x81, 2, 72, 105]
       end
     end
 
@@ -138,12 +141,10 @@ describe WebSocket::Protocol::Hybi do
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
             "\r\n")
-        socket.should_receive(:write).with(WebSocket::Protocol.encode [137, 0])
+        socket.should_receive(:write).with(WebSocket::Protocol.encode [0x89, 0])
 
         protocol.ping
         protocol.start
-
-        @bytes.should == [0x89, 0]
       end
     end
 
@@ -365,7 +366,7 @@ describe WebSocket::Protocol::Hybi do
 
     it "does not emit a message" do
       protocol.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]
-      @messages.should == nil
+      @message.should == ""
     end
 
     it "returns an error" do
