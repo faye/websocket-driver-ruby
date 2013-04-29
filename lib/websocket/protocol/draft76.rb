@@ -2,13 +2,13 @@ module WebSocket
   class Protocol
 
     class Draft76 < Draft75
-      HEAD_SIZE = 8
+      BODY_SIZE = 8
 
       def initialize(socket, options = {})
         super
         input  = @socket.env['rack.input']
         @stage = -1
-        @head  = input ? input.read.bytes.to_a : []
+        @body  = input ? input.read.bytes.to_a : []
       end
 
       def version
@@ -42,9 +42,9 @@ module WebSocket
       end
 
       def handshake_signature
-        return nil unless @head.size >= HEAD_SIZE
+        return nil unless @body.size >= BODY_SIZE
 
-        head = @head[0...HEAD_SIZE].pack('C*')
+        head = @body[0...BODY_SIZE].pack('C*')
         head.force_encoding('ASCII-8BIT') if head.respond_to?(:force_encoding)
 
         env = @socket.env
@@ -65,7 +65,7 @@ module WebSocket
         @socket.write(signature)
         @stage = 0
         open
-        parse(@head[HEAD_SIZE..-1]) if @head.size > HEAD_SIZE
+        parse(@body[BODY_SIZE..-1]) if @body.size > BODY_SIZE
       end
 
       def parse_leading_byte(data)

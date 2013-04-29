@@ -17,7 +17,7 @@ module WebSocket
         buffer.each do |data|
           case @stage
             when -1 then
-              @head << data
+              @body << data
               send_handshake_body
 
             when 0 then
