@@ -14,6 +14,10 @@ module WebSocket
         @accept      = Hybi.generate_accept(@key)
       end
 
+      def version
+        'hybi-13'
+      end
+
       def start
         return false unless @ready_state == -1
         @socket.write(handshake_request)
