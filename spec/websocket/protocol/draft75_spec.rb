@@ -52,6 +52,10 @@ describe WebSocket::Protocol::Draft75 do
         protocol.start
       end
 
+      it "returns true" do
+        protocol.start.should == true
+      end
+
       it "triggers the onopen event" do
         protocol.start
         @open.should == true

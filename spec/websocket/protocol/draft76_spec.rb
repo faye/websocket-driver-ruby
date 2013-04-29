@@ -66,6 +66,10 @@ describe WebSocket::Protocol::Draft76 do
         protocol.start
       end
 
+      it "returns true" do
+        protocol.start.should == true
+      end
+
       it "triggers the onopen event" do
         protocol.start
         @open.should == true
@@ -106,14 +110,14 @@ describe WebSocket::Protocol::Draft76 do
         protocol.frame("Hi")
         protocol.start
 
-        @bytes.should == [0x00, 72, 105, 0xFF]
+        @bytes.should == [0x00, 72, 105, 0xff]
       end
     end
 
     describe "with no request body" do
       before { env.delete("rack.input") }
 
-      describe :state do
+      describe :start do
         it "writes the handshake response with no body" do
           socket.should_receive(:write).with(
               "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" +
@@ -172,7 +176,7 @@ describe WebSocket::Protocol::Draft76 do
 
     describe :parse do
       it "closes the socket if a close frame is received" do
-        protocol.parse [0xFF, 0x00]
+        protocol.parse [0xff, 0x00]
         @close.should == true
         protocol.state.should == :closed
       end
@@ -181,7 +185,7 @@ describe WebSocket::Protocol::Draft76 do
     describe :close do
       it "writes a close message to the socket" do
         protocol.close
-        @bytes.should == [0xFF, 0x00]
+        @bytes.should == [0xff, 0x00]
       end
     end
   end

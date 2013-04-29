@@ -26,6 +26,7 @@ module WebSocket
         @socket.write("\xFF\x00")
         @ready_state = 3
         dispatch(:onclose, CloseEvent.new(nil, nil))
+        true
       end
 
     private
