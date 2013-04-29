@@ -157,17 +157,17 @@ be sent over the socket, they will give this to you by calling
 
 ==== <tt>handler.onopen { |event| }</tt>
 
-Sets the handler block to execute when the socket becomes open.
+Sets the callback block to execute when the socket becomes open.
 
 ==== <tt>handler.onmessage { |event| }</tt>
 
-Sets the handler block to execute when a message is received. +event+ will have
-a +data+ attribute containing either a string in the case of a text message or
-an array of integers in the case of a binary message.
+Sets the callback block to execute when a message is received. +event+ will
+have a +data+ attribute containing either a string in the case of a text
+message or an array of integers in the case of a binary message.
 
 ==== <tt>handler.onclose { |event| }</tt>
 
-Sets the handler block to execute when the socket becomes closed. The +event+
+Sets the callback block to execute when the socket becomes closed. The +event+
 object has +code+ and +reason+ attributes.
 
 ==== <tt>handler.start</tt>
