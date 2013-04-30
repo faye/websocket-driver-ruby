@@ -47,14 +47,18 @@ module WebSocket
     class MessageEvent < Struct.new(:data) ; end
     class CloseEvent < Struct.new(:code, :reason) ; end
 
-    autoload :Draft75, root + '/draft75'
-    autoload :Draft76, root + '/draft76'
-    autoload :Hybi,    root + '/hybi'
-    autoload :Client,  root + '/client'
+    autoload :EventEmitter, root + '/event_emitter'
+    autoload :Draft75,      root + '/draft75'
+    autoload :Draft76,      root + '/draft76'
+    autoload :Hybi,         root + '/hybi'
+    autoload :Client,       root + '/client'
 
+    include EventEmitter
     attr_reader :protocol, :ready_state
 
     def initialize(socket, options = {})
+      super()
+
       @socket      = socket
       @options     = options
       @queue       = []
@@ -88,28 +92,8 @@ module WebSocket
     def close(reason = nil, code = nil)
       return false unless @ready_state == 1
       @ready_state = 3
-      dispatch(:onclose, CloseEvent.new(nil, nil))
+      emit(:close, CloseEvent.new(nil, nil))
       true
-    end
-
-    def onopen(&callback)
-      @onopen = callback if block_given?
-      @onopen
-    end
-
-    def onmessage(&callback)
-      @onmessage = callback if block_given?
-      @onmessage
-    end
-
-    def onerror(&callback)
-      @onerror = callback if block_given?
-      @onerror
-    end
-
-    def onclose(&callback)
-      @onclose = callback if block_given?
-      @onclose
     end
 
   private
@@ -118,12 +102,7 @@ module WebSocket
       @ready_state = 1
       @queue.each { |message| frame(*message) }
       @queue = []
-      dispatch(:onopen, OpenEvent.new)
-    end
-
-    def dispatch(name, event)
-      handler = __send__(name)
-      handler.call(event) if handler
+      emit(:open, OpenEvent.new)
     end
 
     def queue(message)

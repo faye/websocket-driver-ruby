@@ -29,10 +29,10 @@ module WebSocket
 
               if @closing and @length.zero?
                 @ready_state = 3
-                dispatch(:onclose, CloseEvent.new(nil, nil))
+                emit(:close, CloseEvent.new(nil, nil))
               elsif (0x80 & data) != 0x80
                 if @length.zero?
-                  dispatch(:onmessage, MessageEvent.new(''))
+                  emit(:message, MessageEvent.new(''))
                   @stage = 0
                 else
                   @buffer = []
@@ -42,7 +42,7 @@ module WebSocket
 
             when 2 then
               if data == 0xFF
-                dispatch(:onmessage, MessageEvent.new(Protocol.encode(@buffer)))
+                emit(:message, MessageEvent.new(Protocol.encode(@buffer)))
                 @stage = 0
               else
                 @buffer << data

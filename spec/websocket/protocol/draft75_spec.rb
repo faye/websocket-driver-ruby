@@ -24,9 +24,9 @@ describe WebSocket::Protocol::Draft75 do
 
   let :protocol do
     protocol = WebSocket::Protocol::Draft75.new(socket)
-    protocol.onopen    { |e| @open = true }
-    protocol.onmessage { |e| @message += e.data }
-    protocol.onclose   { |e| @close = true }
+    protocol.on(:open)    { |e| @open = true }
+    protocol.on(:message) { |e| @message += e.data }
+    protocol.on(:close)   { |e| @close = true }
     protocol
   end
 

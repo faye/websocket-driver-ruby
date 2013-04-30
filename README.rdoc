@@ -155,17 +155,17 @@ Note that most of these methods are commands: if they produce data that should
 be sent over the socket, they will give this to you by calling
 <tt>socket.write(string)</tt>.
 
-==== <tt>handler.onopen { |event| }</tt>
+==== <tt>handler.on('open') { |event| }</tt>
 
 Sets the callback block to execute when the socket becomes open.
 
-==== <tt>handler.onmessage { |event| }</tt>
+==== <tt>handler.on('message') { |event| }</tt>
 
 Sets the callback block to execute when a message is received. +event+ will
 have a +data+ attribute containing either a string in the case of a text
 message or an array of integers in the case of a binary message.
 
-==== <tt>handler.onclose { |event| }</tt>
+==== <tt>handler.on('close') { |event| }</tt>
 
 Sets the callback block to execute when the socket becomes closed. The +event+
 object has +code+ and +reason+ attributes.
@@ -179,8 +179,9 @@ first method you invoke.  Returns +true+ iff a handshake was sent.
 ==== <tt>handler.parse(string)</tt>
 
 Takes a string and parses it, potentially resulting in message events being
-emitted (see +onmessage+ above) or in data being sent to <tt>socket.write</tt>.
-You should send all data you receive via I/O to this method.
+emitted (see <tt>on('message')</tt> above) or in data being sent to
+<tt>socket.write</tt>.  You should send all data you receive via I/O to this
+method.
 
 ==== <tt>handler.text(string)</tt>
 
@@ -206,9 +207,9 @@ ping/pong.
 
 Initiates the closing handshake if the socket is still open. For handlers with
 no closing handshake, this will result in the immediate execution of the
-+onclose+ handler. For handlers with a closing handshake, this sends a closing
-frame and +onclose+ will execute when a response is received or a protocol
-error occurs.
+<tt>on('close')</tt> handler. For handlers with a closing handshake, this sends
+a closing frame and <tt>emit('close')</tt> will execute when a response is
+received or a protocol error occurs.
 
 ==== <tt>handler.version</tt>
 
@@ -219,7 +220,7 @@ Returns the WebSocket version in use as a string. Will either be
 
 Returns a string containing the selected subprotocol, if any was agreed upon
 using the <tt>Sec-WebSocket-Protocol</tt> mechanism. This value becomes
-available after +onopen+ has fired.
+available after <tt>emit('open')</tt> has fired.
 
 
 == License

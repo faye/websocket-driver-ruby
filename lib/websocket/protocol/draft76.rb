@@ -25,7 +25,7 @@ module WebSocket
         return false if @ready_state == 3
         @socket.write("\xFF\x00")
         @ready_state = 3
-        dispatch(:onclose, CloseEvent.new(nil, nil))
+        emit(:close, CloseEvent.new(nil, nil))
         true
       end
 

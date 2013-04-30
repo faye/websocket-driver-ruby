@@ -172,7 +172,7 @@ module WebSocket
         case @ready_state
           when 0 then
             @ready_state = 3
-            dispatch(:onclose, CloseEvent.new(code, reason))
+            emit(:close, CloseEvent.new(code, reason))
             true
           when 1 then
             frame(reason, :close, code)
@@ -219,7 +219,7 @@ module WebSocket
 
         frame(reason, :close, code)
         @ready_state = 3
-        dispatch(:onclose, CloseEvent.new(code, reason))
+        emit(:close, CloseEvent.new(code, reason))
       end
 
       def parse_opcode(data)
@@ -278,7 +278,7 @@ module WebSocket
               message = Protocol.encode(message, true) if @mode == :text
               reset
               if message
-                dispatch(:onmessage, MessageEvent.new(message))
+                emit(:message, MessageEvent.new(message))
               else
                 shutdown(ERRORS[:encoding_error], nil)
               end
@@ -288,7 +288,7 @@ module WebSocket
             if @final
               message = Protocol.encode(payload, true)
               if message
-                dispatch(:onmessage, MessageEvent.new(message))
+                emit(:message, MessageEvent.new(message))
               else
                 shutdown(ERRORS[:encoding_error], nil)
               end
@@ -299,7 +299,7 @@ module WebSocket
 
           when OPCODES[:binary] then
             if @final
-              dispatch(:onmessage, MessageEvent.new(payload))
+              emit(:message, MessageEvent.new(payload))
             else
               @mode = :binary
               @buffer.concat(payload)

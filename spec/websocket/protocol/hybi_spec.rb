@@ -30,9 +30,9 @@ describe WebSocket::Protocol::Hybi do
 
   let :protocol do
     protocol = WebSocket::Protocol::Hybi.new(socket, options)
-    protocol.onopen    { |e| @open = true }
-    protocol.onmessage { |e| @message += e.data }
-    protocol.onclose   { |e| @close = [e.code, e.reason] }
+    protocol.on(:open)    { |e| @open = true }
+    protocol.on(:message) { |e| @message += e.data }
+    protocol.on(:close)   { |e| @close = [e.code, e.reason] }
     protocol
   end
 
