@@ -32,12 +32,13 @@ describe WebSocket::Protocol::Hybi do
     protocol = WebSocket::Protocol::Hybi.new(socket, options)
     protocol.on(:open)    { |e| @open = true }
     protocol.on(:message) { |e| @message += e.data }
+    protocol.on(:error)   { |e| @error = e }
     protocol.on(:close)   { |e| @close = [e.code, e.reason] }
     protocol
   end
 
   before do
-    @open = @close = false
+    @open = @error = @close = false
     @message = ""
   end
 
@@ -223,8 +224,9 @@ describe WebSocket::Protocol::Hybi do
 
       it "closes the socket if the frame has an unrecognized opcode" do
         protocol.parse [0x83, 0x00]
-        @bytes.should == [0x88, 0x02, 0x03, 0xea]
-        @close.should == [1002, ""]
+        @bytes[0..3].should == [0x88, 0x1e, 0x03, 0xea]
+        @error.message.should == "Unrecognized frame opcode: 3"
+        @close.should == [1002, "Unrecognized frame opcode: 3"]
         protocol.state.should == :closed
       end
 
@@ -351,6 +353,11 @@ describe WebSocket::Protocol::Hybi do
         @close.should == false
       end
 
+      it "does not trigger the onerror event" do
+        protocol.close
+        @error.should == false
+      end
+
       it "changes the state to :closing" do
         protocol.close
         protocol.state.should == :closing
@@ -371,7 +378,7 @@ describe WebSocket::Protocol::Hybi do
 
     it "returns an error" do
       protocol.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f]
-      @close.should == [1003, ""]
+      @close.should == [1003, "Received unmasked frame but masking is required"]
     end
   end
 

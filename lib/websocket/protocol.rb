@@ -47,6 +47,8 @@ module WebSocket
     class MessageEvent < Struct.new(:data) ; end
     class CloseEvent < Struct.new(:code, :reason) ; end
 
+    class ProtocolError < StandardError ; end
+
     autoload :EventEmitter, root + '/event_emitter'
     autoload :Draft75,      root + '/draft75'
     autoload :Draft76,      root + '/draft76'

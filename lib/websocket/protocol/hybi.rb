@@ -28,8 +28,9 @@ module WebSocket
         :pong         => 10
       }
 
+      OPCODE_CODES       = OPCODES.values
       FRAGMENTED_OPCODES = OPCODES.values_at(:continuation, :text, :binary)
-      OPENING_OPCODES = OPCODES.values_at(:text, :binary)
+      OPENING_OPCODES    = OPCODES.values_at(:text, :binary)
 
       ERRORS = {
         :normal_closure       => 1000,
@@ -43,7 +44,9 @@ module WebSocket
         :unexpected_condition => 1011
       }
 
-      ERROR_CODES = ERRORS.values
+      ERROR_CODES        = ERRORS.values
+      MIN_RESERVED_ERROR = 3000
+      MAX_RESERVED_ERROR = 499
 
       def initialize(socket, options = {})
         super
@@ -52,7 +55,7 @@ module WebSocket
         @reader    = StreamReader.new
         @stage     = 0
         @masking   = options[:masking]
-        @protocols = options[:protocols]
+        @protocols = options[:protocols] || []
         @protocols = @protocols.strip.split(/\s*,\s*/) if String === @protocols
 
         @require_masking = options[:require_masking]
@@ -201,7 +204,7 @@ module WebSocket
           "Sec-WebSocket-Accept: #{accept}"
         ]
 
-        if protos and supported
+        if protos
           protos = protos.split(/\s*,\s*/) if String === protos
           proto = protos.find { |p| supported.include?(p) }
           if proto
@@ -214,17 +217,24 @@ module WebSocket
       end
 
       def shutdown(code, reason)
-        code   ||= ERRORS[:normal_closure]
-        reason ||= ''
-
         frame(reason, :close, code)
         @ready_state = 3
         emit(:close, CloseEvent.new(code, reason))
       end
 
+      def fail(type, message)
+        emit(:error, ProtocolError.new(message))
+        shutdown(ERRORS[type], message)
+      end
+
       def parse_opcode(data)
-        if [RSV1, RSV2, RSV3].any? { |rsv| (data & rsv) == rsv }
-          return shutdown(ERRORS[:protocol_error], nil)
+        rsvs = [RSV1, RSV2, RSV3].map { |rsv| (data & rsv) == rsv }
+
+        if rsvs.any?
+          return fail(:protocol_error,
+              "One or more reserved bits are on: reserved1 = #{rsvs[0] ? 1 : 0}" +
+              ", reserved2 = #{rsvs[1] ? 1 : 0 }" +
+              ", reserved3 = #{rsvs[2] ? 1 : 0 }")
         end
 
         @final   = (data & FIN) == FIN
@@ -233,15 +243,15 @@ module WebSocket
         @payload = []
 
         unless OPCODES.values.include?(@opcode)
-          return shutdown(ERRORS[:protocol_error], nil)
+          return fail(:protocol_error, "Unrecognized frame opcode: #{@opcode}")
         end
 
         unless FRAGMENTED_OPCODES.include?(@opcode) or @final
-          return shutdown(ERRORS[:protocol_error], nil)
+          return fail(:protocol_error, "Received fragmented control frame: opcode = #{@opcode}")
         end
 
         if @mode and OPENING_OPCODES.include?(@opcode)
-          return shutdown(ERRORS[:protocol_error], nil)
+          return fail(:protocol_error, 'Received new data frame but previous continuous frame is unfinished')
         end
 
         @stage = 1
@@ -249,7 +259,9 @@ module WebSocket
 
       def parse_length(data)
         @masked = (data & MASK) == MASK
-        return shutdown(ERRORS[:unacceptable], nil) if @require_masking and not @masked
+        if @require_masking and not @masked
+          return fail(:unacceptable, 'Received unmasked frame but masking is required')
+        end
 
         @length = (data & LENGTH)
 
@@ -263,6 +275,11 @@ module WebSocket
 
       def parse_extended_length(buffer)
         @length = integer(buffer)
+
+        unless FRAGMENTED_OPCODES.include?(@opcode) or @length <= 125
+          return fail(:protocol_error, "Received control frame having too long payload: #{@length}")
+        end
+
         @stage  = @masked ? 3 : 4
       end
 
@@ -271,7 +288,7 @@ module WebSocket
 
         case @opcode
           when OPCODES[:continuation] then
-            return shutdown(ERRORS[:protocol_error], nil) unless @mode
+            return fail(:protocol_error, 'Received unexpected continuation frame') unless @mode
             @buffer.concat(payload)
             if @final
               message = @buffer
@@ -280,7 +297,7 @@ module WebSocket
               if message
                 emit(:message, MessageEvent.new(message))
               else
-                shutdown(ERRORS[:encoding_error], nil)
+                fail(:encoding_error, 'Could not decode a text frame as UTF-8')
               end
             end
 
@@ -290,7 +307,7 @@ module WebSocket
               if message
                 emit(:message, MessageEvent.new(message))
               else
-                shutdown(ERRORS[:encoding_error], nil)
+                fail(:encoding_error, 'Could not decode a text frame as UTF-8')
               end
             else
               @mode = :text
@@ -309,7 +326,7 @@ module WebSocket
             code = (payload.size >= 2) ? 256 * payload[0] + payload[1] : nil
 
             unless (payload.size == 0) or
-                   (code && code >= 3000 && code < 5000) or
+                   (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
                    ERROR_CODES.include?(code)
               code = ERRORS[:protocol_error]
             end
@@ -319,10 +336,9 @@ module WebSocket
             end
 
             reason = (payload.size > 2) ? Protocol.encode(payload[2..-1], true) : ''
-            shutdown(code, reason)
+            shutdown(code, reason || '')
 
           when OPCODES[:ping] then
-            return shutdown(ERRORS[:protocol_error], nil) if payload.size > 125
             frame(payload, :pong)
 
           when OPCODES[:pong] then

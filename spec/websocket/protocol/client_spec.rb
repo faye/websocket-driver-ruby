@@ -22,6 +22,7 @@ describe WebSocket::Protocol::Client do
     protocol = WebSocket::Protocol::Client.new(socket, options)
     protocol.on(:open)    { |e| @open = true }
     protocol.on(:message) { |e| @message += e.data }
+    protocol.on(:error)   { |e| @error = e }
     protocol.on(:close)   { |e| @close = [e.code, e.reason] }
     protocol
   end
@@ -40,7 +41,7 @@ describe WebSocket::Protocol::Client do
 
   before do
     WebSocket::Protocol::Client.stub(:generate_key).and_return(key)
-    @open = @close = false
+    @open = @error = @close = false
     @message = ""
   end
 
@@ -128,7 +129,8 @@ describe WebSocket::Protocol::Client do
 
       it "changes the state to :closed" do
         @open.should == false
-        @close.should == [1002, ""]
+        @error.message.should == "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"
+        @close.should == [1002, "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"]
         protocol.state.should == :closed
       end
     end
@@ -141,7 +143,8 @@ describe WebSocket::Protocol::Client do
 
       it "changes the state to :closed" do
         @open.should == false
-        @close.should == [1002, ""]
+        @error.message.should == "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"
+        @close.should == [1002, "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"]
         protocol.state.should == :closed
       end
     end
@@ -175,7 +178,8 @@ describe WebSocket::Protocol::Client do
 
       it "changes the state to :closed" do
         @open.should == false
-        @close.should == [1002, ""]
+        @error.message.should == "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"
+        @close.should == [1002, "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"]
         protocol.state.should == :closed
       end
 

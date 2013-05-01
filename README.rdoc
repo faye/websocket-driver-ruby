@@ -165,6 +165,12 @@ Sets the callback block to execute when a message is received. +event+ will
 have a +data+ attribute containing either a string in the case of a text
 message or an array of integers in the case of a binary message.
 
+==== <tt>handler.on('error') { |event| }</tt>
+
+Sets the callback to execute when a protocol error occurs due to the other peer
+sending an invalid byte sequence. +event+ will have a +message+ attribute
+describing the error.
+
 ==== <tt>handler.on('close') { |event| }</tt>
 
 Sets the callback block to execute when the socket becomes closed. The +event+

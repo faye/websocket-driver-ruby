@@ -32,14 +32,7 @@ module WebSocket
           case @ready_state
             when 0 then
               @buffer << data
-              if @buffer[-4..-1] == [0x0D, 0x0A, 0x0D, 0x0A]
-                if valid?
-                  open
-                else
-                  @ready_state = 3
-                  emit(:close, CloseEvent.new(ERRORS[:protocol_error], ''))
-                end
-              end
+              validate_handshake if @buffer[-4..-1] == [0x0D, 0x0A, 0x0D, 0x0A]
             when 1 then
               message << data
           end
@@ -63,33 +56,59 @@ module WebSocket
                     "Sec-WebSocket-Version: 13"
                   ]
 
-        if @protocols
+        if @protocols.size > 0
           headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"
         end
 
         (headers + ['', '']).join("\r\n")
       end
 
-      def valid?
-        data = Protocol.encode(@buffer)
-        @buffer = []
+      def fail_handshake(message)
+        message = "Error during WebSocket handshake: #{message}"
+        emit(:error, ProtocolError.new(message))
+        @ready_state = 3
+        emit(:close, CloseEvent.new(ERRORS[:protocol_error], message))
+      end
 
+      def validate_handshake
+        data     = Protocol.encode(@buffer)
+        @buffer  = []
         response = Net::HTTPResponse.read_new(Net::BufferedIO.new(StringIO.new(data)))
-        return false unless response.code.to_i == 101
 
-        connection = response['Connection'] || ''
+        unless response.code.to_i == 101
+          return fail_handshake("Unexpected response code: #{response.code}")
+        end
+
         upgrade    = response['Upgrade'] || ''
-        accept     = response['Sec-WebSocket-Accept']
-        protocol   = response['Sec-WebSocket-Protocol']
+        connection = response['Connection'] || ''
+        accept     = response['Sec-WebSocket-Accept'] || ''
+        protocol   = response['Sec-WebSocket-Protocol'] || ''
 
-        @protocol = @protocols && @protocols.include?(protocol) ?
-                    protocol :
-                    nil
+        if upgrade == ''
+          return fail_handshake("'Upgrade' header is missing")
+        elsif upgrade.downcase != 'websocket'
+          return fail_handshake("'Upgrade' header value is not 'WebSocket'")
+        end
 
-        connection.downcase.split(/\s*,\s*/).include?('upgrade') and
-        upgrade.downcase == 'websocket' and
-        ((!@protocols and !protocol) or @protocol) and
-        accept == @accept
+        if connection == ''
+          return fail_handshake("'Connection' header is missing")
+        elsif connection.downcase != 'upgrade'
+          return fail_handshake("'Connection' header value is not 'Upgrade'")
+        end
+
+        unless accept == @accept
+          return fail_handshake('Sec-WebSocket-Accept mismatch')
+        end
+
+        unless protocol == ''
+          if @protocols.include?(protocol)
+            @protocol = protocol
+          else
+            return fail_handshake('Sec-WebSocket-Protocol mismatch')
+          end
+        end
+
+        open
       end
     end
 

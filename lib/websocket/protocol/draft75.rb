@@ -32,10 +32,9 @@ module WebSocket
                 emit(:close, CloseEvent.new(nil, nil))
               elsif (0x80 & data) != 0x80
                 if @length.zero?
-                  emit(:message, MessageEvent.new(''))
                   @stage = 0
                 else
-                  @buffer = []
+                  @skipped = 0
                   @stage = 2
                 end
               end
@@ -45,9 +44,11 @@ module WebSocket
                 emit(:message, MessageEvent.new(Protocol.encode(@buffer)))
                 @stage = 0
               else
-                @buffer << data
-                if @length and @buffer.size == @length
-                  @stage = 0
+                if @length
+                  @skipped += 1
+                  @stage = 0 if @skipped == @length
+                else
+                  @buffer << data
                 end
               end
           end
@@ -77,11 +78,12 @@ module WebSocket
       def parse_leading_byte(data)
         if (0x80 & data) == 0x80
           @length = 0
-          @stage = 1
+          @stage  = 1
         else
-          @length = nil
-          @buffer = []
-          @stage = 2
+          @length  = nil
+          @skipped = nil
+          @buffer  = []
+          @stage   = 2
         end
       end
     end
