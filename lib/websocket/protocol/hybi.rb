@@ -46,7 +46,7 @@ module WebSocket
 
       ERROR_CODES        = ERRORS.values
       MIN_RESERVED_ERROR = 3000
-      MAX_RESERVED_ERROR = 499
+      MAX_RESERVED_ERROR = 4999
 
       def initialize(socket, options = {})
         super
