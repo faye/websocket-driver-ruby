@@ -13,5 +13,5 @@ rvm:
 before_script:
   - rake compile
 
-script: bundle exec rspec spec/
+script: bundle exec rspec -c spec/
 

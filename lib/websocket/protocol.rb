@@ -17,15 +17,7 @@ module WebSocket
     root = File.expand_path('../protocol', __FILE__)
     require root + '/../../websocket_mask'
 
-    def self.jruby?
-      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
-    end
-
-    def self.rbx?
-      defined?(RUBY_ENGINE) && RUBY_ENGINE == 'rbx'
-    end
-
-    if jruby?
+    if RUBY_PLATFORM =~ /java/
       require 'jruby'
       com.jcoglan.websocket.WebsocketMaskService.new.basicLoad(JRuby.runtime)
     end

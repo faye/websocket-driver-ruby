@@ -28,6 +28,11 @@ project but now aims to provide simple WebSocket support for any Ruby server or
 I/O system.
 
 
+== Installation
+
+  $ gem install websocket-protocol
+
+
 == Usage
 
 To build either a server-side or client-side socket, the only requirement is
