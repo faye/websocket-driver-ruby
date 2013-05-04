@@ -1,5 +1,5 @@
 module WebSocket
-  class Protocol
+  class Driver
 
     module EventEmitter
       def initialize

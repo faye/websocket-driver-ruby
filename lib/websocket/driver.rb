@@ -12,9 +12,9 @@ require 'stringio'
 require 'uri'
 
 module WebSocket
-  class Protocol
+  class Driver
 
-    root = File.expand_path('../protocol', __FILE__)
+    root = File.expand_path('../driver', __FILE__)
     require root + '/../../websocket_mask'
 
     if RUBY_PLATFORM =~ /java/

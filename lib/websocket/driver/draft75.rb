@@ -1,7 +1,7 @@
 module WebSocket
-  class Protocol
+  class Driver
 
-    class Draft75 < Protocol
+    class Draft75 < Driver
       def initialize(socket, options = {})
         super
         @stage = 0
@@ -41,7 +41,7 @@ module WebSocket
 
             when 2 then
               if data == 0xFF
-                emit(:message, MessageEvent.new(Protocol.encode(@buffer)))
+                emit(:message, MessageEvent.new(Driver.encode(@buffer)))
                 @stage = 0
               else
                 if @length
@@ -57,8 +57,8 @@ module WebSocket
 
       def frame(data, type = nil, error_type = nil)
         return queue([data, type, error_type]) if @ready_state == 0
-        data = Protocol.encode(data)
-        frame = ["\x00", data, "\xFF"].map(&Protocol.method(:encode)) * ''
+        data = Driver.encode(data)
+        frame = ["\x00", data, "\xFF"].map(&Driver.method(:encode)) * ''
         @socket.write(frame)
         true
       end

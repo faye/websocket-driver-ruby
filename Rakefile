@@ -1,6 +1,6 @@
 require 'rubygems/package_task'
 
-spec = Gem::Specification.load('websocket-protocol.gemspec')
+spec = Gem::Specification.load('websocket-driver.gemspec')
 
 Gem::PackageTask.new(spec) do |pkg|
 end

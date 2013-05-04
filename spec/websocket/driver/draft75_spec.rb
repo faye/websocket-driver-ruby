@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe WebSocket::Protocol::Draft75 do
+describe WebSocket::Driver::Draft75 do
   include EncodingHelper
 
   let :env do
@@ -22,12 +22,12 @@ describe WebSocket::Protocol::Draft75 do
     socket
   end
 
-  let :protocol do
-    protocol = WebSocket::Protocol::Draft75.new(socket)
-    protocol.on(:open)    { |e| @open = true }
-    protocol.on(:message) { |e| @message += e.data }
-    protocol.on(:close)   { |e| @close = true }
-    protocol
+  let :driver do
+    driver = WebSocket::Driver::Draft75.new(socket)
+    driver.on(:open)    { |e| @open = true }
+    driver.on(:message) { |e| @message += e.data }
+    driver.on(:close)   { |e| @close = true }
+    driver
   end
 
   before do
@@ -37,7 +37,7 @@ describe WebSocket::Protocol::Draft75 do
 
   describe "in the :connecting state" do
     it "starts in the :connecting state" do
-      protocol.state.should == :connecting
+      driver.state.should == :connecting
     end
 
     describe :start do
@@ -49,37 +49,37 @@ describe WebSocket::Protocol::Draft75 do
             "WebSocket-Origin: http://www.example.com\r\n" +
             "WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
-        protocol.start
+        driver.start
       end
 
       it "returns true" do
-        protocol.start.should == true
+        driver.start.should == true
       end
 
       it "triggers the onopen event" do
-        protocol.start
+        driver.start
         @open.should == true
       end
 
       it "changes the state to :open" do
-        protocol.start
-        protocol.state.should == :open
+        driver.start
+        driver.state.should == :open
       end
 
       it "sets the protocol version" do
-        protocol.start
-        protocol.version.should == "hixie-75"
+        driver.start
+        driver.version.should == "hixie-75"
       end
     end
 
     describe :frame do
       it "does not write to the socket" do
         socket.should_not_receive(:write)
-        protocol.frame("Hello, world")
+        driver.frame("Hello, world")
       end
 
       it "returns true" do
-        protocol.frame("whatever").should == true
+        driver.frame("whatever").should == true
       end
 
       it "queues the frames until the handshake has been sent" do
@@ -92,8 +92,8 @@ describe WebSocket::Protocol::Draft75 do
             "\r\n")
         socket.should_receive(:write).with("\x00Hi\xFF")
 
-        protocol.frame("Hi")
-        protocol.start
+        driver.frame("Hi")
+        driver.start
 
         @bytes.should == [0x00, 72, 105, 0xFF]
       end

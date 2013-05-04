@@ -1,5 +1,5 @@
 module WebSocket
-  class Protocol
+  class Driver
 
     class Client < Hybi
       def self.generate_key
@@ -71,7 +71,7 @@ module WebSocket
       end
 
       def validate_handshake
-        data     = Protocol.encode(@buffer)
+        data     = Driver.encode(@buffer)
         @buffer  = []
         response = Net::HTTPResponse.read_new(Net::BufferedIO.new(StringIO.new(data)))
 

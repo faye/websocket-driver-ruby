@@ -1,7 +1,7 @@
 module WebSocket
-  class Protocol
+  class Driver
 
-    class Hybi < Protocol
+    class Hybi < Driver
       root = File.expand_path('../hybi', __FILE__)
       autoload :StreamReader, root + '/stream_reader'
 
@@ -107,7 +107,7 @@ module WebSocket
         return false unless @ready_state == 1
 
         data = data.to_s unless Array === data
-        data = Protocol.encode(data) if String === data
+        data = Driver.encode(data) if String === data
 
         is_text = (String === data)
         opcode  = OPCODES[type || (is_text ? :text : :binary)]
@@ -151,7 +151,7 @@ module WebSocket
 
         frame.concat(buffer)
 
-        @socket.write(Protocol.encode(frame))
+        @socket.write(Driver.encode(frame))
         true
       end
 
@@ -292,7 +292,7 @@ module WebSocket
             @buffer.concat(payload)
             if @final
               message = @buffer
-              message = Protocol.encode(message, true) if @mode == :text
+              message = Driver.encode(message, true) if @mode == :text
               reset
               if message
                 emit(:message, MessageEvent.new(message))
@@ -303,7 +303,7 @@ module WebSocket
 
           when OPCODES[:text] then
             if @final
-              message = Protocol.encode(payload, true)
+              message = Driver.encode(payload, true)
               if message
                 emit(:message, MessageEvent.new(message))
               else
@@ -331,18 +331,18 @@ module WebSocket
               code = ERRORS[:protocol_error]
             end
 
-            if payload.size > 125 or not Protocol.valid_utf8?(payload[2..-1] || [])
+            if payload.size > 125 or not Driver.valid_utf8?(payload[2..-1] || [])
               code = ERRORS[:protocol_error]
             end
 
-            reason = (payload.size > 2) ? Protocol.encode(payload[2..-1], true) : ''
+            reason = (payload.size > 2) ? Driver.encode(payload[2..-1], true) : ''
             shutdown(code, reason || '')
 
           when OPCODES[:ping] then
             frame(payload, :pong)
 
           when OPCODES[:pong] then
-            message = Protocol.encode(payload, true)
+            message = Driver.encode(payload, true)
             callback = @ping_callbacks[message]
             @ping_callbacks.delete(message)
             callback.call if callback

@@ -1,4 +1,4 @@
-# websocket-protocol [![Build Status](https://travis-ci.org/faye/websocket-protocol-ruby.png)](https://travis-ci.org/faye/websocket-protocol-ruby)
+# websocket-driver [![Build Status](https://travis-ci.org/faye/websocket-driver-ruby.png)](https://travis-ci.org/faye/websocket-driver-ruby)
 
 This module provides a complete implementation of the WebSocket protocols that
 can be hooked up to any TCP library. It aims to simplify things by decoupling
@@ -10,7 +10,7 @@ pluggable I/O.
 Due to this design, you get a lot of things for free. In particular, if you
 hook this module up to some I/O object, it will do all of this for you:
 
-* Select the correct server-side protocol handler to talk to the client
+* Select the correct server-side driver to talk to the client
 * Generate and send both server- and client-side handshakes
 * Recognize when the handshake phase completes and the WS protocol begins
 * Negotiate subprotocol selection based on `Sec-WebSocket-Protocol`
@@ -31,7 +31,7 @@ I/O system.
 ## Installation
 
 ```
-$ gem install websocket-protocol
+$ gem install websocket-driver
 ```
 
 
@@ -64,12 +64,12 @@ Server-side sockets require one additional method:
 ### Server-side
 
 To handle a server-side WebSocket connection, you need to check whether the
-request is a WebSocket handshake, and if so create a protocol handler for it.
-You must give the handler an object with the `env`, `url` and `write` methods.
+request is a WebSocket handshake, and if so create a protocol driver for it.
+You must give the driver an object with the `env`, `url` and `write` methods.
 A simple example might be:
 
 ```ruby
-require 'websocket/protocol'
+require 'websocket/driver'
 require 'eventmachine'
 
 class WS
@@ -82,14 +82,14 @@ class WS
     scheme = secure ? 'wss:' : 'ws:'
     @url = scheme + '//' + env['HTTP_HOST'] + env['REQUEST_URI']
 
-    @handler = WebSocket::Protocol.rack(self)
+    @driver = WebSocket::Driver.rack(self)
 
     env['rack.hijack'].call
     @io = env['rack.hijack_io']
 
-    EM.attach(@io, Reader) { |conn| conn.handler = @handler }
+    EM.attach(@io, Reader) { |conn| conn.driver = @driver }
 
-    @handler.start
+    @driver.start
   end
 
   def write(string)
@@ -97,10 +97,10 @@ class WS
   end
 
   module Reader
-    attr_writer :handler
+    attr_writer :driver
 
     def receive_data(string)
-      @handler.parse(string)
+      @driver.parse(string)
     end
   end
 end
@@ -109,132 +109,131 @@ end
 To explain what's going on here: the `WS` class implements the `env`, `url` and
 `write(string)` methods as required. When instantiated with a Rack environment,
 it stores the environment and infers the complete URL from it.  Having set up
-the `env` and `url`, it asks `WebSocket::Protocol` for a server-side handler
-for the socket. Then it uses the Rack hijack API to gain access to the TCP
-stream, and uses EventMachine to stream in incoming data from the client,
-handing incoming data off to the handler for parsing. Finally, we tell the
-handler to `start`, which will begin sending the handshake response.  This will
-invoke the `WS#write` method, which will send the response out over the TCP
-socket.
+the `env` and `url`, it asks `WebSocket::Driver` for a server-side driver for
+the socket. Then it uses the Rack hijack API to gain access to the TCP stream,
+and uses EventMachine to stream in incoming data from the client, handing
+incoming data off to the driver for parsing. Finally, we tell the driver to
+`start`, which will begin sending the handshake response.  This will invoke the
+`WS#write` method, which will send the response out over the TCP socket.
 
 Having defined this class we could use it like this when handling a request:
 
 ```ruby
-if WebSocket::Protocol.websocket?(env)
+if WebSocket::Driver.websocket?(env)
   socket = WS.new(env)
 end
 ```
 
-The handler API is described in full below.
+The driver API is described in full below.
 
 
 ### Client-side
 
 Similarly, to implement a WebSocket client you need an object with `url` and
-`write` methods. Once you have one such object, you ask for a handler for it:
+`write` methods. Once you have one such object, you ask for a driver for it:
 
 ```ruby
-handler = WebSocket::Protocol.client(socket)
+driver = WebSocket::Driver.client(socket)
 ```
 
-After this you use the handler API as described below to process incoming data
+After this you use the driver API as described below to process incoming data
 and send outgoing data.
 
 
-### Handler API
+### Driver API
 
-Handlers are created using one of the following methods:
+Drivers are created using one of the following methods:
 
 ```ruby
-handler = WebSocket::Protocol.rack(socket, options)
-handler = WebSocket::Protocol.client(socket, options)
+driver = WebSocket::Driver.rack(socket, options)
+driver = WebSocket::Driver.client(socket, options)
 ```
 
-The `rack` method returns a handler chosen using the socket's `env`. The
-`client` method always returns a handler for the RFC version of the protocol
+The `rack` method returns a driver chosen using the socket's `env`. The
+`client` method always returns a driver for the RFC version of the protocol
 with masking enabled on outgoing frames.
 
 The `options` argument is optional, and is a hash. It may contain the following
 keys:
 
 * `:protocols` - an array of strings representing acceptable subprotocols for
-  use over the socket. The handler will negotiate one of these to use via the
+  use over the socket. The driver will negotiate one of these to use via the
   `Sec-WebSocket-Protocol` header if supported by the other peer.
 
-All handlers respond to the following API methods, but some of them are no-ops
+All drivers respond to the following API methods, but some of them are no-ops
 depending on whether the client supports the behaviour.
 
 Note that most of these methods are commands: if they produce data that should
 be sent over the socket, they will give this to you by calling
 `socket.write(string)`.
 
-#### `handler.on('open') { |event| }`
+#### `driver.on('open') { |event| }`
 
 Sets the callback block to execute when the socket becomes open.
 
-#### `handler.on('message') { |event| }`
+#### `driver.on('message') { |event| }`
 
 Sets the callback block to execute when a message is received. `event` will
 have a `data` attribute containing either a string in the case of a text
 message or an array of integers in the case of a binary message.
 
-#### `handler.on('error') { |event| }`
+#### `driver.on('error') { |event| }`
 
 Sets the callback to execute when a protocol error occurs due to the other peer
 sending an invalid byte sequence. `event` will have a `message` attribute
 describing the error.
 
-#### `handler.on('close') { |event| }`
+#### `driver.on('close') { |event| }`
 
 Sets the callback block to execute when the socket becomes closed. The `event`
 object has `code` and `reason` attributes.
 
-#### `handler.start`
+#### `driver.start`
 
 Initiates the protocol by sending the handshake - either the response for a
-server-side handler or the request for a client-side one. This should be the
+server-side driver or the request for a client-side one. This should be the
 first method you invoke.  Returns `true` iff a handshake was sent.
 
-#### `handler.parse(string)`
+#### `driver.parse(string)`
 
 Takes a string and parses it, potentially resulting in message events being
 emitted (see `on('message')` above) or in data being sent to `socket.write`.
 You should send all data you receive via I/O to this method.
 
-#### `handler.text(string)`
+#### `driver.text(string)`
 
 Sends a text message over the socket. If the socket handshake is not yet
 complete, the message will be queued until it is. Returns `true` if the message
 was sent or queued, and `false` if the socket can no longer send messages.
 
-#### `handler.binary(array)`
+#### `driver.binary(array)`
 
 Takes an array of byte-sized integers and sends them as a binary message. Will
 queue and return `true` or `false` the same way as the `text` method. It will
-also return `false` if the handler does not support binary messages.
+also return `false` if the driver does not support binary messages.
 
-#### `handler.ping(string = '', &callback)`
+#### `driver.ping(string = '', &callback)`
 
 Sends a ping frame over the socket, queueing it if necessary. `string` and the
 `callback` block are both optional. If a callback is given, it will be invoked
 when the socket receives a pong frame whose content matches `string`. Returns
-`false` if frames can no longer be sent, or if the handler does not support
+`false` if frames can no longer be sent, or if the driver does not support
 ping/pong.
 
-#### `handler.close`
+#### `driver.close`
 
-Initiates the closing handshake if the socket is still open. For handlers with
+Initiates the closing handshake if the socket is still open. For drivers with
 no closing handshake, this will result in the immediate execution of the
-`on('close')` handler. For handlers with a closing handshake, this sends a
+`on('close')` callback. For drivers with a closing handshake, this sends a
 closing frame and `emit('close')` will execute when a response is received or a
 protocol error occurs.
 
-#### `handler.version`
+#### `driver.version`
 
 Returns the WebSocket version in use as a string. Will either be `hixie-75`,
 `hixie-76` or `hybi-$version`.
 
-#### `handler.protocol`
+#### `driver.protocol`
 
 Returns a string containing the selected subprotocol, if any was agreed upon
 using the `Sec-WebSocket-Protocol` mechanism. This value becomes available

@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe WebSocket::Protocol::Client do
+describe WebSocket::Driver::Client do
   include EncodingHelper
 
   let :socket do
@@ -18,13 +18,13 @@ describe WebSocket::Protocol::Client do
     nil
   end
 
-  let :protocol do
-    protocol = WebSocket::Protocol::Client.new(socket, options)
-    protocol.on(:open)    { |e| @open = true }
-    protocol.on(:message) { |e| @message += e.data }
-    protocol.on(:error)   { |e| @error = e }
-    protocol.on(:close)   { |e| @close = [e.code, e.reason] }
-    protocol
+  let :driver do
+    driver = WebSocket::Driver::Client.new(socket, options)
+    driver.on(:open)    { |e| @open = true }
+    driver.on(:message) { |e| @message += e.data }
+    driver.on(:error)   { |e| @error = e }
+    driver.on(:close)   { |e| @close = [e.code, e.reason] }
+    driver
   end
 
   let :key do
@@ -40,14 +40,14 @@ describe WebSocket::Protocol::Client do
   end
 
   before do
-    WebSocket::Protocol::Client.stub(:generate_key).and_return(key)
+    WebSocket::Driver::Client.stub(:generate_key).and_return(key)
     @open = @error = @close = false
     @message = ""
   end
 
   describe "in the beginning state" do
     it "starts in no state" do
-      protocol.state.should == nil
+      driver.state.should == nil
     end
 
     describe :start do
@@ -60,11 +60,11 @@ describe WebSocket::Protocol::Client do
             "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
             "Sec-WebSocket-Version: 13\r\n" +
             "\r\n")
-        protocol.start
+        driver.start
       end
 
       it "returns true" do
-        protocol.start.should == true
+        driver.start.should == true
       end
 
       describe "with subprotocols" do
@@ -80,40 +80,40 @@ describe WebSocket::Protocol::Client do
               "Sec-WebSocket-Version: 13\r\n" +
               "Sec-WebSocket-Protocol: foo, bar, xmpp\r\n" +
               "\r\n")
-          protocol.start
+          driver.start
         end
       end
 
       it "changes the state to :connecting" do
-        protocol.start
-        protocol.state.should == :connecting
+        driver.start
+        driver.state.should == :connecting
       end
     end
   end
 
   describe "in the :connecting state" do
-    before { protocol.start }
+    before { driver.start }
 
     describe "with a valid response" do
-      before { protocol.parse(response) }
+      before { driver.parse(response) }
 
       it "changes the state to :open" do
         @open.should == true
         @close.should == false
-        protocol.state.should == :open
+        driver.state.should == :open
       end
     end
 
     describe "with a valid response followed by a frame" do
       before do
-        resp = response + WebSocket::Protocol.encode([0x81, 0x02, 72, 105])
-        protocol.parse(resp)
+        resp = response + WebSocket::Driver.encode([0x81, 0x02, 72, 105])
+        driver.parse(resp)
       end
 
       it "changes the state to :open" do
         @open.should == true
         @close.should == false
-        protocol.state.should == :open
+        driver.state.should == :open
       end
 
       it "parses the frame" do
@@ -124,28 +124,28 @@ describe WebSocket::Protocol::Client do
     describe "with a bad Upgrade header" do
       before do
         resp = response.gsub(/websocket/, "wrong")
-        protocol.parse(resp)
+        driver.parse(resp)
       end
 
       it "changes the state to :closed" do
         @open.should == false
         @error.message.should == "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"
         @close.should == [1002, "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"]
-        protocol.state.should == :closed
+        driver.state.should == :closed
       end
     end
  
     describe "with a bad Accept header" do
       before do
         resp = response.gsub(/QV3/, "wrong")
-        protocol.parse(resp)
+        driver.parse(resp)
       end
 
       it "changes the state to :closed" do
         @open.should == false
         @error.message.should == "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"
         @close.should == [1002, "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"]
-        protocol.state.should == :closed
+        driver.state.should == :closed
       end
     end
 
@@ -154,17 +154,17 @@ describe WebSocket::Protocol::Client do
 
       before do
         resp = response.gsub(/\r\n\r\n/, "\r\nSec-WebSocket-Protocol: xmpp\r\n\r\n")
-        protocol.parse(resp)
+        driver.parse(resp)
       end
 
       it "changes the state to :open" do
         @open.should == true
         @close.should == false
-        protocol.state.should == :open
+        driver.state.should == :open
       end
 
       it "selects the subprotocol" do
-        protocol.protocol.should == "xmpp"
+        driver.protocol.should == "xmpp"
       end
     end
 
@@ -173,18 +173,18 @@ describe WebSocket::Protocol::Client do
 
       before do
         resp = response.gsub(/\r\n\r\n/, "\r\nSec-WebSocket-Protocol: irc\r\n\r\n")
-        protocol.parse(resp)
+        driver.parse(resp)
       end
 
       it "changes the state to :closed" do
         @open.should == false
         @error.message.should == "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"
         @close.should == [1002, "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"]
-        protocol.state.should == :closed
+        driver.state.should == :closed
       end
 
       it "selects no subprotocol" do
-        protocol.protocol.should == nil
+        driver.protocol.should == nil
       end
     end
   end

@@ -1,5 +1,5 @@
 module WebSocket
-  class Protocol
+  class Driver
 
     class Draft76 < Draft75
       BODY_SIZE = 8

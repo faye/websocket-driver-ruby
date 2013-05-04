@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
-  s.name              = 'websocket-protocol'
+  s.name              = 'websocket-driver'
   s.version           = '0.1.0'
   s.summary           = 'WebSocket protocol handler with pluggable I/O'
   s.author            = 'James Coglan'
   s.email             = 'jcoglan@gmail.com'
-  s.homepage          = 'http://github.com/faye/websocket-protocol-ruby'
+  s.homepage          = 'http://github.com/faye/websocket-driver-ruby'
 
   s.extra_rdoc_files  = %w[README.md]
   s.rdoc_options      = %w[--main README.md --markup markdown]
