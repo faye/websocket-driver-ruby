@@ -144,6 +144,7 @@ module WebSocket
     end
 
     def self.websocket?(env)
+      return false unless env['REQUEST_METHOD'] == 'GET'
       connection = env['HTTP_CONNECTION'] || ''
       upgrade    = env['HTTP_UPGRADE']    || ''
 
