@@ -9,7 +9,10 @@ module WebSocket
       def add_listener(event, &listener)
         @listeners[event.to_s] << listener
       end
-      alias :on :add_listener
+
+      def on(event, &listener)
+        add_listener(event, &listener)
+      end
 
       def remove_listener(event, &listener)
         @listeners[event.to_s].delete(listener)
