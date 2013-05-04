@@ -28,6 +28,11 @@ module WebSocket
           listener.call(*args)
         end
       end
+
+      def listener_count(event)
+        list = @listeners[event.to_s]
+        list && list.size
+      end
     end
 
   end
