@@ -1,4 +1,4 @@
-=== 0.0.0 / 2013-04-22
+### 0.0.0 / 2013-04-22
 
 * First release
 * Proof of concept for people to try out

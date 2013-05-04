@@ -6,11 +6,11 @@ Gem::Specification.new do |s|
   s.email             = 'jcoglan@gmail.com'
   s.homepage          = 'http://github.com/faye/websocket-protocol-ruby'
 
-  s.extra_rdoc_files  = %w[README.rdoc]
-  s.rdoc_options      = %w[--main README.rdoc]
+  s.extra_rdoc_files  = %w[README.md]
+  s.rdoc_options      = %w[--main README.md --markup markdown]
   s.require_paths     = %w[lib]
 
-  files = %w[README.rdoc CHANGELOG.txt] +
+  files = %w[README.md CHANGELOG.md] +
           Dir.glob('ext/**/*.{c,java,rb}') +
           Dir.glob('lib/**/*.rb')
 
