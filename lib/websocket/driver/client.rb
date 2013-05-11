@@ -12,6 +12,7 @@ module WebSocket
         @ready_state = -1
         @key         = Client.generate_key
         @accept      = Hybi.generate_accept(@key)
+        @http        = HTTP::Response.new
       end
 
       def version
@@ -27,17 +28,10 @@ module WebSocket
 
       def parse(buffer)
         return super if @ready_state > 0
-        message = []
-        buffer.each_byte do |data|
-          case @ready_state
-            when 0 then
-              @buffer << data
-              validate_handshake if @buffer[-4..-1] == [0x0D, 0x0A, 0x0D, 0x0A]
-            when 1 then
-              message << data
-          end
-        end
-        parse(message) if @ready_state == 1
+        @http.parse(buffer)
+        return fail_handshake('Invalid HTTP response') if @http.error?
+        validate_handshake if @http.complete?
+        parse(@http.body) if @ready_state == 1
       end
 
     private 
@@ -71,18 +65,14 @@ module WebSocket
       end
 
       def validate_handshake
-        data     = Driver.encode(@buffer)
-        @buffer  = []
-        response = Net::HTTPResponse.read_new(Net::BufferedIO.new(StringIO.new(data)))
-
-        unless response.code.to_i == 101
-          return fail_handshake("Unexpected response code: #{response.code}")
+        unless @http.code == 101
+          return fail_handshake("Unexpected response code: #{@http.code}")
         end
 
-        upgrade    = response['Upgrade'] || ''
-        connection = response['Connection'] || ''
-        accept     = response['Sec-WebSocket-Accept'] || ''
-        protocol   = response['Sec-WebSocket-Protocol'] || ''
+        upgrade    = @http['Upgrade'] || ''
+        connection = @http['Connection'] || ''
+        accept     = @http['Sec-WebSocket-Accept'] || ''
+        protocol   = @http['Sec-WebSocket-Protocol'] || ''
 
         if upgrade == ''
           return fail_handshake("'Upgrade' header is missing")

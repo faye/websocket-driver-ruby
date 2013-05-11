@@ -121,6 +121,20 @@ describe WebSocket::Driver::Client do
       end
     end
 
+    describe "with a bad status code" do
+      before do
+        resp = response.gsub(/101/, "4")
+        driver.parse(resp)
+      end
+
+      it "changes the state to :closed" do
+        @open.should == false
+        @error.message.should == "Error during WebSocket handshake: Invalid HTTP response"
+        @close.should == [1002, "Error during WebSocket handshake: Invalid HTTP response"]
+        driver.state.should == :closed
+      end
+    end
+
     describe "with a bad Upgrade header" do
       before do
         resp = response.gsub(/websocket/, "wrong")

@@ -7,11 +7,11 @@
 require 'base64'
 require 'digest/md5'
 require 'digest/sha1'
-require 'net/http'
-require 'stringio'
 require 'uri'
 
 module WebSocket
+  autoload :HTTP, File.expand_path('../http', __FILE__)
+
   class Driver
 
     root = File.expand_path('../driver', __FILE__)
