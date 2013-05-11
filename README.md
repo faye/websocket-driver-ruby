@@ -199,7 +199,7 @@ driver = WebSocket::Driver.client(socket, options)
 
 The `rack` method returns a driver chosen using the socket's `env`. The
 `server` method returns a driver that will parse an HTTP request and then
-decice which driver to use for it using the `rack` method.  `client` method
+decide which driver to use for it using the `rack` method. The `client` method
 always returns a driver for the RFC version of the protocol with masking
 enabled on outgoing frames.
 
