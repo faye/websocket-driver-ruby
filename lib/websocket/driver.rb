@@ -7,6 +7,7 @@
 require 'base64'
 require 'digest/md5'
 require 'digest/sha1'
+require 'stringio'
 require 'uri'
 
 module WebSocket
@@ -35,17 +36,19 @@ module WebSocket
 
     STATES = [:connecting, :open, :closing, :closed]
 
-    class OpenEvent < Struct.new(nil) ; end
+    class ConnectEvent < Struct.new(nil) ; end
+    class OpenEvent    < Struct.new(nil) ; end
     class MessageEvent < Struct.new(:data) ; end
-    class CloseEvent < Struct.new(:code, :reason) ; end
+    class CloseEvent   < Struct.new(:code, :reason) ; end
 
     class ProtocolError < StandardError ; end
 
-    autoload :EventEmitter, root + '/event_emitter'
+    autoload :Client,       root + '/client'
     autoload :Draft75,      root + '/draft75'
     autoload :Draft76,      root + '/draft76'
+    autoload :EventEmitter, root + '/event_emitter'
     autoload :Hybi,         root + '/hybi'
-    autoload :Client,       root + '/client'
+    autoload :Server,       root + '/server'
 
     include EventEmitter
     attr_reader :protocol, :ready_state
@@ -114,6 +117,10 @@ module WebSocket
 
     def self.client(socket, options = {})
       Client.new(socket, options.merge(:masking => true))
+    end
+
+    def self.server(socket, options = {})
+      Server.new(socket, options.merge(:require_masking => true))
     end
 
     def self.rack(socket, options = {})

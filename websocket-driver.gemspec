@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
 
   files = %w[README.md CHANGELOG.md] +
           Dir.glob('ext/**/*.{c,java,rb}') +
-          Dir.glob('lib/**/*.rb')
+          Dir.glob('{examples,lib}/**/*.rb')
 
   if RUBY_PLATFORM =~ /java/
     s.platform = 'java'
@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
 
   s.files = files
 
+  s.add_development_dependency 'eventmachine'
   s.add_development_dependency 'rake-compiler'
   s.add_development_dependency 'rspec'
 end

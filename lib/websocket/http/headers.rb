@@ -14,30 +14,31 @@ module WebSocket
         @stage   = 0
       end
 
-      def error?
-        @stage == -1
-      end
-
       def complete?
         @stage == 2
       end
 
-      def [](name)
-        @headers[normalize_header(name)]
-      end
-
-      def body
-        @buffer.pack('C*')
+      def error?
+        @stage == -1
       end
 
       def parse(data)
         data.each_byte do |byte|
-          if byte == LF
+          if byte == LF and @stage < 2
             @buffer.pop if @buffer.last == CR
             if @buffer.empty?
-              @stage = 2 if @stage == 1
+              complete if @stage == 1
             else
-              on_line(@buffer.pack('C*'))
+              result = case @stage
+                       when 0 then start_line(string_buffer)
+                       when 1 then header_line(string_buffer)
+                       end
+
+              if result
+                @stage = 1
+              else
+                error
+              end
             end
             @buffer = []
           else
@@ -45,21 +46,31 @@ module WebSocket
             error if @stage < 2 and @buffer.size > MAX_LINE_LENGTH
           end
         end
+        @env['rack.input'] = StringIO.new(string_buffer) if @env
       end
 
     private
+
+      def complete
+        @stage = 2
+      end
 
       def error
         @stage = -1
       end
 
-      def on_line(line)
-        return error unless parsed = line.scan(HEADER_LINE).first
+      def header_line(line)
+        return false unless parsed = line.scan(HEADER_LINE).first
         @headers[normalize_header(parsed[0])] = parsed[1].strip
+        true
       end
 
       def normalize_header(name)
         name.downcase.gsub(/^http_/, '').gsub(/_/, '-')
+      end
+
+      def string_buffer
+        @buffer.pack('C*')
       end
     end
 
