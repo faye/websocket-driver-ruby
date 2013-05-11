@@ -61,7 +61,7 @@ Server-side sockets require one additional method:
   * `REQUEST_METHOD`, the request's HTTP verb
 
 
-### Server-side
+### Server-side with Rack
 
 To handle a server-side WebSocket connection, you need to check whether the
 request is a WebSocket handshake, and if so create a protocol driver for it.
@@ -127,6 +127,53 @@ end
 The driver API is described in full below.
 
 
+### Server-side with TCP
+
+You can also handle WebSocket connections in a bare TCP server, if you're not
+using Rack and don't want to implement HTTP parsing yourself. For this, your
+socket object only needs a `write` method.
+
+The driver will emit a `:connect` event when a request is received, and at this
+point you can detect whether it's a WebSocket and handle it as such. Here's an
+example using an EventMachine TCP server.
+
+```ruby
+module Connection
+  def initialize
+    @driver = WebSocket::Driver.server(self)
+
+    @driver.on(:connect) do
+      if WebSocket::Driver.websocket?(@driver.env)
+        @driver.start
+      else
+        # handle other HTTP requests
+      end
+    end
+
+    @driver.on(:message) { |e| @driver.text(e.data) }
+    @driver.on(:close)   { |e| close_connection_after_writing }
+  end
+
+  def receive_data(data)
+    @driver.parse(data)
+  end
+
+  def write(data)
+    send_data(data)
+  end
+end
+
+EM.run {
+  EM.start_server('127.0.0.1', 4180, Connection)
+}
+```
+
+In the `:connect` event, `@driver.env` is a Rack env representing the request.
+If the request has a body, it will be in the `@driver.env['rack.input']`
+stream, but only as much of the body has you have so far routed to it using the
+`parse` method.
+
+
 ### Client-side
 
 Similarly, to implement a WebSocket client you need an object with `url` and
@@ -146,12 +193,15 @@ Drivers are created using one of the following methods:
 
 ```ruby
 driver = WebSocket::Driver.rack(socket, options)
+driver = WebSocket::Driver.server(socket, options)
 driver = WebSocket::Driver.client(socket, options)
 ```
 
 The `rack` method returns a driver chosen using the socket's `env`. The
-`client` method always returns a driver for the RFC version of the protocol
-with masking enabled on outgoing frames.
+`server` method returns a driver that will parse an HTTP request and then
+decice which driver to use for it using the `rack` method.  `client` method
+always returns a driver for the RFC version of the protocol with masking
+enabled on outgoing frames.
 
 The `options` argument is optional, and is a hash. It may contain the following
 keys:
