@@ -170,7 +170,7 @@ EM.run {
 
 In the `:connect` event, `@driver.env` is a Rack env representing the request.
 If the request has a body, it will be in the `@driver.env['rack.input']`
-stream, but only as much of the body has you have so far routed to it using the
+stream, but only as much of the body as you have so far routed to it using the
 `parse` method.
 
 
