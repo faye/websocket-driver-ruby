@@ -54,7 +54,7 @@ module WebSocket
           headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"
         end
 
-        (headers + ['', '']).join("\r\n")
+        (headers + [@headers.to_s, '']).join("\r\n")
       end
 
       def fail_handshake(message)

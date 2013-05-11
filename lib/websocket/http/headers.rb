@@ -61,12 +61,8 @@ module WebSocket
 
       def header_line(line)
         return false unless parsed = line.scan(HEADER_LINE).first
-        @headers[normalize_header(parsed[0])] = parsed[1].strip
+        @headers[HTTP.normalize_header(parsed[0])] = parsed[1].strip
         true
-      end
-
-      def normalize_header(name)
-        name.downcase.gsub(/^http_/, '').gsub(/_/, '-')
       end
 
       def string_buffer

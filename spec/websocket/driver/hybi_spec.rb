@@ -85,6 +85,23 @@ describe WebSocket::Driver::Hybi do
         end
       end
 
+      describe "with custom headers" do
+        before do
+          driver.set_header "Authorization", "Bearer WAT"
+        end
+
+        it "writes the handshake with custom headers" do
+          socket.should_receive(:write).with(
+              "HTTP/1.1 101 Switching Protocols\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
+              "Authorization: Bearer WAT\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
       it "triggers the onopen event" do
         driver.start
         @open.should == true

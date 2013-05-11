@@ -84,6 +84,25 @@ describe WebSocket::Driver::Client do
         end
       end
 
+      describe "with custom headers" do
+        before do
+          driver.set_header "User-Agent", "Chrome"
+        end
+
+        it "writes the handshake with custom headers" do
+          socket.should_receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" + 
+              "Host: www.example.com\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
+              "User-Agent: Chrome\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
       it "changes the state to :connecting" do
         driver.start
         driver.state.should == :connecting

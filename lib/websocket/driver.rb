@@ -7,6 +7,7 @@
 require 'base64'
 require 'digest/md5'
 require 'digest/sha1'
+require 'set'
 require 'stringio'
 require 'uri'
 
@@ -47,6 +48,7 @@ module WebSocket
     autoload :Draft75,      root + '/draft75'
     autoload :Draft76,      root + '/draft76'
     autoload :EventEmitter, root + '/event_emitter'
+    autoload :Headers,      root + '/headers'
     autoload :Hybi,         root + '/hybi'
     autoload :Server,       root + '/server'
 
@@ -58,6 +60,7 @@ module WebSocket
 
       @socket      = socket
       @options     = options
+      @headers     = Headers.new
       @queue       = []
       @ready_state = 0
     end
@@ -65,6 +68,12 @@ module WebSocket
     def state
       return nil unless @ready_state >= 0
       STATES[@ready_state]
+    end
+
+    def set_header(name, value)
+      return false unless @ready_state <= 0
+      @headers[name] = value
+      true
     end
 
     def start

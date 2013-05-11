@@ -213,7 +213,7 @@ module WebSocket
           end
         end
 
-        (headers + ['','']).join("\r\n")
+        (headers + [@headers.to_s, '']).join("\r\n")
       end
 
       def shutdown(code, reason)

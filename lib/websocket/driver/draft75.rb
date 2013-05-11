@@ -71,6 +71,7 @@ module WebSocket
         upgrade << "Connection: Upgrade\r\n"
         upgrade << "WebSocket-Origin: #{@socket.env['HTTP_ORIGIN']}\r\n"
         upgrade << "WebSocket-Location: #{@socket.url}\r\n"
+        upgrade << @headers.to_s
         upgrade << "\r\n"
         upgrade
       end

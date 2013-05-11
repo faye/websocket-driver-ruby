@@ -9,7 +9,7 @@ module WebSocket
       attr_reader :code
 
       def [](name)
-        @headers[normalize_header(name)]
+        @headers[HTTP.normalize_header(name)]
       end
 
       def body

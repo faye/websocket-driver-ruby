@@ -24,13 +24,13 @@ module WebSocket
         url
       end
 
-      %w[start state frame text binary ping close].each do |method|
+      %w[set_header start state frame text binary ping close].each do |method|
         define_method(method) do |*args|
           if @delegate
             @delegate.__send__(method, *args)
           else
             @queue << [method, args]
-            false
+            true
           end
         end
       end

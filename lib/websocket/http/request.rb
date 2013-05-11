@@ -28,9 +28,9 @@ module WebSocket
 
       def complete
         super
-        @headers.each do |key, value|
-          rack_name = key.upcase.gsub(/-/, '_')
-          rack_name = "HTTP_#{rack_name}" unless RESERVED_HEADERS.include?(key)
+        @headers.each do |name, value|
+          rack_name = name.upcase.gsub(/-/, '_')
+          rack_name = "HTTP_#{rack_name}" unless RESERVED_HEADERS.include?(name)
           @env[rack_name] = value
         end
         if host = @env['HTTP_HOST']
