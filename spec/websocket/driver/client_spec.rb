@@ -121,6 +121,14 @@ describe WebSocket::Driver::Client do
         @close.should == false
         driver.state.should == :open
       end
+
+      it "makes the response status available" do
+        driver.status.should == 101
+      end
+
+      it "makes the response headers available" do
+        driver.headers["Upgrade"].should == "websocket"
+      end
     end
 
     describe "with a valid response followed by a frame" do
@@ -137,14 +145,6 @@ describe WebSocket::Driver::Client do
 
       it "parses the frame" do
         @message.should == "Hi"
-      end
-
-      it "makes the response status available" do
-        driver.status.should == 101
-      end
-
-      it "makes the response headers available" do
-        driver.headers["Upgrade"].should == "websocket"
       end
     end
 
