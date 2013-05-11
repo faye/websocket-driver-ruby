@@ -186,6 +186,12 @@ driver = WebSocket::Driver.client(socket)
 After this you use the driver API as described below to process incoming data
 and send outgoing data.
 
+Client drivers have two additional methods for reading the HTTP data that was
+sent back by the server:
+
+* `driver.status` - the integer value of the HTTP status code
+* `driver.headers` - a hash-like object containing the response headers
+
 
 ### Driver API
 

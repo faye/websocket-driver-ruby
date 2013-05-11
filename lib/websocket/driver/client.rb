@@ -6,6 +6,8 @@ module WebSocket
         Base64.encode64((1..16).map { rand(255).chr } * '').strip
       end
 
+      attr_reader :status, :headers
+
       def initialize(socket, options = {})
         super
 
@@ -98,6 +100,8 @@ module WebSocket
           end
         end
 
+        @status  = @http.code
+        @headers = Headers.new(@http.headers)
         open
       end
     end

@@ -8,6 +8,8 @@ module WebSocket
 
       HEADER_LINE = /^([!#\$%&'\*\+\-\.\^_`\|~0-9a-z]+):\s*((?:\t|[\x20-\x7e])*?)\s*$/i
 
+      attr_reader :headers
+
       def initialize
         @buffer  = []
         @headers = {}
