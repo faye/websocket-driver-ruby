@@ -2,7 +2,7 @@ module WebSocket
   class Driver
 
     class Headers
-      ALLOWED_DUPLICATES = %w(set-cookie set-cookie2 warning www-authenticate)
+      ALLOWED_DUPLICATES = %w[set-cookie set-cookie2 warning www-authenticate]
 
       def initialize(received = {})
         @raw   = received
