@@ -24,6 +24,10 @@ module WebSocket
         @lines << "#{name.strip}: #{value.to_s.strip}\r\n"
       end
 
+      def inspect
+        @raw
+      end
+
       def to_h
         @raw.dup
       end
