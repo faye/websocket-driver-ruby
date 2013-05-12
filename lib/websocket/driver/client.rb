@@ -67,6 +67,9 @@ module WebSocket
       end
 
       def validate_handshake
+        @status  = @http.code
+        @headers = Headers.new(@http.headers)
+
         unless @http.code == 101
           return fail_handshake("Unexpected response code: #{@http.code}")
         end
@@ -100,8 +103,6 @@ module WebSocket
           end
         end
 
-        @status  = @http.code
-        @headers = Headers.new(@http.headers)
         open
       end
     end
