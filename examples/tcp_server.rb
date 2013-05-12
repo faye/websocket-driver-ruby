@@ -7,7 +7,7 @@ module Connection
   def initialize
     @driver = WebSocket::Driver.server(self)
 
-    @driver.on(:connect) { |e| @driver.start }
+    @driver.on(:connect) { |e| @driver.start if WebSocket::Driver.websocket? @driver.env }
     @driver.on(:message) { |e| @driver.frame(e.data) }
     @driver.on(:close)   { |e| close_connection_after_writing }
   end
