@@ -6,9 +6,7 @@ module WebSocket
 
       def initialize(socket, options = {})
         super
-
-        @stage = -1
-        @http  = HTTP::Request.new
+        @http = HTTP::Request.new
       end
 
       def env
