@@ -25,7 +25,7 @@ module WebSocket
       end
 
       def inspect
-        @raw
+        @raw.inspect
       end
 
       def to_h
