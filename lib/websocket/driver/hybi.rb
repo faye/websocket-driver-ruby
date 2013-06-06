@@ -103,7 +103,7 @@ module WebSocket
       end
 
       def frame(data, type = nil, code = nil)
-        return queue([data, type, code]) if @ready_state == 0
+        return queue([data, type, code]) if @ready_state <= 0
         return false unless @ready_state == 1
 
         data = data.to_s unless Array === data
