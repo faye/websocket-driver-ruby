@@ -23,7 +23,7 @@ module WebSocket
 
       def start
         return false unless @ready_state == -1
-        @socket.write(handshake_request)
+        @socket.write(Driver.encode(handshake_request, :binary))
         @ready_state = 0
         true
       end

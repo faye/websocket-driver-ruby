@@ -107,7 +107,7 @@ module WebSocket
         return false unless @ready_state == 1
 
         data = data.to_s unless Array === data
-        data = Driver.encode(data) if String === data
+        data = Driver.encode(data, :utf8) if String === data
 
         is_text = (String === data)
         opcode  = OPCODES[type || (is_text ? :text : :binary)]
@@ -151,7 +151,7 @@ module WebSocket
 
         frame.concat(buffer)
 
-        @socket.write(Driver.encode(frame))
+        @socket.write(Driver.encode(frame, :binary))
         true
       end
 
@@ -292,7 +292,7 @@ module WebSocket
             @buffer.concat(payload)
             if @final
               message = @buffer
-              message = Driver.encode(message, true) if @mode == :text
+              message = Driver.encode(message, :utf8) if @mode == :text
               reset
               if message
                 emit(:message, MessageEvent.new(message))
@@ -303,7 +303,7 @@ module WebSocket
 
           when OPCODES[:text] then
             if @final
-              message = Driver.encode(payload, true)
+              message = Driver.encode(payload, :utf8)
               if message
                 emit(:message, MessageEvent.new(message))
               else
@@ -331,18 +331,20 @@ module WebSocket
               code = ERRORS[:protocol_error]
             end
 
-            if payload.size > 125 or not Driver.valid_utf8?(payload[2..-1] || [])
+            message = Driver.encode(payload[2..-1] || [], :utf8)
+
+            if payload.size > 125 or message.nil?
               code = ERRORS[:protocol_error]
             end
 
-            reason = (payload.size > 2) ? Driver.encode(payload[2..-1], true) : ''
+            reason = (payload.size > 2) ? message : ''
             shutdown(code, reason || '')
 
           when OPCODES[:ping] then
             frame(payload, :pong)
 
           when OPCODES[:pong] then
-            message = Driver.encode(payload, true)
+            message = Driver.encode(payload, :utf8)
             callback = @ping_callbacks[message]
             @ping_callbacks.delete(message)
             callback.call if callback

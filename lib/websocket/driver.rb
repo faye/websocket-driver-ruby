@@ -78,7 +78,7 @@ module WebSocket
 
     def start
       return false unless @ready_state == 0
-      @socket.write(handshake_response)
+      @socket.write(Driver.encode(handshake_response, :binary))
       open unless @stage == -1
       true
     end
@@ -116,14 +116,6 @@ module WebSocket
       true
     end
 
-    def self.encode(string, validate_encoding = false)
-      if Array === string
-        string = utf8_string(string)
-        return nil if validate_encoding and !valid_utf8?(string)
-      end
-      utf8_string(string)
-    end
-
     def self.client(socket, options = {})
       Client.new(socket, options.merge(:masking => true))
     end
@@ -143,6 +135,23 @@ module WebSocket
       end
     end
 
+    def self.encode(string, encoding = nil)
+      if Array === string
+        string = string.pack('C*')
+        encoding ||= :binary
+      else
+        encoding ||= :utf8
+      end
+      case encoding
+      when :binary
+        string.force_encoding('ASCII-8BIT') if string.respond_to?(:force_encoding)
+      when :utf8
+        string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
+        return nil unless valid_utf8?(string)
+      end
+      string
+    end
+
     def self.utf8_string(string)
       string = string.pack('C*') if Array === string
       string.respond_to?(:force_encoding) ?
@@ -150,8 +159,7 @@ module WebSocket
           string
     end
 
-    def self.valid_utf8?(byte_array)
-      string = utf8_string(byte_array)
+    def self.valid_utf8?(string)
       if defined?(UTF8_MATCH)
         UTF8_MATCH =~ string ? true : false
       else

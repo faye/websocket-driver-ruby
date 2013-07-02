@@ -41,7 +41,7 @@ module WebSocket
 
             when 2 then
               if data == 0xFF
-                emit(:message, MessageEvent.new(Driver.encode(@buffer)))
+                emit(:message, MessageEvent.new(Driver.encode(@buffer, :utf8)))
                 @stage = 0
               else
                 if @length
@@ -57,9 +57,8 @@ module WebSocket
 
       def frame(data, type = nil, error_type = nil)
         return queue([data, type, error_type]) if @ready_state == 0
-        data = Driver.encode(data)
-        frame = ["\x00", data, "\xFF"].map(&Driver.method(:encode)) * ''
-        @socket.write(frame)
+        frame = ["\x00", data, "\xFF"].map { |s| Driver.encode(s, :binary) } * ''
+        @socket.write(Driver.encode(frame, :binary))
         true
       end
 

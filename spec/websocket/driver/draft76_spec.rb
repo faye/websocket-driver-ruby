@@ -105,7 +105,7 @@ describe WebSocket::Driver::Draft76 do
             "Sec-WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
         socket.should_receive(:write).with(response)
-        socket.should_receive(:write).with("\x00Hi\xFF")
+        socket.should_receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", :binary)
 
         driver.frame("Hi")
         driver.start
@@ -159,7 +159,7 @@ describe WebSocket::Driver::Draft76 do
 
           it "sends any frames queued before the handshake was complete" do
             socket.should_receive(:write).with(response)
-            socket.should_receive(:write).with("\x00hello\xFF")
+            socket.should_receive(:write).with(WebSocket::Driver.encode "\x00hello\xFF", :binary)
             driver.frame("hello")
             driver.parse(body)
             @bytes.should == [0, 104, 101, 108, 108, 111, 255]

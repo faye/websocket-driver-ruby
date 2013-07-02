@@ -23,7 +23,7 @@ module WebSocket
 
       def close(reason = nil, code = nil)
         return false if @ready_state == 3
-        @socket.write("\xFF\x00")
+        @socket.write(Driver.encode("\xFF\x00", :binary))
         @ready_state = 3
         emit(:close, CloseEvent.new(nil, nil))
         true
@@ -63,7 +63,7 @@ module WebSocket
 
       def send_handshake_body
         return unless signature = handshake_signature
-        @socket.write(signature)
+        @socket.write(Driver.encode(signature, :binary))
         @stage = 0
         open
         parse(@body[BODY_SIZE..-1]) if @body.size > BODY_SIZE
