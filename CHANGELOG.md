@@ -1,3 +1,8 @@
+### 0.2.1 / 2013-07-05
+
+* Queue sent messages if the client has not begun trying to connect
+* Encode all strings sent to I/O as `ASCII-8BIT`
+
 ### 0.2.0 / 2013-05-12
 
 * Add API for setting and reading headers
