@@ -33,8 +33,12 @@ module WebSocket
       end
 
       def listener_count(event)
-        list = @listeners[event.to_s]
-        list && list.size
+        return 0 unless @listeners.has_key?(event.to_s)
+        @listeners[event.to_s].size
+      end
+
+      def listeners(event)
+        @listeners[event.to_s]
       end
     end
 
