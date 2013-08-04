@@ -1,3 +1,7 @@
+### 0.2.3 / 2013-08-04
+
+* Fix bug in EventEmitter#emit when listeners are removed
+
 ### 0.2.2 / 2013-08-04
 
 * Fix bug in EventEmitter#listener_count for unregistered events
