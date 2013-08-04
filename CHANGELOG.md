@@ -1,3 +1,7 @@
+### 0.2.2 / 2013-08-04
+
+* Fix bug in EventEmitter#listener_count for unregistered events
+
 ### 0.2.1 / 2013-07-05
 
 * Queue sent messages if the client has not begun trying to connect
