@@ -1,3 +1,7 @@
+### 0.3.0 / 2013-09-09
+
+* Support client URLs with Basic Auth credentials
+
 ### 0.2.3 / 2013-08-04
 
 * Fix bug in EventEmitter#emit when listeners are removed

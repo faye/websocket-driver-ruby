@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name              = 'websocket-driver'
-  s.version           = '0.2.3'
+  s.version           = '0.3.0'
   s.summary           = 'WebSocket protocol handler with pluggable I/O'
   s.author            = 'James Coglan'
   s.email             = 'jcoglan@gmail.com'
