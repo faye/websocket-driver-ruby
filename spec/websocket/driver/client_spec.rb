@@ -4,7 +4,7 @@ describe WebSocket::Driver::Client do
   include EncodingHelper
 
   let :socket do
-    socket = mock(WebSocket)
+    socket = double(WebSocket)
     socket.stub(:write) { |message| @bytes = bytes(message) }
     socket.stub(:url).and_return("ws://www.example.com/socket")
     socket

@@ -15,7 +15,7 @@ describe WebSocket::Driver::Draft75 do
   end
 
   let :socket do
-    socket = mock(WebSocket)
+    socket = double(WebSocket)
     socket.stub(:env).and_return(env)
     socket.stub(:url).and_return("ws://www.example.com/socket")
     socket.stub(:write) { |message| @bytes = bytes(message) }
