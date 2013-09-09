@@ -6,7 +6,7 @@ describe WebSocket::Driver::Client do
   let :socket do
     socket = double(WebSocket)
     socket.stub(:write) { |message| @bytes = bytes(message) }
-    socket.stub(:url).and_return("ws://www.example.com/socket")
+    socket.stub(:url).and_return(url)
     socket
   end
 
@@ -16,6 +16,10 @@ describe WebSocket::Driver::Client do
 
   let :protocols do
     nil
+  end
+
+  let :url do
+    "ws://www.example.com/socket"
   end
 
   let :driver do
@@ -79,6 +83,23 @@ describe WebSocket::Driver::Client do
               "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
               "Sec-WebSocket-Version: 13\r\n" +
               "Sec-WebSocket-Protocol: foo, bar, xmpp\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
+      describe "with basic auth" do
+        let(:url) { "ws://user:pass@www.example.com/socket" }
+
+        it "writes the handshake with Sec-WebSocket-Protocol" do
+          socket.should_receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" + 
+              "Host: www.example.com\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
+              "Authorization: Basic dXNlcjpwYXNz\r\n" +
               "\r\n")
           driver.start
         end

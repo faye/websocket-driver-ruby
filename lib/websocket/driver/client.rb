@@ -56,6 +56,11 @@ module WebSocket
           headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"
         end
 
+        if uri.user
+          auth = Base64.encode64([uri.user, uri.password] * ':').gsub(/\n/, '')
+          headers << "Authorization: Basic #{auth}"
+        end
+
         (headers + [@headers.to_s, '']).join("\r\n")
       end
 
