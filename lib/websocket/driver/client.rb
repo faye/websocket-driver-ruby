@@ -43,13 +43,15 @@ module WebSocket
         host  = uri.host + (uri.port ? ":#{uri.port}" : '')
         path  = (uri.path == '') ? '/' : uri.path
         query = uri.query ? "?#{uri.query}" : ''
+        scheme = uri.scheme === "wss" ? "https" : "http"
 
         headers = [ "GET #{path}#{query} HTTP/1.1",
                     "Host: #{host}",
                     "Upgrade: websocket",
                     "Connection: Upgrade",
                     "Sec-WebSocket-Key: #{@key}",
-                    "Sec-WebSocket-Version: 13"
+                    "Sec-WebSocket-Version: 13",
+                    "Origin: #{scheme}://#{host}"
                   ]
 
         if @protocols.size > 0
