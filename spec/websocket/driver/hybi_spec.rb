@@ -287,6 +287,13 @@ describe WebSocket::Driver::Hybi do
         @message.should == "Hello" * 40
       end
 
+      it "returns an error for too-large frames" do
+        driver.parse [0x81, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00]
+        @error.message.should == "WebSocket frame length too large"
+        @close.should == [1009, "WebSocket frame length too large"]
+        driver.state.should == :closed
+      end
+
       it "parses masked medium-length text frames" do
         driver.parse [0x81, 0xfe, 0x00, 0xc8] + mask + mask_message(*([0x48, 0x65, 0x6c, 0x6c, 0x6f] * 40))
         @message.should == "Hello" * 40

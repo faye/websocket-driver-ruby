@@ -212,6 +212,8 @@ enabled on outgoing frames.
 The `options` argument is optional, and is a hash. It may contain the following
 keys:
 
+* `:max_length` - the maximum allowed size of incoming message frames, in bytes.
+  The default value is `2^30 - 1`, or 1 byte short of 1GiB.
 * `:protocols` - an array of strings representing acceptable subprotocols for
   use over the socket. The driver will negotiate one of these to use via the
   `Sec-WebSocket-Protocol` header if supported by the other peer.

@@ -32,6 +32,8 @@ module WebSocket
       FRAGMENTED_OPCODES = OPCODES.values_at(:continuation, :text, :binary)
       OPENING_OPCODES    = OPCODES.values_at(:text, :binary)
 
+      MAX_LENGTH = 0x3fffffff
+
       ERRORS = {
         :normal_closure       => 1000,
         :going_away           => 1001,
@@ -52,11 +54,12 @@ module WebSocket
         super
         reset
 
-        @reader    = StreamReader.new
-        @stage     = 0
-        @masking   = options[:masking]
-        @protocols = options[:protocols] || []
-        @protocols = @protocols.strip.split(/\s*,\s*/) if String === @protocols
+        @reader     = StreamReader.new
+        @stage      = 0
+        @masking    = options[:masking]
+        @protocols  = options[:protocols] || []
+        @protocols  = @protocols.strip.split(/\s*,\s*/) if String === @protocols
+        @max_length = options[:max_length] || MAX_LENGTH
 
         @require_masking = options[:require_masking]
         @ping_callbacks  = {}
@@ -278,6 +281,10 @@ module WebSocket
 
         unless FRAGMENTED_OPCODES.include?(@opcode) or @length <= 125
           return fail(:protocol_error, "Received control frame having too long payload: #{@length}")
+        end
+
+        if @length > @max_length
+          return fail(:too_large, 'WebSocket frame length too large')
         end
 
         @stage  = @masked ? 3 : 4
