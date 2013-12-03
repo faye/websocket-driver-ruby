@@ -1,3 +1,7 @@
+### 0.3.1 / 2013-12-03
+
+* Add a `max_length` option to limit allowed frame size
+
 ### 0.3.0 / 2013-09-09
 
 * Support client URLs with Basic Auth credentials
