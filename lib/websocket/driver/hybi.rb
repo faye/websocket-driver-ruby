@@ -32,8 +32,6 @@ module WebSocket
       FRAGMENTED_OPCODES = OPCODES.values_at(:continuation, :text, :binary)
       OPENING_OPCODES    = OPCODES.values_at(:text, :binary)
 
-      MAX_LENGTH = 0x3fffffff
-
       ERRORS = {
         :normal_closure       => 1000,
         :going_away           => 1001,
@@ -54,12 +52,11 @@ module WebSocket
         super
         reset
 
-        @reader     = StreamReader.new
-        @stage      = 0
-        @masking    = options[:masking]
-        @protocols  = options[:protocols] || []
-        @protocols  = @protocols.strip.split(/\s*,\s*/) if String === @protocols
-        @max_length = options[:max_length] || MAX_LENGTH
+        @reader    = StreamReader.new
+        @stage     = 0
+        @masking   = options[:masking]
+        @protocols = options[:protocols] || []
+        @protocols = @protocols.strip.split(/\s*,\s*/) if String === @protocols
 
         @require_masking = options[:require_masking]
         @ping_callbacks  = {}

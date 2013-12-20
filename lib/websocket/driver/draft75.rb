@@ -11,7 +11,15 @@ module WebSocket
         'hixie-75'
       end
 
+      def close(reason = nil, code = nil)
+        return false if @ready_state == 3
+        @ready_state = 3
+        emit(:close, CloseEvent.new(nil, nil))
+        true
+      end
+
       def parse(buffer)
+        return if @ready_state > 1
         buffer = buffer.bytes if buffer.respond_to?(:bytes)
 
         buffer.each do |data|
@@ -28,8 +36,7 @@ module WebSocket
               @length = value + 128 * @length
 
               if @closing and @length.zero?
-                @ready_state = 3
-                emit(:close, CloseEvent.new(nil, nil))
+                return close
               elsif (0x80 & data) != 0x80
                 if @length.zero?
                   @stage = 0
@@ -49,6 +56,7 @@ module WebSocket
                   @stage = 0 if @skipped == @length
                 else
                   @buffer << data
+                  return close if @buffer.size > @max_length
                 end
               end
           end

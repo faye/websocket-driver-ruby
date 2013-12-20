@@ -35,7 +35,8 @@ module WebSocket
       require root + '/utf8_match'
     end
 
-    STATES = [:connecting, :open, :closing, :closed]
+    MAX_LENGTH = 0x3fffffff
+    STATES     = [:connecting, :open, :closing, :closed]
 
     class ConnectEvent < Struct.new(nil) ; end
     class OpenEvent    < Struct.new(nil) ; end
@@ -60,6 +61,7 @@ module WebSocket
 
       @socket      = socket
       @options     = options
+      @max_length  = options[:max_length] || MAX_LENGTH
       @headers     = Headers.new
       @queue       = []
       @ready_state = 0
