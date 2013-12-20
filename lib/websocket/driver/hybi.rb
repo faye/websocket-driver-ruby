@@ -268,7 +268,8 @@ module WebSocket
 
         @length = (data & LENGTH)
 
-        if @length <= 125
+        if @length >= 0 and @length <= 125
+          return unless check_frame_length
           @stage = @masked ? 3 : 4
         else
           @length_size = (@length == 126) ? 2 : 8
@@ -283,11 +284,18 @@ module WebSocket
           return fail(:protocol_error, "Received control frame having too long payload: #{@length}")
         end
 
-        if @length > @max_length
-          return fail(:too_large, 'WebSocket frame length too large')
-        end
+        return unless check_frame_length
 
         @stage  = @masked ? 3 : 4
+      end
+
+      def check_frame_length
+        if @buffer.size + @length > @max_length
+          fail(:too_large, 'WebSocket frame length too large')
+          false
+        else
+          true
+        end
       end
 
       def emit_frame
