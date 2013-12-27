@@ -98,6 +98,9 @@ module WebSocket
                 emit_frame
                 @stage = 0
               end
+
+            else
+              buffer = nil
           end
         end
       end
@@ -219,6 +222,7 @@ module WebSocket
       def shutdown(code, reason)
         frame(reason, :close, code)
         @ready_state = 3
+        @stage = 5
         emit(:close, CloseEvent.new(code, reason))
       end
 
