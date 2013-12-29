@@ -1,3 +1,9 @@
+### 0.3.2 / 2013-12-29
+
+* Expand `max_length` to cover sequences of continuation frames and `draft-{75,76}`
+* Decrease default maximum frame buffer size to 64MB
+* Stop parsing when the protocol enters a failure mode, to save CPU cycles
+
 ### 0.3.1 / 2013-12-03
 
 * Add a `max_length` option to limit allowed frame size
