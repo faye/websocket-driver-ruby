@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name              = 'websocket-driver'
-  s.version           = '0.3.2'
+  s.version           = '0.3.3'
   s.summary           = 'WebSocket protocol handler with pluggable I/O'
   s.author            = 'James Coglan'
   s.email             = 'jcoglan@gmail.com'
@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
     s.platform = 'java'
     files << 'lib/websocket_mask.jar'
   else
-    s.extensions << 'ext/websocket_mask/extconf.rb'
+    s.extensions << 'ext/websocket-driver/extconf.rb'
   end
 
   s.files = files
