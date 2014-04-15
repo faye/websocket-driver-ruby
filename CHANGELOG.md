@@ -1,3 +1,7 @@
+### 0.3.2.1 / 2014-04-15
+
+* Fix native extension loading to extension is loaded from the external extensions directory as is preferred in rubygems 2.2.2
+
 ### 0.3.2 / 2013-12-29
 
 * Expand `max_length` to cover sequences of continuation frames and `draft-{75,76}`
