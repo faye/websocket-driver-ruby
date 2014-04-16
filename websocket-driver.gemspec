@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
     s.platform = 'java'
     files << 'lib/websocket_mask.jar'
   else
-    s.extensions << 'ext/websocket_mask/extconf.rb'
+    s.extensions << 'ext/websocket-driver/extconf.rb'
   end
 
   s.files = files

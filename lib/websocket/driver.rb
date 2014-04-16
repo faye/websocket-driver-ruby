@@ -17,7 +17,7 @@ module WebSocket
   class Driver
 
     root = File.expand_path('../driver', __FILE__)
-    require root + '/../../websocket_mask'
+    require 'websocket_mask'
 
     if RUBY_PLATFORM =~ /java/
       require 'jruby'
