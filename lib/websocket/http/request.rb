@@ -4,7 +4,7 @@ module WebSocket
     class Request
       include Headers
 
-      REQUEST_LINE     = /^([A-Z]+) +([\x21-\x7e]+) +(HTTP\/[0-9]\.[0-9])$/
+      REQUEST_LINE     = /^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([\x21-\x7e]+) (HTTP\/[0-9]+\.[0-9]+)$/
       REQUEST_TARGET   = /^(.*?)(\?(.*))?$/
       RESERVED_HEADERS = %w[content-length content-type]
 

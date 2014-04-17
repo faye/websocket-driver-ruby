@@ -6,7 +6,7 @@ module WebSocket
       CR = 0x0D
       LF = 0x0A
 
-      HEADER_LINE = /^([!#\$%&'\*\+\-\.\^_`\|~0-9a-z]+):\s*((?:\t|[\x20-\x7e])*?)\s*$/i
+      HEADER_LINE = /^([!#\$%&'\*\+\-\.\\\^_`\|~0-9a-z]+):\s*([\x20-\x7e]*?)\s*$/i
 
       attr_reader :headers
 
