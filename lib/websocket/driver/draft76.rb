@@ -32,7 +32,7 @@ module WebSocket
     private
 
       def handshake_response
-        upgrade =  "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
+        upgrade =  "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
         upgrade << "Upgrade: WebSocket\r\n"
         upgrade << "Connection: Upgrade\r\n"
         upgrade << "Sec-WebSocket-Origin: #{@socket.env['HTTP_ORIGIN']}\r\n"
@@ -86,7 +86,7 @@ module WebSocket
 
       def big_endian(number)
         string = ''
-        [24,16,8,0].each do |offset|
+        [24, 16, 8, 0].each do |offset|
           string << (number >> offset & 0xFF).chr
         end
         string

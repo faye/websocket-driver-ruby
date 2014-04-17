@@ -56,7 +56,7 @@ describe WebSocket::Driver::Draft76 do
     describe :start do
       it "writes the handshake response to the socket" do
         socket.should_receive(:write).with(
-            "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" +
+            "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" +
             "Upgrade: WebSocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Origin: http://www.example.com\r\n" +
@@ -98,7 +98,7 @@ describe WebSocket::Driver::Draft76 do
 
       it "queues the frames until the handshake has been sent" do
         socket.should_receive(:write).with(
-            "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" +
+            "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" +
             "Upgrade: WebSocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Origin: http://www.example.com\r\n" +
@@ -120,7 +120,7 @@ describe WebSocket::Driver::Draft76 do
       describe :start do
         it "writes the handshake response with no body" do
           socket.should_receive(:write).with(
-              "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" +
+              "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" +
               "Upgrade: WebSocket\r\n" +
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Origin: http://www.example.com\r\n" +
