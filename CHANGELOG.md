@@ -1,3 +1,9 @@
+### 0.3.3 / 2014-04-24
+
+* Fix problems with loading C and Java native extension code
+* Correct the acceptable characters used in the HTTP parser
+* Correct the draft-76 status line reason phrase
+
 ### 0.3.2 / 2013-12-29
 
 * Expand `max_length` to cover sequences of continuation frames and `draft-{75,76}`
