@@ -6,7 +6,23 @@ module WebSocket
       CR = 0x0D
       LF = 0x0A
 
-      HEADER_LINE = /^([!#\$%&'\*\+\-\.\\\^_`\|~0-9a-z]+):\s*([\x20-\x7e]*?)\s*$/i
+      #       CHAR           = <any US-ASCII character (octets 0 - 127)>
+      #
+      #       CTL            = <any US-ASCII control character
+      #                        (octets 0 - 31) and DEL (127)>
+      #
+      #       SP             = <US-ASCII SP, space (32)>
+      #
+      #       HT             = <US-ASCII HT, horizontal-tab (9)>
+      #
+      #       token          = 1*<any CHAR except CTLs or separators>
+      #
+      #       separators     = "(" | ")" | "<" | ">" | "@"
+      #                      | "," | ";" | ":" | "\" | <">
+      #                      | "/" | "[" | "]" | "?" | "="
+      #                      | "{" | "}" | SP | HT
+
+      HEADER_LINE = /^([!#\$%&'\*\+\-\.\^_`\|~0-9a-z]+):\s*([\x20-\x7e]*?)\s*$/i
 
       attr_reader :headers
 
