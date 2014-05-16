@@ -98,4 +98,3 @@ module WebSocket
 
   end
 end
-

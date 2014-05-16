@@ -190,4 +190,3 @@ describe WebSocket::Driver::Draft76 do
     end
   end
 end
-

@@ -39,4 +39,3 @@ module WebSocket
 
   end
 end
-

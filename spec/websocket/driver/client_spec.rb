@@ -251,4 +251,3 @@ describe WebSocket::Driver::Client do
     end
   end
 end
-

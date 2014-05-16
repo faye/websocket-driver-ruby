@@ -70,4 +70,3 @@ module WebSocket
 
   end
 end
-

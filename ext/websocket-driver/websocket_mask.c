@@ -30,4 +30,3 @@ VALUE method_websocket_mask(VALUE self, VALUE payload, VALUE mask) {
   }
   return unmasked;
 }
-

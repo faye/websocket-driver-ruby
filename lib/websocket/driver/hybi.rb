@@ -383,4 +383,3 @@ module WebSocket
 
   end
 end
-

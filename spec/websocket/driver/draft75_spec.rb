@@ -102,4 +102,3 @@ describe WebSocket::Driver::Draft75 do
 
   it_should_behave_like "draft-75 protocol"
 end
-

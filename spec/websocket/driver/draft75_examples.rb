@@ -113,4 +113,3 @@ shared_examples_for "draft-75 protocol" do
     end
   end
 end
-

@@ -44,4 +44,3 @@ module WebSocket
 
   end
 end
-

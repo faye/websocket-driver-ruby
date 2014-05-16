@@ -24,4 +24,3 @@ end
 EM.run {
   EM.start_server('127.0.0.1', ARGV[0], Connection)
 }
-

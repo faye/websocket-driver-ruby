@@ -506,4 +506,3 @@ describe WebSocket::Driver::Hybi do
     end
   end
 end
-

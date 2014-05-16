@@ -15,4 +15,3 @@ module EncodingHelper
     string.bytes.to_a
   end
 end
-

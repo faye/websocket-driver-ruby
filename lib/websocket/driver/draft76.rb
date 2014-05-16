@@ -95,4 +95,3 @@ module WebSocket
 
   end
 end
-
