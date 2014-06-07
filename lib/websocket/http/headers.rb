@@ -6,6 +6,8 @@ module WebSocket
       CR = 0x0D
       LF = 0x0A
 
+      # RFC 2616 grammar rules:
+      #
       #       CHAR           = <any US-ASCII character (octets 0 - 127)>
       #
       #       CTL            = <any US-ASCII control character
@@ -21,6 +23,15 @@ module WebSocket
       #                      | "," | ";" | ":" | "\" | <">
       #                      | "/" | "[" | "]" | "?" | "="
       #                      | "{" | "}" | SP | HT
+      #
+      # Or, as redefined in RFC 7230:
+      #
+      #       token          = 1*tchar
+      #
+      #       tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+      #                      / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+      #                      / DIGIT / ALPHA
+      #                      ; any VCHAR, except delimiters
 
       HEADER_LINE = /^([!#\$%&'\*\+\-\.\^_`\|~0-9a-z]+):\s*([\x20-\x7e]*?)\s*$/i
 
