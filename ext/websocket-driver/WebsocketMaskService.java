@@ -39,6 +39,10 @@ public class WebsocketMaskService implements BasicLibraryService {
 
     @JRubyMethod
     public IRubyObject mask(ThreadContext context, IRubyObject payload, IRubyObject mask) {
+      if (mask.isNil() || ((RubyArray)mask).getLength() == 0) {
+        return payload;
+      }
+
       int n = ((RubyArray)payload).getLength(), i;
       long p, m;
       RubyArray unmasked = RubyArray.newArray(runtime, n);

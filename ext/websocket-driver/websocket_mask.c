@@ -13,6 +13,10 @@ void Init_websocket_mask() {
 }
 
 VALUE method_websocket_mask(VALUE self, VALUE payload, VALUE mask) {
+  if (mask == Qnil || RARRAY_LEN(mask) == 0) {
+    return payload;
+  }
+
   int n = RARRAY_LEN(payload), i, p, m;
   VALUE unmasked = rb_ary_new2(n);
 

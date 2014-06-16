@@ -95,7 +95,7 @@ module WebSocket
               buffer = @reader.read(@length)
               if buffer
                 @payload = buffer
-                emit_frame
+                emit_frame(buffer)
                 @stage = 0
               end
 
@@ -243,8 +243,6 @@ module WebSocket
 
         @final   = (data & FIN) == FIN
         @opcode  = (data & OPCODE)
-        @mask    = []
-        @payload = []
 
         unless OPCODES.values.include?(@opcode)
           return fail(:protocol_error, "Unrecognized frame opcode: #{@opcode}")
@@ -299,14 +297,18 @@ module WebSocket
         end
       end
 
-      def emit_frame
-        payload = @masked ? Mask.mask(@payload, @mask) : @payload
+      def emit_frame(buffer)
+        payload  = Mask.mask(buffer, @mask)
+        is_final = @final
+        opcode   = @opcode
 
-        case @opcode
+        @final = @opcode = @length = @length_size = @masked = @mask = nil
+
+        case opcode
           when OPCODES[:continuation] then
             return fail(:protocol_error, 'Received unexpected continuation frame') unless @mode
             @buffer.concat(payload)
-            if @final
+            if is_final
               message = @buffer
               message = Driver.encode(message, :utf8) if @mode == :text
               reset
@@ -318,7 +320,7 @@ module WebSocket
             end
 
           when OPCODES[:text] then
-            if @final
+            if is_final
               message = Driver.encode(payload, :utf8)
               if message
                 emit(:message, MessageEvent.new(message))
@@ -331,7 +333,7 @@ module WebSocket
             end
 
           when OPCODES[:binary] then
-            if @final
+            if is_final
               emit(:message, MessageEvent.new(payload))
             else
               @mode = :binary
