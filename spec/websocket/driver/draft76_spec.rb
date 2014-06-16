@@ -29,9 +29,9 @@ describe WebSocket::Driver::Draft76 do
 
   let :socket do
     socket = double(WebSocket)
-    socket.stub(:env).and_return(env)
-    socket.stub(:url).and_return("ws://www.example.com/socket")
-    socket.stub(:write) { |message| @bytes = bytes(message) }
+    allow(socket).to receive(:env).and_return(env)
+    allow(socket).to receive(:url).and_return("ws://www.example.com/socket")
+    allow(socket).to receive(:write) { |message| @bytes = bytes(message) }
     socket
   end
 
@@ -50,67 +50,67 @@ describe WebSocket::Driver::Draft76 do
 
   describe "in the :connecting state" do
     it "starts in the connecting state" do
-      driver.state.should == :connecting
+      expect(driver.state).to eq :connecting
     end
 
     describe :start do
       it "writes the handshake response to the socket" do
-        socket.should_receive(:write).with(
+        expect(socket).to receive(:write).with(
             "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" +
             "Upgrade: WebSocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Origin: http://www.example.com\r\n" +
             "Sec-WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
-        socket.should_receive(:write).with(response)
+        expect(socket).to receive(:write).with(response)
         driver.start
       end
 
       it "returns true" do
-        driver.start.should == true
+        expect(driver.start).to eq true
       end
 
       it "triggers the onopen event" do
         driver.start
-        @open.should == true
+        expect(@open).to eq true
       end
 
       it "changes the state to :open" do
         driver.start
-        driver.state.should == :open
+        expect(driver.state).to eq :open
       end
 
       it "sets the protocol version" do
         driver.start
-        driver.version.should == "hixie-76"
+        expect(driver.version).to eq "hixie-76"
       end
     end
 
     describe :frame do
       it "does not write to the socket" do
-        socket.should_not_receive(:write)
+        expect(socket).not_to receive(:write)
         driver.frame("Hello, world")
       end
 
       it "returns true" do
-        driver.frame("whatever").should == true
+        expect(driver.frame("whatever")).to eq true
       end
 
       it "queues the frames until the handshake has been sent" do
-        socket.should_receive(:write).with(
+        expect(socket).to receive(:write).with(
             "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" +
             "Upgrade: WebSocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Origin: http://www.example.com\r\n" +
             "Sec-WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
-        socket.should_receive(:write).with(response)
-        socket.should_receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", :binary)
+        expect(socket).to receive(:write).with(response)
+        expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", :binary)
 
         driver.frame("Hi")
         driver.start
 
-        @bytes.should == [0x00, 72, 105, 0xff]
+        expect(@bytes).to eq [0x00, 72, 105, 0xff]
       end
     end
 
@@ -119,7 +119,7 @@ describe WebSocket::Driver::Draft76 do
 
       describe :start do
         it "writes the handshake response with no body" do
-          socket.should_receive(:write).with(
+          expect(socket).to receive(:write).with(
               "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" +
               "Upgrade: WebSocket\r\n" +
               "Connection: Upgrade\r\n" +
@@ -131,38 +131,38 @@ describe WebSocket::Driver::Draft76 do
 
         it "does not trigger the onopen event" do
           driver.start
-          @open.should == false
+          expect(@open).to eq false
         end
 
         it "leaves the protocol in the :connecting state" do
           driver.start
-          driver.state.should == :connecting
+          expect(driver.state).to eq :connecting
         end
 
         describe "when the request body is received" do
           before { driver.start }
 
           it "sends the response body" do
-            socket.should_receive(:write).with(response)
+            expect(socket).to receive(:write).with(response)
             driver.parse(body)
           end
 
           it "triggers the onopen event" do
             driver.parse(body)
-            @open.should == true
+            expect(@open).to eq true
           end
 
           it "changes the state to :open" do
             driver.parse(body)
-            driver.state.should == :open
+            expect(driver.state).to eq :open
           end
 
           it "sends any frames queued before the handshake was complete" do
-            socket.should_receive(:write).with(response)
-            socket.should_receive(:write).with(WebSocket::Driver.encode "\x00hello\xFF", :binary)
+            expect(socket).to receive(:write).with(response)
+            expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00hello\xFF", :binary)
             driver.frame("hello")
             driver.parse(body)
-            @bytes.should == [0, 104, 101, 108, 108, 111, 255]
+            expect(@bytes).to eq [0, 104, 101, 108, 108, 111, 255]
           end
         end
       end
@@ -177,15 +177,15 @@ describe WebSocket::Driver::Draft76 do
     describe :parse do
       it "closes the socket if a close frame is received" do
         driver.parse [0xff, 0x00]
-        @close.should == true
-        driver.state.should == :closed
+        expect(@close).to eq true
+        expect(driver.state).to eq :closed
       end
     end
 
     describe :close do
       it "writes a close message to the socket" do
         driver.close
-        @bytes.should == [0xff, 0x00]
+        expect(@bytes).to eq [0xff, 0x00]
       end
     end
   end

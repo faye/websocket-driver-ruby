@@ -9,83 +9,83 @@ shared_examples_for "draft-75 protocol" do
     describe :parse do
       it "parses text frames" do
         driver.parse [0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff]
-        @message.should == "Hello"
+        expect(@message).to eq "Hello"
       end
 
       it "parses multiple frames from the same packet" do
         driver.parse [0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff]
-        @message.should == "HelloHello"
+        expect(@message).to eq "HelloHello"
       end
 
       it "parses text frames beginning 0x00-0x7F" do
         driver.parse [0x66, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff]
-        @message.should == "Hello"
+        expect(@message).to eq "Hello"
       end
 
       it "ignores frames with a length header" do
         driver.parse [0x80, 0x02, 0x48, 0x65, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff]
-        @message.should == "Hello"
+        expect(@message).to eq "Hello"
       end
 
       it "parses multibyte text frames" do
         driver.parse [0x00, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf, 0xff]
-        @message.should == encode("Apple = ")
+        expect(@message).to eq encode("Apple = ")
       end
 
       it "parses frames received in several packets" do
         driver.parse [0x00, 0x41, 0x70, 0x70, 0x6c, 0x65]
         driver.parse [0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf, 0xff]
-        @message.should == encode("Apple = ")
+        expect(@message).to eq encode("Apple = ")
       end
 
       it "parses fragmented frames" do
         driver.parse [0x00, 0x48, 0x65, 0x6c]
         driver.parse [0x6c, 0x6f, 0xff]
-        @message.should == "Hello"
+        expect(@message).to eq "Hello"
       end
     end
 
     describe :frame do
       it "formats the given string as a WebSocket frame" do
         driver.frame "Hello"
-        @bytes.should == [0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff]
+        expect(@bytes).to eq [0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff]
       end
 
       it "encodes multibyte characters correctly" do
         message = encode "Apple = "
         driver.frame message
-        @bytes.should == [0x00, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf, 0xff]
+        expect(@bytes).to eq [0x00, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf, 0xff]
       end
 
       it "returns true" do
-        driver.frame("lol").should == true
+        expect(driver.frame("lol")).to eq true
       end
     end
 
     describe :ping do
       it "does not write to the socket" do
-        socket.should_not_receive(:write)
+        expect(socket).not_to receive(:write)
         driver.ping
       end
 
       it "returns false" do
-        driver.ping.should == false
+        expect(driver.ping).to eq false
       end
     end
 
     describe :close do
       it "triggers the onclose event" do
         driver.close
-        @close.should == true
+        expect(@close).to eq true
       end
 
       it "returns true" do
-        driver.close.should == true
+        expect(driver.close).to eq true
       end
 
       it "changes the state to :closed" do
         driver.close
-        driver.state.should == :closed
+        expect(driver.state).to eq :closed
       end
     end
   end
@@ -98,17 +98,17 @@ shared_examples_for "draft-75 protocol" do
 
     describe :close do
       it "does not write to the socket" do
-        socket.should_not_receive(:write)
+        expect(socket).not_to receive(:write)
         driver.close
       end
 
       it "returns false" do
-        driver.close.should == false
+        expect(driver.close).to eq false
       end
 
       it "leaves the protocol in the :closed state" do
         driver.close
-        driver.state.should == :closed
+        expect(driver.state).to eq :closed
       end
     end
   end

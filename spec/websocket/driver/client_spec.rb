@@ -5,8 +5,8 @@ describe WebSocket::Driver::Client do
 
   let :socket do
     socket = double(WebSocket)
-    socket.stub(:write) { |message| @bytes = bytes(message) }
-    socket.stub(:url).and_return(url)
+    allow(socket).to receive(:write) { |message| @bytes = bytes(message) }
+    allow(socket).to receive(:url).and_return(url)
     socket
   end
 
@@ -44,19 +44,19 @@ describe WebSocket::Driver::Client do
   end
 
   before do
-    WebSocket::Driver::Client.stub(:generate_key).and_return(key)
+    allow(WebSocket::Driver::Client).to receive(:generate_key).and_return(key)
     @open = @error = @close = false
     @message = ""
   end
 
   describe "in the beginning state" do
     it "starts in no state" do
-      driver.state.should == nil
+      expect(driver.state).to eq nil
     end
 
     describe :start do
       it "writes the handshake request to the socket" do
-        socket.should_receive(:write).with(
+        expect(socket).to receive(:write).with(
             "GET /socket HTTP/1.1\r\n" + 
             "Host: www.example.com\r\n" +
             "Upgrade: websocket\r\n" +
@@ -68,14 +68,14 @@ describe WebSocket::Driver::Client do
       end
 
       it "returns true" do
-        driver.start.should == true
+        expect(driver.start).to eq true
       end
 
       describe "with subprotocols" do
         let(:protocols) { ["foo", "bar", "xmpp"] }
 
         it "writes the handshake with Sec-WebSocket-Protocol" do
-          socket.should_receive(:write).with(
+          expect(socket).to receive(:write).with(
               "GET /socket HTTP/1.1\r\n" + 
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
@@ -92,7 +92,7 @@ describe WebSocket::Driver::Client do
         let(:url) { "ws://user:pass@www.example.com/socket" }
 
         it "writes the handshake with Sec-WebSocket-Protocol" do
-          socket.should_receive(:write).with(
+          expect(socket).to receive(:write).with(
               "GET /socket HTTP/1.1\r\n" + 
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
@@ -111,7 +111,7 @@ describe WebSocket::Driver::Client do
         end
 
         it "writes the handshake with custom headers" do
-          socket.should_receive(:write).with(
+          expect(socket).to receive(:write).with(
               "GET /socket HTTP/1.1\r\n" + 
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
@@ -126,7 +126,7 @@ describe WebSocket::Driver::Client do
 
       it "changes the state to :connecting" do
         driver.start
-        driver.state.should == :connecting
+        expect(driver.state).to eq :connecting
       end
     end
   end
@@ -138,17 +138,17 @@ describe WebSocket::Driver::Client do
       before { driver.parse(response) }
 
       it "changes the state to :open" do
-        @open.should == true
-        @close.should == false
-        driver.state.should == :open
+        expect(@open).to eq true
+        expect(@close).to eq false
+        expect(driver.state).to eq :open
       end
 
       it "makes the response status available" do
-        driver.status.should == 101
+        expect(driver.status).to eq 101
       end
 
       it "makes the response headers available" do
-        driver.headers["Upgrade"].should == "websocket"
+        expect(driver.headers["Upgrade"]).to eq "websocket"
       end
     end
 
@@ -159,13 +159,13 @@ describe WebSocket::Driver::Client do
       end
 
       it "changes the state to :open" do
-        @open.should == true
-        @close.should == false
-        driver.state.should == :open
+        expect(@open).to eq true
+        expect(@close).to eq false
+        expect(driver.state).to eq :open
       end
 
       it "parses the frame" do
-        @message.should == "Hi"
+        expect(@message).to eq "Hi"
       end
     end
 
@@ -176,10 +176,10 @@ describe WebSocket::Driver::Client do
       end
 
       it "changes the state to :closed" do
-        @open.should == false
-        @error.message.should == "Error during WebSocket handshake: Invalid HTTP response"
-        @close.should == [1002, "Error during WebSocket handshake: Invalid HTTP response"]
-        driver.state.should == :closed
+        expect(@open).to eq false
+        expect(@error.message).to eq "Error during WebSocket handshake: Invalid HTTP response"
+        expect(@close).to eq [1002, "Error during WebSocket handshake: Invalid HTTP response"]
+        expect(driver.state).to eq :closed
       end
     end
 
@@ -190,10 +190,10 @@ describe WebSocket::Driver::Client do
       end
 
       it "changes the state to :closed" do
-        @open.should == false
-        @error.message.should == "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"
-        @close.should == [1002, "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"]
-        driver.state.should == :closed
+        expect(@open).to eq false
+        expect(@error.message).to eq "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"
+        expect(@close).to eq [1002, "Error during WebSocket handshake: 'Upgrade' header value is not 'WebSocket'"]
+        expect(driver.state).to eq :closed
       end
     end
  
@@ -204,10 +204,10 @@ describe WebSocket::Driver::Client do
       end
 
       it "changes the state to :closed" do
-        @open.should == false
-        @error.message.should == "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"
-        @close.should == [1002, "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"]
-        driver.state.should == :closed
+        expect(@open).to eq false
+        expect(@error.message).to eq "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"
+        expect(@close).to eq [1002, "Error during WebSocket handshake: Sec-WebSocket-Accept mismatch"]
+        expect(driver.state).to eq :closed
       end
     end
 
@@ -220,13 +220,13 @@ describe WebSocket::Driver::Client do
       end
 
       it "changes the state to :open" do
-        @open.should == true
-        @close.should == false
-        driver.state.should == :open
+        expect(@open).to eq true
+        expect(@close).to eq false
+        expect(driver.state).to eq :open
       end
 
       it "selects the subprotocol" do
-        driver.protocol.should == "xmpp"
+        expect(driver.protocol).to eq "xmpp"
       end
     end
 
@@ -239,14 +239,14 @@ describe WebSocket::Driver::Client do
       end
 
       it "changes the state to :closed" do
-        @open.should == false
-        @error.message.should == "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"
-        @close.should == [1002, "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"]
-        driver.state.should == :closed
+        expect(@open).to eq false
+        expect(@error.message).to eq "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"
+        expect(@close).to eq [1002, "Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch"]
+        expect(driver.state).to eq :closed
       end
 
       it "selects no subprotocol" do
-        driver.protocol.should == nil
+        expect(driver.protocol).to eq nil
       end
     end
   end
