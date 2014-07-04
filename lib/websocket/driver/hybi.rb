@@ -52,14 +52,20 @@ module WebSocket
         super
         reset
 
-        @reader    = StreamReader.new
-        @stage     = 0
-        @masking   = options[:masking]
-        @protocols = options[:protocols] || []
-        @protocols = @protocols.strip.split(/\s*,\s*/) if String === @protocols
-
+        @reader          = StreamReader.new
+        @stage           = 0
+        @masking         = options[:masking]
+        @protocols       = options[:protocols] || []
+        @protocols       = @protocols.strip.split(/\s*,\s*/) if String === @protocols
         @require_masking = options[:require_masking]
         @ping_callbacks  = {}
+
+        return unless @socket.respond_to?(:env)
+
+        if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
+          protos = protos.split(/\s*,\s*/) if String === protos
+          @protocol = protos.find { |p| @protocols.include?(p) }
+        end
       end
 
       def version
@@ -195,25 +201,15 @@ module WebSocket
         sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
         return '' unless String === sec_key
 
-        accept    = Hybi.generate_accept(sec_key)
-        protos    = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-        supported = @protocols
-        proto     = nil
-
         headers = [
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
           "Connection: Upgrade",
-          "Sec-WebSocket-Accept: #{accept}"
+          "Sec-WebSocket-Accept: #{Hybi.generate_accept(sec_key)}"
         ]
 
-        if protos
-          protos = protos.split(/\s*,\s*/) if String === protos
-          proto = protos.find { |p| supported.include?(p) }
-          if proto
-            @protocol = proto
-            headers << "Sec-WebSocket-Protocol: #{proto}"
-          end
+        if @protocol
+          headers << "Sec-WebSocket-Protocol: #{@protocol}"
         end
 
         (headers + [@headers.to_s, '']).join("\r\n")
