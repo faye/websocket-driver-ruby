@@ -33,6 +33,12 @@ module WebSocket
         end
       end
 
+      %w[protocol version].each do |method|
+        define_method(method) do
+          @delegate && @delegate.__send__(method)
+        end
+      end
+
       def parse(buffer)
         return @delegate.parse(buffer) if @delegate
 
