@@ -1,3 +1,9 @@
+### 0.3.4 / 2014-07-06
+
+* Don't hold references to frame buffers after a message has been emitted
+* Make sure that `protocol` and `version` are exposed properly by the TCP driver
+* Correct HTTP header parsing based on RFC 7230; header names cannot contain backslashes
+
 ### 0.3.3 / 2014-04-24
 
 * Fix problems with loading C and Java native extension code
