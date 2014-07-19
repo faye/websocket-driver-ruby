@@ -41,6 +41,7 @@ module WebSocket
     class ConnectEvent < Struct.new(nil) ; end
     class OpenEvent    < Struct.new(nil) ; end
     class MessageEvent < Struct.new(:data) ; end
+    class PongEvent    < Struct.new(:message) ; end
     class CloseEvent   < Struct.new(:code, :reason) ; end
 
     class ProtocolError < StandardError ; end

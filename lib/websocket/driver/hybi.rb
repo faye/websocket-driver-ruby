@@ -359,6 +359,7 @@ module WebSocket
 
           when OPCODES[:pong] then
             message = Driver.encode(payload, :utf8)
+            emit(:pong, PongEvent.new(message))
             callback = @ping_callbacks[message]
             @ping_callbacks.delete(message)
             callback.call if callback
