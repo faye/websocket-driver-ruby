@@ -1,4 +1,4 @@
-# websocket-driver [![Build Status](https://travis-ci.org/faye/websocket-driver-ruby.png)](https://travis-ci.org/faye/websocket-driver-ruby)
+# websocket-driver [![Build Status](https://travis-ci.org/faye/websocket-driver-ruby.svg)](https://travis-ci.org/faye/websocket-driver-ruby)
 
 This module provides a complete implementation of the WebSocket protocols that
 can be hooked up to any TCP library. It aims to simplify things by decoupling
