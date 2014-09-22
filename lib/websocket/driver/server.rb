@@ -61,7 +61,7 @@ module WebSocket
 
     private
 
-      def fail_request
+      def fail_request(message)
         emit(:error, ProtocolError.new(message))
         emit(:close, CloseEvent.new(Hybi::ERRORS[:protocol_error], message))
       end
