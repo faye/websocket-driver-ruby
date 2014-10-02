@@ -181,17 +181,16 @@ module WebSocket
         reason ||= ''
         code   ||= ERRORS[:normal_closure]
 
-        case @ready_state
-          when 0 then
-            @ready_state = 3
-            emit(:close, CloseEvent.new(code, reason))
-            true
-          when 1 then
-            frame(reason, :close, code)
-            @ready_state = 2
-            true
-          else
-            false
+        if @ready_state <= 0
+          @ready_state = 3
+          emit(:close, CloseEvent.new(code, reason))
+          true
+        elsif @ready_state == 1
+          frame(reason, :close, code)
+          @ready_state = 2
+          true
+        else
+          false
         end
       end
 

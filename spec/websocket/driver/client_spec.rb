@@ -54,6 +54,14 @@ describe WebSocket::Driver::Client do
       expect(driver.state).to eq nil
     end
 
+    describe :close do
+      it "changes the state to closed" do
+        driver.close
+        expect(driver.state).to eq :closed
+        expect(@close).to eq [1000, ""]
+      end
+    end
+
     describe :start do
       it "writes the handshake request to the socket" do
         expect(socket).to receive(:write).with(
