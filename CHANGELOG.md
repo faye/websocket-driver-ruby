@@ -1,3 +1,9 @@
+### 0.3.5 / 2014-10-04
+
+* Fix bug where the `Server` driver doesn't pass `ping` callbacks to its delegate
+* Fix an arity error when calling `fail_request`
+* Allow `close` to be called before `start` to close the driver
+
 ### 0.3.4 / 2014-07-06
 
 * Don't hold references to frame buffers after a message has been emitted
