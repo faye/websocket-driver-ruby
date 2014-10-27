@@ -1,3 +1,7 @@
+### 0.4.0 / 2014-10-27
+
+* Support connection via HTTP proxies using `CONNECT`
+
 ### 0.3.5 / 2014-10-04
 
 * Fix bug where the `Server` driver doesn't pass `ping` callbacks to its delegate
