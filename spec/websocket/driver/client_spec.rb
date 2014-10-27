@@ -55,7 +55,7 @@ describe WebSocket::Driver::Client do
     end
 
     describe :close do
-      it "changes the state to closed" do
+      it "changes the state to :closed" do
         driver.close
         expect(driver.state).to eq :closed
         expect(@close).to eq [1000, ""]
@@ -132,6 +132,35 @@ describe WebSocket::Driver::Client do
         end
       end
 
+      describe "using a proxy" do
+        let(:options) { {:proxy => "http://proxy.example.com"} }
+
+        it "sends a CONNECT request to the proxy" do
+          expect(socket).to receive(:write).with(
+              "CONNECT www.example.com:80 HTTP/1.1\r\n" +
+              "Host: www.example.com\r\n" +
+              "Connection: keep-alive\r\n" +
+              "Proxy-Connection: keep-alive\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
+      describe "using an authenticated proxy" do
+        let(:options) { {:proxy => "http://user:pass@proxy.example.com"} }
+
+        it "sends a CONNECT request to the proxy" do
+          expect(socket).to receive(:write).with(
+              "CONNECT www.example.com:80 HTTP/1.1\r\n" +
+              "Host: www.example.com\r\n" +
+              "Connection: keep-alive\r\n" +
+              "Proxy-Connection: keep-alive\r\n" +
+              "Proxy-Authorization: Basic dXNlcjpwYXNz\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
       it "changes the state to :connecting" do
         driver.start
         expect(driver.state).to eq :connecting
@@ -141,6 +170,30 @@ describe WebSocket::Driver::Client do
 
   describe "in the :connecting state" do
     before { driver.start }
+
+    describe "using a proxy" do
+      let(:options) { {:proxy => "http://proxy.example.com"} }
+
+      it "writes the handshake request when the proxy connects" do
+        expect(socket).to receive(:write).with(
+            "GET /socket HTTP/1.1\r\n" + 
+            "Host: www.example.com\r\n" +
+            "Upgrade: websocket\r\n" +
+            "Connection: Upgrade\r\n" +
+            "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+            "Sec-WebSocket-Version: 13\r\n" +
+            "\r\n")
+        driver.parse("HTTP/1.1 200 OK\r\n\r\n")
+      end
+
+      it "emits an error if the proxy does not connect" do
+        expect(socket).to_not receive(:write)
+        driver.parse("HTTP/1.1 403 Forbidden\r\n\r\n")
+        expect(@error.message).to eq "Can't establish a connection to the server at ws://www.example.com/socket"
+        expect(@close).to eq [1006, ""]
+        expect(driver.state).to eq :closed
+      end
+    end
 
     describe "with a valid response" do
       before { driver.parse(response) }
