@@ -225,6 +225,12 @@ proxy.set_header('User-Agent', 'ruby')
 proxy.start
 ```
 
+If your client is connecting to a `wss:` endpoint, the driver will call
+`socket.start_tls` after the proxy connection is established to prompt your
+socket object to perform a TLS handshake. You must complete a TLS handshake
+using your chosen I/O framework before continuing to write data from the driver
+to your socket.
+
 
 ### Driver API
 
