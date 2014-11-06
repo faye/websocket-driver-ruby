@@ -132,35 +132,6 @@ describe WebSocket::Driver::Client do
         end
       end
 
-      describe "using a proxy" do
-        let(:options) { {:proxy => "http://proxy.example.com"} }
-
-        it "sends a CONNECT request to the proxy" do
-          expect(socket).to receive(:write).with(
-              "CONNECT www.example.com:80 HTTP/1.1\r\n" +
-              "Host: www.example.com\r\n" +
-              "Connection: keep-alive\r\n" +
-              "Proxy-Connection: keep-alive\r\n" +
-              "\r\n")
-          driver.start
-        end
-      end
-
-      describe "using an authenticated proxy" do
-        let(:options) { {:proxy => "http://user:pass@proxy.example.com"} }
-
-        it "sends a CONNECT request to the proxy" do
-          expect(socket).to receive(:write).with(
-              "CONNECT www.example.com:80 HTTP/1.1\r\n" +
-              "Host: www.example.com\r\n" +
-              "Connection: keep-alive\r\n" +
-              "Proxy-Connection: keep-alive\r\n" +
-              "Proxy-Authorization: Basic dXNlcjpwYXNz\r\n" +
-              "\r\n")
-          driver.start
-        end
-      end
-
       it "changes the state to :connecting" do
         driver.start
         expect(driver.state).to eq :connecting
@@ -168,32 +139,74 @@ describe WebSocket::Driver::Client do
     end
   end
 
-  describe "in the :connecting state" do
-    before { driver.start }
+  describe "using a proxy" do
+    it "sends a CONNECT request" do
+      proxy = driver.proxy("http://proxy.example.com")
+      expect(socket).to receive(:write).with(
+          "CONNECT www.example.com:80 HTTP/1.1\r\n" +
+          "Host: www.example.com\r\n" +
+          "Connection: keep-alive\r\n" +
+          "Proxy-Connection: keep-alive\r\n" +
+          "\r\n")
+      proxy.start
+    end
 
-    describe "using a proxy" do
-      let(:options) { {:proxy => "http://proxy.example.com"} }
+    it "sends an authenticated CONNECT request" do
+      proxy = driver.proxy("http://user:pass@proxy.example.com")
+      expect(socket).to receive(:write).with(
+          "CONNECT www.example.com:80 HTTP/1.1\r\n" +
+          "Host: www.example.com\r\n" +
+          "Connection: keep-alive\r\n" +
+          "Proxy-Connection: keep-alive\r\n" +
+          "Proxy-Authorization: Basic dXNlcjpwYXNz\r\n" +
+          "\r\n")
+      proxy.start
+    end
 
-      it "writes the handshake request when the proxy connects" do
+    it "sends a CONNECT request with custom headers" do
+      proxy = driver.proxy("http://proxy.example.com")
+      proxy.set_header("User-Agent", "Chrome")
+      expect(socket).to receive(:write).with(
+          "CONNECT www.example.com:80 HTTP/1.1\r\n" +
+          "Host: www.example.com\r\n" +
+          "Connection: keep-alive\r\n" +
+          "Proxy-Connection: keep-alive\r\n" +
+          "User-Agent: Chrome\r\n" +
+          "\r\n")
+      proxy.start
+    end
+
+    describe "receiving a response" do
+      let(:proxy) { driver.proxy("http://proxy.example.com") }
+
+      before do
+        proxy.on(:error)   { |e| @error = e }
+        proxy.on(:close)   { |e| @close = [e.code, e.reason] }
+      end
+
+      it "emits a WebSocket handshake when the proxy connects" do
         expect(socket).to receive(:write).with(
-            "GET /socket HTTP/1.1\r\n" + 
+            "GET /socket HTTP/1.1\r\n" +
             "Host: www.example.com\r\n" +
             "Upgrade: websocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
             "Sec-WebSocket-Version: 13\r\n" +
             "\r\n")
-        driver.parse("HTTP/1.1 200 OK\r\n\r\n")
+        proxy.parse("HTTP/1.1 200 OK\r\n\r\n")
       end
 
-      it "emits an error if the proxy does not connect" do
-        expect(socket).to_not receive(:write)
-        driver.parse("HTTP/1.1 403 Forbidden\r\n\r\n")
+      it "emits an 'error' event if the proxy does not connect" do
+        proxy.parse("HTTP/1.1 403 Forbidden\r\n\r\n")
+        expect(@open).to eq false
         expect(@error.message).to eq "Can't establish a connection to the server at ws://www.example.com/socket"
         expect(@close).to eq [1006, ""]
-        expect(driver.state).to eq :closed
       end
     end
+  end
+
+  describe "in the :connecting state" do
+    before { driver.start }
 
     describe "with a valid response" do
       before { driver.parse(response) }

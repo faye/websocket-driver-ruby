@@ -197,17 +197,33 @@ sent back by the server:
 
 The client driver supports connections via HTTP proxies using the `CONNECT`
 method. Instead of sending the WebSocket handshake immediately, it will send a
-`CONNECT` request, wait for a `200` response, and then proceed as normal. To use
-this feature, set the `:proxy` option to the HTTP origin of the proxy, including
-any authorization information.
+`CONNECT` request, wait for a `200` response, and then proceed as normal.
+
+To use this feature, call `proxy = driver.proxy(url)` where `url` is the origin
+of the proxy, including a username and password if required. This produces an
+object that manages the process of connecting via the proxy. You should call
+`proxy.start` to begin the connection process, and pass data you receive via the
+socket to `proxy.parse(data)`. You should use these methods _instead_ of
+`driver.start` and `driver.parse(data)`.
+
+In the event that proxy connection fails, `proxy` will emit an `:error`. You can
+inspect the proxy's response via `proxy.status` and `proxy.headers`.
 
 ```rb
-driver = WebSocket::Driver.client(socket, :proxy => 'http://username:password@proxy.example.com')
+proxy.on :error do |error|
+  puts error.message
+  puts proxy.status
+  puts proxy.headers.inspect
+end
 ```
 
-It is up to you to set up a TCP connection to the proxy yourself. If you prefer,
-you can perform the `CONNECT` logic yourself and then hand off the TCP
-connection to the client driver to continue the handshake process.
+You can pass additional options to the proxy to control it. Before calling
+`proxy.start` you can set custom headers using `proxy.set_header`:
+
+```rb
+proxy.set_header('User-Agent', 'ruby')
+proxy.start
+```
 
 
 ### Driver API

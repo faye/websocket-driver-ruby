@@ -51,6 +51,7 @@ module WebSocket
     autoload :EventEmitter, root + '/event_emitter'
     autoload :Headers,      root + '/headers'
     autoload :Hybi,         root + '/hybi'
+    autoload :Proxy,        root + '/proxy'
     autoload :Server,       root + '/server'
 
     include EventEmitter
