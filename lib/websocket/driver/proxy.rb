@@ -50,30 +50,18 @@ module WebSocket
       end
 
       def parse(buffer)
-        return @delegate.parse(buffer) if @delegate
-
         @http.parse(buffer)
         return unless @http.complete?
 
         @status = @http.code
         @headers = Headers.new(@http.headers)
 
-        if @status != 200
+        if @status == 200
+          emit(:connect)
+        else
           message = "Can't establish a connection to the server at #{@socket.url}"
           emit(:error, ProtocolError.new(message))
-          @ready_state = 3
-          return emit(:close, CloseEvent.new(1006, ''))
         end
-
-        @socket.start_tls if @origin.scheme == 'wss'
-        configure_delegate(@client)
-        @client.start
-      end
-
-    private
-
-      def configure_delegate(delegate)
-        @delegate = delegate
       end
     end
 

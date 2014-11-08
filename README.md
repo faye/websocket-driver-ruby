@@ -203,8 +203,20 @@ To use this feature, call `proxy = driver.proxy(url)` where `url` is the origin
 of the proxy, including a username and password if required. This produces an
 object that manages the process of connecting via the proxy. You should call
 `proxy.start` to begin the connection process, and pass data you receive via the
-socket to `proxy.parse(data)`. You should use these methods _instead_ of
-`driver.start` and `driver.parse(data)`.
+socket to `proxy.parse(data)`. When the proxy emits `:connect`, you should then
+start sending incoming data to `driver.parse(data)` as normal, and call
+`driver.start`.
+
+```rb
+proxy = driver.proxy('http://username:password@proxy.example.com')
+
+proxy.on :connect do
+  driver.start
+end
+```
+
+The proxy's `:connect` event is also where you should perform a TLS handshake on
+your TCP stream, if you are connecting to a `wss:` endpoint.
 
 In the event that proxy connection fails, `proxy` will emit an `:error`. You can
 inspect the proxy's response via `proxy.status` and `proxy.headers`.
@@ -217,19 +229,13 @@ proxy.on :error do |error|
 end
 ```
 
-You can pass additional options to the proxy to control it. Before calling
-`proxy.start` you can set custom headers using `proxy.set_header`:
+Before calling `proxy.start` you can set custom headers using
+`proxy.set_header`:
 
 ```rb
 proxy.set_header('User-Agent', 'ruby')
 proxy.start
 ```
-
-If your client is connecting to a `wss:` endpoint, the driver will call
-`socket.start_tls` after the proxy connection is established to prompt your
-socket object to perform a TLS handshake. You must complete a TLS handshake
-using your chosen I/O framework before continuing to write data from the driver
-to your socket.
 
 
 ### Driver API

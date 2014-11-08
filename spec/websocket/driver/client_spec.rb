@@ -180,27 +180,20 @@ describe WebSocket::Driver::Client do
       let(:proxy) { driver.proxy("http://proxy.example.com") }
 
       before do
+        proxy.on(:connect) { @connect = true }
         proxy.on(:error)   { |e| @error = e }
-        proxy.on(:close)   { |e| @close = [e.code, e.reason] }
       end
 
-      it "emits a WebSocket handshake when the proxy connects" do
-        expect(socket).to receive(:write).with(
-            "GET /socket HTTP/1.1\r\n" +
-            "Host: www.example.com\r\n" +
-            "Upgrade: websocket\r\n" +
-            "Connection: Upgrade\r\n" +
-            "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
-            "Sec-WebSocket-Version: 13\r\n" +
-            "\r\n")
+      it "emits a 'connect' event when the proxy connects" do
         proxy.parse("HTTP/1.1 200 OK\r\n\r\n")
+        expect(@connect).to eq true
+        expect(@error).to eq false
       end
 
       it "emits an 'error' event if the proxy does not connect" do
         proxy.parse("HTTP/1.1 403 Forbidden\r\n\r\n")
-        expect(@open).to eq false
+        expect(@connect).to eq nil
         expect(@error.message).to eq "Can't establish a connection to the server at ws://www.example.com/socket"
-        expect(@close).to eq [1006, ""]
       end
     end
   end
