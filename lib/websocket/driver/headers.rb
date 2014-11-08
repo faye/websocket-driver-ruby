@@ -6,11 +6,15 @@ module WebSocket
 
       def initialize(received = {})
         @raw   = received
-        @sent  = Set.new
-        @lines = []
+        clear
 
         @received = {}
         @raw.each { |k,v| @received[HTTP.normalize_header(k)] = v }
+      end
+
+      def clear
+        @sent  = Set.new
+        @lines = []
       end
 
       def [](name)

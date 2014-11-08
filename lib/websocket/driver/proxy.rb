@@ -11,14 +11,23 @@ module WebSocket
       def initialize(client, origin, options)
         super()
 
-        @client = client
-        @headers = Headers.new
+        @client  = client
         @http    = HTTP::Response.new
         @socket  = client.instance_variable_get(:@socket)
         @origin  = URI.parse(@socket.url)
         @url     = URI.parse(origin)
         @options = options
         @state   = 0
+
+        @headers = Headers.new
+        @headers['Host'] = @origin.host + (@origin.port ? ":#{@origin.port}" : '')
+        @headers['Connection'] = 'keep-alive'
+        @headers['Proxy-Connection'] = 'keep-alive'
+
+        if @url.user
+          auth = Base64.encode64([@url.user, @url.password] * ':').gsub(/\n/, '')
+          @headers['Proxy-Authorization'] = 'Basic ' + auth
+        end
       end
 
       def set_header(name, value)
@@ -31,21 +40,11 @@ module WebSocket
         return false unless @state == 0
         @state = 1
 
-        host = @origin.host + (@origin.port ? ":#{@origin.port}" : '')
-        port = @origin.port || PORTS[@origin.scheme]
+        port    = @origin.port || PORTS[@origin.scheme]
+        start   = "CONNECT #{@origin.host}:#{port} HTTP/1.1"
+        headers = [start, @headers.to_s, '']
 
-        headers = [ "CONNECT #{@origin.host}:#{port} HTTP/1.1",
-                    "Host: #{host}",
-                    "Connection: keep-alive",
-                    "Proxy-Connection: keep-alive"
-                  ]
-
-        if @url.user
-          auth = Base64.encode64([@url.user, @url.password] * ':').gsub(/\n/, '')
-          headers << "Proxy-Authorization: Basic #{auth}"
-        end
-
-        @socket.write((headers + [@headers.to_s, '']).join("\r\n"))
+        @socket.write(headers.join("\r\n"))
         true
       end
 

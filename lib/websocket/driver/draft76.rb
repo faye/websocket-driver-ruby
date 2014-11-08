@@ -9,6 +9,12 @@ module WebSocket
         input  = @socket.env['rack.input']
         @stage = -1
         @body  = input ? input.read.bytes.to_a : []
+
+        @headers.clear
+        @headers['Upgrade'] = 'WebSocket'
+        @headers['Connection'] = 'Upgrade'
+        @headers['Sec-WebSocket-Origin'] = @socket.env['HTTP_ORIGIN']
+        @headers['Sec-WebSocket-Location'] = @socket.url
       end
 
       def version
@@ -32,14 +38,9 @@ module WebSocket
     private
 
       def handshake_response
-        upgrade =  "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
-        upgrade << "Upgrade: WebSocket\r\n"
-        upgrade << "Connection: Upgrade\r\n"
-        upgrade << "Sec-WebSocket-Origin: #{@socket.env['HTTP_ORIGIN']}\r\n"
-        upgrade << "Sec-WebSocket-Location: #{@socket.url}\r\n"
-        upgrade << @headers.to_s
-        upgrade << "\r\n"
-        upgrade
+        start   = 'HTTP/1.1 101 WebSocket Protocol Handshake'
+        headers = [start, @headers.to_s, '']
+        headers.join("\r\n")
       end
 
       def handshake_signature

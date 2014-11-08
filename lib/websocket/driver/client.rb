@@ -15,6 +15,26 @@ module WebSocket
         @key         = Client.generate_key
         @accept      = Hybi.generate_accept(@key)
         @http        = HTTP::Response.new
+
+        uri       = URI.parse(@socket.url)
+        host      = uri.host + (uri.port ? ":#{uri.port}" : '')
+        path      = (uri.path == '') ? '/' : uri.path
+        @pathname = path + (uri.query ? '?' + uri.query : '')
+
+        @headers['Host'] = host
+        @headers['Upgrade'] = 'websocket'
+        @headers['Connection'] = 'Upgrade'
+        @headers['Sec-WebSocket-Key'] = @key
+        @headers['Sec-WebSocket-Version'] = '13'
+
+        if @protocols.size > 0
+          @headers['Sec-WebSocket-Protocol'] = @protocols * ', '
+        end
+
+        if uri.user
+          auth = Base64.encode64([uri.user, uri.password] * ':').gsub(/\n/, '')
+          @headers['Authorization'] = 'Basic ' + auth
+        end
       end
 
       def version
@@ -45,29 +65,9 @@ module WebSocket
     private 
 
       def handshake_request
-        uri   = URI.parse(@socket.url)
-        host  = uri.host + (uri.port ? ":#{uri.port}" : '')
-        path  = (uri.path == '') ? '/' : uri.path
-        query = uri.query ? "?#{uri.query}" : ''
-
-        headers = [ "GET #{path}#{query} HTTP/1.1",
-                    "Host: #{host}",
-                    "Upgrade: websocket",
-                    "Connection: Upgrade",
-                    "Sec-WebSocket-Key: #{@key}",
-                    "Sec-WebSocket-Version: 13"
-                  ]
-
-        if @protocols.size > 0
-          headers << "Sec-WebSocket-Protocol: #{@protocols * ', '}"
-        end
-
-        if uri.user
-          auth = Base64.encode64([uri.user, uri.password] * ':').gsub(/\n/, '')
-          headers << "Authorization: Basic #{auth}"
-        end
-
-        (headers + [@headers.to_s, '']).join("\r\n")
+        start   = "GET #{@pathname} HTTP/1.1"
+        headers = [start, @headers.to_s, '']
+        headers.join("\r\n")
       end
 
       def fail_handshake(message)

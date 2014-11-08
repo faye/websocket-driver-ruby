@@ -5,6 +5,11 @@ module WebSocket
       def initialize(socket, options = {})
         super
         @stage = 0
+
+        @headers['Upgrade'] = 'WebSocket'
+        @headers['Connection'] = 'Upgrade'
+        @headers['WebSocket-Origin'] = @socket.env['HTTP_ORIGIN']
+        @headers['WebSocket-Location'] = @socket.url
       end
 
       def version
@@ -73,14 +78,9 @@ module WebSocket
     private
 
       def handshake_response
-        upgrade =  "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
-        upgrade << "Upgrade: WebSocket\r\n"
-        upgrade << "Connection: Upgrade\r\n"
-        upgrade << "WebSocket-Origin: #{@socket.env['HTTP_ORIGIN']}\r\n"
-        upgrade << "WebSocket-Location: #{@socket.url}\r\n"
-        upgrade << @headers.to_s
-        upgrade << "\r\n"
-        upgrade
+        start   = 'HTTP/1.1 101 Web Socket Protocol Handshake'
+        headers = [start, @headers.to_s, '']
+        headers.join("\r\n")
       end
 
       def parse_leading_byte(data)

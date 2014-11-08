@@ -62,9 +62,17 @@ module WebSocket
 
         return unless @socket.respond_to?(:env)
 
+        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
+        protos  = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
+
+        @headers['Upgrade'] = 'websocket'
+        @headers['Connection'] = 'Upgrade'
+        @headers['Sec-WebSocket-Accept'] = Hybi.generate_accept(sec_key)
+
         if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
           protos = protos.split(/\s*,\s*/) if String === protos
           @protocol = protos.find { |p| @protocols.include?(p) }
+          @headers['Sec-WebSocket-Protocol'] = @protocol if @protocol
         end
       end
 
@@ -197,21 +205,9 @@ module WebSocket
     private
 
       def handshake_response
-        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
-        return '' unless String === sec_key
-
-        headers = [
-          "HTTP/1.1 101 Switching Protocols",
-          "Upgrade: websocket",
-          "Connection: Upgrade",
-          "Sec-WebSocket-Accept: #{Hybi.generate_accept(sec_key)}"
-        ]
-
-        if @protocol
-          headers << "Sec-WebSocket-Protocol: #{@protocol}"
-        end
-
-        (headers + [@headers.to_s, '']).join("\r\n")
+        start   = 'HTTP/1.1 101 Switching Protocols'
+        headers = [start, @headers.to_s, '']
+        headers.join("\r\n")
       end
 
       def shutdown(code, reason)
