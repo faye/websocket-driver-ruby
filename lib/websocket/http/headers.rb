@@ -90,7 +90,15 @@ module WebSocket
 
       def header_line(line)
         return false unless parsed = line.scan(HEADER_LINE).first
-        @headers[HTTP.normalize_header(parsed[0])] = parsed[1].strip
+
+        key   = HTTP.normalize_header(parsed[0])
+        value = parsed[1].strip
+
+        if @headers.has_key?(key)
+          @headers[key] << ', ' << value
+        else
+          @headers[key] = value
+        end
         true
       end
 

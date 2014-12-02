@@ -22,7 +22,7 @@ module WebSocket
         url
       end
 
-      %w[set_header start state frame text binary ping close].each do |method|
+      %w[add_extension set_header start frame text binary ping close].each do |method|
         define_method(method) do |*args, &block|
           if @delegate
             @delegate.__send__(method, *args, &block)
@@ -47,7 +47,8 @@ module WebSocket
         return unless @http.complete?
 
         @delegate = Driver.rack(self, @options)
-        @delegate.on(:open) { open }
+        open
+
         EVENTS.each do |event|
           @delegate.on(event) { |e| emit(event, e) }
         end

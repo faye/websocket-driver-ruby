@@ -57,14 +57,21 @@ module WebSocket
 
         @http.parse(buffer)
         return fail_handshake('Invalid HTTP response') if @http.error?
+        return unless @http.complete?
 
-        validate_handshake if @http.complete?
-        parse(@http.body) if @ready_state == 1
+        validate_handshake
+        return if @ready_state == 3
+
+        open
+        parse(@http.body)
       end
 
     private 
 
       def handshake_request
+        extensions = @extensions.generate_offer
+        @headers['Sec-WebSocket-Extensions'] = extensions if extensions
+
         start   = "GET #{@pathname} HTTP/1.1"
         headers = [start, @headers.to_s, '']
         headers.join("\r\n")
@@ -114,7 +121,11 @@ module WebSocket
           end
         end
 
-        open
+        begin
+          @extensions.activate(@headers['Sec-WebSocket-Extensions'])
+        rescue ::WebSocket::Extensions::ExtensionError => e
+          return fail_handshake(e.message)
+        end
       end
     end
 

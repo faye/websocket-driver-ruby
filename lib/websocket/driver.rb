@@ -7,9 +7,11 @@
 require 'base64'
 require 'digest/md5'
 require 'digest/sha1'
+require 'securerandom'
 require 'set'
 require 'stringio'
 require 'uri'
+require 'websocket/extensions'
 
 module WebSocket
   autoload :HTTP, File.expand_path('../http', __FILE__)
@@ -71,6 +73,10 @@ module WebSocket
     def state
       return nil unless @ready_state >= 0
       STATES[@ready_state]
+    end
+
+    def add_extension(extension)
+      false
     end
 
     def set_header(name, value)
@@ -175,7 +181,7 @@ module WebSocket
       upgrade    = env['HTTP_UPGRADE']    || ''
 
       env['REQUEST_METHOD'] == 'GET' and
-      connection.downcase.split(/\s*,\s*/).include?('upgrade') and
+      connection.downcase.split(/ *, */).include?('upgrade') and
       upgrade.downcase == 'websocket'
     end
 

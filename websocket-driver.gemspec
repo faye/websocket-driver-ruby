@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name              = 'websocket-driver'
-  s.version           = '0.4.0'
+  s.version           = '0.5.0'
   s.summary           = 'WebSocket protocol handler with pluggable I/O'
   s.author            = 'James Coglan'
   s.email             = 'jcoglan@gmail.com'
@@ -24,7 +24,10 @@ Gem::Specification.new do |s|
 
   s.files = files
 
+  s.add_dependency 'websocket-extensions', '>= 0.1.0'
+
   s.add_development_dependency 'eventmachine'
+  s.add_development_dependency 'permessage-deflate'
   s.add_development_dependency 'rake-compiler', '~> 0.8.0'
   s.add_development_dependency 'rspec'
 end
