@@ -196,9 +196,14 @@ module WebSocket
         length = frame.length
         header = (length <= 125) ? 2 : (length <= 65535 ? 4 : 10)
         offset = header + (frame.masked ? 4 : 0)
+        buffer = []
         masked = frame.masked ? MASK : 0
 
-        buffer = [FIN | frame.opcode]
+        buffer[0] = (frame.final ? FIN : 0) |
+                    (frame.rsv1 ? RSV1 : 0) |
+                    (frame.rsv2 ? RSV2 : 0) |
+                    (frame.rsv3 ? RSV3 : 0) |
+                    frame.opcode
 
         if length <= 125
           buffer[1] = masked | length

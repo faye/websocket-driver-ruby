@@ -2,10 +2,12 @@ require 'rubygems'
 require 'bundler/setup'
 require 'eventmachine'
 require 'websocket/driver'
+require 'permessage_deflate'
 
 module Connection
   def initialize
     @driver = WebSocket::Driver.server(self)
+    @driver.add_extension(PermessageDeflate)
 
     @driver.on(:connect) { |e| @driver.start if WebSocket::Driver.websocket? @driver.env }
     @driver.on(:message) { |e| @driver.frame(e.data) }
