@@ -3,16 +3,26 @@ module WebSocket
     class Hybi
 
       class Message
-        attr_accessor :data, :frames
+        attr_accessor :rsv1,
+                      :rsv2,
+                      :rsv3,
+                      :opcode,
+                      :data
 
         def initialize
-          @data   = ''
-          @frames = []
+          @rsv1   = false
+          @rsv2   = false
+          @rsv3   = false
+          @opcode = nil
+          @data   = Driver.encode('', :binary)
         end
 
         def <<(frame)
-          @data   << frame.payload
-          @frames << frame
+          @rsv1   ||= frame.rsv1
+          @rsv2   ||= frame.rsv2
+          @rsv3   ||= frame.rsv3
+          @opcode ||= frame.opcode
+          @data   <<  frame.payload
         end
       end
 

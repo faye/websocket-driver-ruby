@@ -44,7 +44,7 @@ module WebSocket
       end
 
       def handshake_signature
-        return nil unless @body.size >= BODY_SIZE
+        return nil unless @body.bytesize >= BODY_SIZE
 
         head   = @body[0...BODY_SIZE].pack('C*')
         env    = @socket.env
@@ -63,7 +63,7 @@ module WebSocket
         @socket.write(Driver.encode(signature, :binary))
         @stage = 0
         open
-        parse(@body[BODY_SIZE..-1]) if @body.size > BODY_SIZE
+        parse(@body[BODY_SIZE..-1]) if @body.bytesize > BODY_SIZE
       end
 
       def parse_leading_byte(data)

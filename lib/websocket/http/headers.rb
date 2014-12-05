@@ -72,7 +72,7 @@ module WebSocket
             @buffer = []
           else
             @buffer << byte if @stage >= 0
-            error if @stage < 2 and @buffer.size > MAX_LINE_LENGTH
+            error if @stage < 2 and @buffer.bytesize > MAX_LINE_LENGTH
           end
         end
         @env['rack.input'] = StringIO.new(string_buffer) if @env

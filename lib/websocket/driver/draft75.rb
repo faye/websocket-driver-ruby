@@ -60,7 +60,7 @@ module WebSocket
                   @stage = 0 if @skipped == @length
                 else
                   @buffer << data
-                  return close if @buffer.size > @max_length
+                  return close if @buffer.bytesize > @max_length
                 end
               end
           end

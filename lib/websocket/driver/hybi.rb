@@ -159,40 +159,40 @@ module WebSocket
         return queue([data, type, code]) if @ready_state <= 0
         return false unless @ready_state == 1
 
+        message = Message.new
         frame   = Frame.new
         is_text = String === data
 
-        frame.final  = true
-        frame.rsv1   = frame.rsv2 = frame.rsv3 = false
-        frame.opcode = OPCODES[type || (is_text ? :text : :binary)]
-        frame.masked = !!@masking
-
-        frame.masking_key = SecureRandom.random_bytes(4) if frame.masked
+        message.rsv1   = message.rsv2 = message.rsv3 = false
+        message.opcode = OPCODES[type || (is_text ? :text : :binary)]
 
         payload = is_text ? data.bytes.to_a : data
         if code
           payload = [(code >> 8) & BYTE, code & BYTE, *payload]
         end
-        frame.length  = payload.size
-        frame.payload = payload.pack('C*')
+        message.data = payload.pack('C*')
 
-        send_frame(frame, true)
+        if MESSAGE_OPCODES.include?(message.opcode)
+          message = @extensions.process_outgoing_message(message)
+        end
+
+        frame.final       = true
+        frame.rsv1        = message.rsv1
+        frame.rsv2        = message.rsv2
+        frame.rsv3        = message.rsv3
+        frame.opcode      = message.opcode
+        frame.masked      = !!@masking
+        frame.masking_key = SecureRandom.random_bytes(4) if frame.masked
+        frame.length      = message.data.bytesize
+        frame.payload     = message.data
+
+        send_frame(frame)
         true
       end
 
     private
 
-      def send_frame(frame, run_extensions = false)
-        if run_extensions and MESSAGE_OPCODES.include?(frame.opcode)
-          message = Message.new
-          message << frame
-
-          @extensions.process_outgoing_message(message).frames.each do |frame|
-            send_frame(frame)
-          end
-          return
-        end
-
+      def send_frame(frame)
         length = frame.length
         header = (length <= 125) ? 2 : (length <= 65535 ? 4 : 10)
         offset = header + (frame.masked ? 4 : 0)
@@ -322,7 +322,7 @@ module WebSocket
       end
 
       def check_frame_length
-        length = @message ? @message.data.size : 0
+        length = @message ? @message.data.bytesize : 0
 
         if length + @frame.length > @max_length
           fail(:too_large, 'WebSocket frame length too large')
@@ -385,7 +385,7 @@ module WebSocket
 
         payload = message.data
 
-        case message.frames.first.opcode
+        case message.opcode
           when OPCODES[:text] then
             payload = Driver.encode(payload, :utf8)
           when OPCODES[:binary]
