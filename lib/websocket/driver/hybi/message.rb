@@ -6,12 +6,12 @@ module WebSocket
         attr_accessor :data, :frames
 
         def initialize
-          @data   = []
+          @data   = ''
           @frames = []
         end
 
         def <<(frame)
-          @data.concat(frame.payload)
+          @data   << frame.payload
           @frames << frame
         end
       end

@@ -4,23 +4,22 @@ module WebSocket
     class Hybi
       class StreamReader
         def initialize
-          @queue = []
+          @buffer = Driver.encode('', :binary)
+        end
+
+        def put(string)
+          return unless string and string.bytesize > 0
+          @buffer << Driver.encode(string, :binary)
         end
 
         def read(length)
-          read_bytes(length)
-        end
+          buffer_size = @buffer.bytesize
+          return nil if length > buffer_size
 
-        def put(bytes)
-          return unless bytes and bytes.size > 0
-          @queue.concat(bytes)
-        end
+          chunk   = @buffer.byteslice(0, length)
+          @buffer = @buffer.byteslice(length, buffer_size - length)
 
-      private
-
-        def read_bytes(length)
-          return nil if length > @queue.size
-          @queue.shift(length)
+          chunk
         end
       end
     end

@@ -6,32 +6,36 @@ VALUE WebSocketMask = Qnil;
 void Init_websocket_mask();
 VALUE method_websocket_mask(VALUE self, VALUE payload, VALUE mask);
 
-void Init_websocket_mask() {
+void
+Init_websocket_mask()
+{
   WebSocket = rb_define_module("WebSocket");
   WebSocketMask = rb_define_module_under(WebSocket, "Mask");
   rb_define_singleton_method(WebSocketMask, "mask", method_websocket_mask, 2);
 }
 
-VALUE method_websocket_mask(VALUE self, VALUE payload, VALUE mask) {
-  int n, i, p, m;
-  int mask_array[4];
+VALUE
+method_websocket_mask(VALUE self,
+                      VALUE payload,
+                      VALUE mask)
+{
+  char *payload_s, *mask_s, *unmasked_s;
+  int i, n;
   VALUE unmasked;
 
-  if (mask == Qnil || RARRAY_LEN(mask) == 0) {
+  if (mask == Qnil || RSTRING_LEN(mask) != 4) {
     return payload;
   }
 
-  n = RARRAY_LEN(payload);
-  unmasked = rb_ary_new2(n);
+  payload_s = RSTRING_PTR(payload);
+  mask_s    = RSTRING_PTR(mask);
+  n         = RSTRING_LEN(payload);
 
-  for (i = 0; i < 4; i++) {
-    mask_array[i] = NUM2INT(rb_ary_entry(mask, i));
-  }
+  unmasked   = rb_str_new(0, n);
+  unmasked_s = RSTRING_PTR(unmasked);
 
   for (i = 0; i < n; i++) {
-    p = NUM2INT(rb_ary_entry(payload, i));
-    m = mask_array[i % 4];
-    rb_ary_store(unmasked, i, INT2NUM(p ^ m));
+    unmasked_s[i] = payload_s[i] ^ mask_s[i % 4];
   }
   return unmasked;
 }

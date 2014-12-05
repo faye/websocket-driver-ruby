@@ -46,14 +46,10 @@ module WebSocket
       def handshake_signature
         return nil unless @body.size >= BODY_SIZE
 
-        head = @body[0...BODY_SIZE].pack('C*')
-        head.force_encoding('ASCII-8BIT') if head.respond_to?(:force_encoding)
-
-        env = @socket.env
-
+        head   = @body[0...BODY_SIZE].pack('C*')
+        env    = @socket.env
         key1   = env['HTTP_SEC_WEBSOCKET_KEY1']
         value1 = number_from_key(key1) / spaces_in_key(key1)
-
         key2   = env['HTTP_SEC_WEBSOCKET_KEY2']
         value2 = number_from_key(key2) / spaces_in_key(key2)
 
@@ -86,7 +82,7 @@ module WebSocket
       end
 
       def big_endian(number)
-        string = ''
+        string = Driver.encode('', :binary)
         [24, 16, 8, 0].each do |offset|
           string << (number >> offset & 0xFF).chr
         end

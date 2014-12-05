@@ -4,11 +4,10 @@ import java.lang.Long;
 import java.io.IOException;
 
 import org.jruby.Ruby;
-import org.jruby.RubyArray;
 import org.jruby.RubyClass;
-import org.jruby.RubyFixnum;
 import org.jruby.RubyModule;
 import org.jruby.RubyObject;
+import org.jruby.RubyString;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.runtime.ObjectAllocator;
 import org.jruby.runtime.ThreadContext;
@@ -39,27 +38,18 @@ public class WebsocketMaskService implements BasicLibraryService {
 
     @JRubyMethod
     public IRubyObject mask(ThreadContext context, IRubyObject payload, IRubyObject mask) {
-      if (mask.isNil() || ((RubyArray)mask).getLength() == 0) {
-        return payload;
-      }
+      if (mask.isNil()) return payload;
 
-      int n = ((RubyArray)payload).getLength(), i;
-      long p, m;
-      RubyArray unmasked = RubyArray.newArray(runtime, n);
+      byte[] payload_a = ((RubyString)payload).getBytes();
+      byte[] mask_a    = ((RubyString)mask).getBytes();
+      int i, n         = payload_a.length;
 
-      long[] maskArray = {
-        (Long)((RubyArray)mask).get(0),
-        (Long)((RubyArray)mask).get(1),
-        (Long)((RubyArray)mask).get(2),
-        (Long)((RubyArray)mask).get(3)
-      };
+      if (n == 0) return payload;
 
       for (i = 0; i < n; i++) {
-        p = (Long)((RubyArray)payload).get(i);
-        m = maskArray[i % 4];
-        unmasked.set(i, p ^ m);
+        payload_a[i] ^= mask_a[i % 4];
       }
-      return unmasked;
+      return RubyString.newStringNoCopy(runtime, payload_a);
     }
   }
 }

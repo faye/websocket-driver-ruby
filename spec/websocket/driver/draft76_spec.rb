@@ -176,7 +176,7 @@ describe WebSocket::Driver::Draft76 do
 
     describe :parse do
       it "closes the socket if a close frame is received" do
-        driver.parse [0xff, 0x00]
+        driver.parse [0xff, 0x00].pack("C*")
         expect(@close).to eq true
         expect(driver.state).to eq :closed
       end

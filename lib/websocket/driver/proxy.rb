@@ -44,7 +44,7 @@ module WebSocket
         start   = "CONNECT #{@origin.host}:#{port} HTTP/1.1"
         headers = [start, @headers.to_s, '']
 
-        @socket.write(headers.join("\r\n"))
+        @socket.write(Driver.encode(headers.join("\r\n"), :binary))
         true
       end
 

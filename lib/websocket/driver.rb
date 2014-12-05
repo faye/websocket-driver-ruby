@@ -145,27 +145,17 @@ module WebSocket
     end
 
     def self.encode(string, encoding = nil)
-      if Array === string
-        string = string.pack('C*')
-        encoding ||= :binary
-      else
-        encoding ||= :utf8
+      case string
+        when Array then
+          string = string.pack('C*')
+          encoding ||= :binary
+        when String then
+          encoding ||= :utf8
       end
-      case encoding
-      when :binary
-        string.force_encoding('ASCII-8BIT') if string.respond_to?(:force_encoding)
-      when :utf8
-        string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
-        return nil unless valid_utf8?(string)
-      end
+      encodings = {:utf8 => 'UTF-8', :binary => 'ASCII-8BIT'}
+      string.force_encoding(encodings[encoding]) if string.respond_to?(:force_encoding)
+      return nil if encoding == :utf8 and not valid_utf8?(string)
       string
-    end
-
-    def self.utf8_string(string)
-      string = string.pack('C*') if Array === string
-      string.respond_to?(:force_encoding) ?
-          string.force_encoding('UTF-8') :
-          string
     end
 
     def self.valid_utf8?(string)

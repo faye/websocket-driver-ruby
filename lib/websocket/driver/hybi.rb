@@ -89,18 +89,17 @@ module WebSocket
       end
 
       def parse(data)
-        data = data.bytes.to_a if data.respond_to?(:bytes)
         @reader.put(data)
         buffer = true
         while buffer
           case @stage
             when 0 then
               buffer = @reader.read(1)
-              parse_opcode(buffer[0]) if buffer
+              parse_opcode(buffer.getbyte(0)) if buffer
 
             when 1 then
               buffer = @reader.read(1)
-              parse_length(buffer[0]) if buffer
+              parse_length(buffer.getbyte(0)) if buffer
 
             when 2 then
               buffer = @reader.read(@frame.length_bytes)
@@ -160,25 +159,22 @@ module WebSocket
         return queue([data, type, code]) if @ready_state <= 0
         return false unless @ready_state == 1
 
-        data = data.to_s unless Array === data
-        data = Driver.encode(data, :utf8) if String === data
-
         frame   = Frame.new
-        is_text = (String === data)
+        is_text = String === data
 
         frame.final  = true
         frame.rsv1   = frame.rsv2 = frame.rsv3 = false
         frame.opcode = OPCODES[type || (is_text ? :text : :binary)]
         frame.masked = !!@masking
 
-        frame.masking_key = SecureRandom.random_bytes(4).bytes.to_a if frame.masked
+        frame.masking_key = SecureRandom.random_bytes(4) if frame.masked
 
-        payload = data.respond_to?(:bytes) ? data.bytes.to_a : data
+        payload = is_text ? data.bytes.to_a : data
         if code
-          payload = [(code >> 8) & BYTE, code & BYTE] + payload
+          payload = [(code >> 8) & BYTE, code & BYTE, *payload]
         end
         frame.length  = payload.size
-        frame.payload = payload
+        frame.payload = payload.pack('C*')
 
         send_frame(frame, true)
         true
@@ -223,13 +219,13 @@ module WebSocket
         end
 
         if frame.masked
-          buffer.concat(frame.masking_key)
-          buffer.concat(Mask.mask(frame.payload, frame.masking_key))
+          buffer.concat(frame.masking_key.bytes.to_a)
+          buffer.concat(Mask.mask(frame.payload, frame.masking_key).bytes.to_a)
         else
-          buffer.concat(frame.payload)
+          buffer.concat(frame.payload.bytes.to_a)
         end
 
-        @socket.write(Driver.encode(buffer, :binary))
+        @socket.write(buffer.pack('C*'))
 
       rescue ::WebSocket::Extensions::ExtensionError => e
         fail(:extension_error, e.message)
@@ -332,9 +328,11 @@ module WebSocket
       end
 
       def emit_frame(buffer)
-        frame   = @frame
-        payload = frame.payload = Mask.mask(buffer, @frame.masking_key)
-        opcode  = frame.opcode
+        frame    = @frame
+        opcode   = frame.opcode
+        payload  = frame.payload = Mask.mask(buffer, @frame.masking_key)
+        bytesize = payload.bytesize
+        bytes    = payload.bytes.to_a
 
         @frame = nil
 
@@ -348,16 +346,16 @@ module WebSocket
             @message << frame
 
           when OPCODES[:close] then
-            code   = (payload.size >= 2) ? 256 * payload[0] + payload[1] : nil
-            reason = (payload.size > 2) ? Driver.encode(payload[2..-1] || [], :utf8) : nil
+            code   = (bytesize >= 2) ? 256 * bytes[0] + bytes[1] : nil
+            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], :utf8) : nil
 
-            unless (payload.size == 0) or
+            unless (bytesize == 0) or
                    (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
                    ERROR_CODES.include?(code)
               code = ERRORS[:protocol_error]
             end
 
-            if payload.size > 125 or (payload.size > 2 and reason.nil?)
+            if bytesize > 125 or (bytesize > 2 and reason.nil?)
               code = ERRORS[:protocol_error]
             end
 
@@ -381,7 +379,13 @@ module WebSocket
         @message = nil
 
         payload = message.data
-        payload = Driver.encode(payload, :utf8) if message.frames.first.opcode == OPCODES[:text]
+
+        case message.frames.first.opcode
+          when OPCODES[:text] then
+            payload = Driver.encode(payload, :utf8)
+          when OPCODES[:binary]
+            payload = payload.bytes.to_a
+        end
 
         if payload
           emit(:message, MessageEvent.new(payload))
@@ -392,10 +396,10 @@ module WebSocket
         fail(:extension_error, e.message)
       end
 
-      def integer(bytes)
+      def integer(buffer)
         number = 0
-        bytes.each_with_index do |data, i|
-          number += data << (8 * (bytes.size - 1 - i))
+        buffer.each_byte.with_index do |data, i|
+          number += data << (8 * (buffer.bytesize - 1 - i))
         end
         number
       end

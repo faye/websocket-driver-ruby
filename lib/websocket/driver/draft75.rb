@@ -25,9 +25,8 @@ module WebSocket
 
       def parse(buffer)
         return if @ready_state > 1
-        buffer = buffer.bytes if buffer.respond_to?(:bytes)
 
-        buffer.each do |data|
+        buffer.each_byte do |data|
           case @stage
             when -1 then
               @body << data
