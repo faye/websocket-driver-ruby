@@ -8,7 +8,7 @@ module WebSocket
         super
         input  = @socket.env['rack.input']
         @stage = -1
-        @body  = input ? input.read.bytes.to_a : []
+        @body  = Driver.encode(input ? input.read : '', :binary)
 
         @headers.clear
         @headers['Upgrade'] = 'WebSocket'
@@ -46,7 +46,7 @@ module WebSocket
       def handshake_signature
         return nil unless @body.bytesize >= BODY_SIZE
 
-        head   = @body[0...BODY_SIZE].pack('C*')
+        head   = @body[0...BODY_SIZE]
         env    = @socket.env
         key1   = env['HTTP_SEC_WEBSOCKET_KEY1']
         value1 = number_from_key(key1) / spaces_in_key(key1)
