@@ -40,12 +40,13 @@ module WebSocket
     MAX_LENGTH = 0x3ffffff
     STATES     = [:connecting, :open, :closing, :closed]
 
-    class ConnectEvent < Struct.new(nil) ; end
-    class OpenEvent    < Struct.new(nil) ; end
-    class MessageEvent < Struct.new(:data) ; end
-    class CloseEvent   < Struct.new(:code, :reason) ; end
+    ConnectEvent = Struct.new(nil)
+    OpenEvent    = Struct.new(nil)
+    MessageEvent = Struct.new(:data)
+    CloseEvent   = Struct.new(:code, :reason)
 
-    class ProtocolError < StandardError ; end
+    ProtocolError      = Class.new(StandardError)
+    ConfigurationError = Class.new(ArgumentError)
 
     autoload :Client,       root + '/client'
     autoload :Draft75,      root + '/draft75'
@@ -61,6 +62,7 @@ module WebSocket
 
     def initialize(socket, options = {})
       super()
+      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols])
 
       @socket      = socket
       @options     = options
@@ -156,6 +158,14 @@ module WebSocket
       string.force_encoding(encodings[encoding]) if string.respond_to?(:force_encoding)
       return nil if encoding == :utf8 and not valid_utf8?(string)
       string
+    end
+
+    def self.validate_options(options, valid_keys)
+      options.keys.each do |key|
+        unless valid_keys.include?(key)
+          raise ConfigurationError, "Unrecognized option: #{key.inspect}"
+        end
+      end
     end
 
     def self.valid_utf8?(string)
