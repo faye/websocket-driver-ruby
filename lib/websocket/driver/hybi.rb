@@ -255,6 +255,7 @@ module WebSocket
       end
 
       def fail(type, message)
+        return if @ready_state > 1
         emit(:error, ProtocolError.new(message))
         shutdown(ERRORS[type], message)
       end
