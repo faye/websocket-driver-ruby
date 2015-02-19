@@ -7,8 +7,8 @@ code to stream data in and out of it without needing to know anything about how
 the protocol actually works. Think of it as a complete WebSocket system with
 pluggable I/O.
 
-Due to this design, you get a lot of things for free. In particular, if you
-hook this module up to some I/O object, it will do all of this for you:
+Due to this design, you get a lot of things for free. In particular, if you hook
+this module up to some I/O object, it will do all of this for you:
 
 * Select the correct server-side driver to talk to the client
 * Generate and send both server- and client-side handshakes
@@ -68,8 +68,8 @@ Server-side sockets require one additional method:
 
 To handle a server-side WebSocket connection, you need to check whether the
 request is a WebSocket handshake, and if so create a protocol driver for it.
-You must give the driver an object with the `env`, `url` and `write` methods.
-A simple example might be:
+You must give the driver an object with the `env`, `url` and `write` methods. A
+simple example might be:
 
 ```ruby
 require 'websocket/driver'
@@ -172,9 +172,9 @@ EM.run {
 ```
 
 In the `:connect` event, `@driver.env` is a Rack env representing the request.
-If the request has a body, it will be in the `@driver.env['rack.input']`
-stream, but only as much of the body as you have so far routed to it using the
-`parse` method.
+If the request has a body, it will be in the `@driver.env['rack.input']` stream,
+but only as much of the body as you have so far routed to it using the `parse`
+method.
 
 
 ### Client-side
@@ -251,11 +251,11 @@ driver = WebSocket::Driver.server(socket, options)
 driver = WebSocket::Driver.client(socket, options)
 ```
 
-The `rack` method returns a driver chosen using the socket's `env`. The
-`server` method returns a driver that will parse an HTTP request and then
-decide which driver to use for it using the `rack` method. The `client` method
-always returns a driver for the RFC version of the protocol with masking
-enabled on outgoing frames.
+The `rack` method returns a driver chosen using the socket's `env`. The `server`
+method returns a driver that will parse an HTTP request and then decide which
+driver to use for it using the `rack` method. The `client` method always returns
+a driver for the RFC version of the protocol with masking enabled on outgoing
+frames.
 
 The `options` argument is optional, and is a hash. It may contain the following
 keys:
@@ -279,9 +279,9 @@ Sets the callback block to execute when the socket becomes open.
 
 #### `driver.on('message') { |event| }`
 
-Sets the callback block to execute when a message is received. `event` will
-have a `data` attribute containing either a string in the case of a text
-message or an array of integers in the case of a binary message.
+Sets the callback block to execute when a message is received. `event` will have
+a `data` attribute containing either a string in the case of a text message or
+an array of integers in the case of a binary message.
 
 #### `driver.on('error') { |event| }`
 
@@ -304,8 +304,8 @@ framework.
 #### `driver.set_header(name, value)`
 
 Sets a custom header to be sent as part of the handshake response, either from
-the server or from the client. Must be called before `start`, since this is
-when the headers are serialized and sent.
+the server or from the client. Must be called before `start`, since this is when
+the headers are serialized and sent.
 
 #### `driver.start`
 
@@ -341,8 +341,8 @@ ping/pong.
 
 #### `driver.close`
 
-Initiates the closing handshake if the socket is still open. For drivers with
-no closing handshake, this will result in the immediate execution of the
+Initiates the closing handshake if the socket is still open. For drivers with no
+closing handshake, this will result in the immediate execution of the
 `on('close')` callback. For drivers with a closing handshake, this sends a
 closing frame and `emit('close')` will execute when a response is received or a
 protocol error occurs.
@@ -355,30 +355,29 @@ Returns the WebSocket version in use as a string. Will either be `hixie-75`,
 #### `driver.protocol`
 
 Returns a string containing the selected subprotocol, if any was agreed upon
-using the `Sec-WebSocket-Protocol` mechanism. This value becomes available
-after `emit('open')` has fired.
+using the `Sec-WebSocket-Protocol` mechanism. This value becomes available after
+`emit('open')` has fired.
 
 
 ## License
 
 (The MIT License)
 
-Copyright (c) 2010-2014 James Coglan
+Copyright (c) 2010-2015 James Coglan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the 'Software'), to deal in
 the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

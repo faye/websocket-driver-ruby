@@ -1,3 +1,7 @@
+### 0.5.2 / 2015-02-19
+
+* Don't emit multiple `error` events
+
 ### 0.5.1 / 2014-12-18
 
 * Don't allow drivers to be created with unrecognized options
