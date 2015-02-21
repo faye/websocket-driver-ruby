@@ -53,6 +53,7 @@ module WebSocket
       end
 
       def parse(buffer)
+        return if @ready_state == 3
         return super if @ready_state > 0
 
         @http.parse(buffer)
