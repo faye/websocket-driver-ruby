@@ -1,3 +1,8 @@
+### 0.5.3 / 2015-02-22
+
+* Don't treat incoming data as WebSocket frames if a client driver is closed
+  before receiving the server handshake
+
 ### 0.5.2 / 2015-02-19
 
 * Don't emit multiple `error` events
