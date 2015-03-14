@@ -457,6 +457,11 @@ describe WebSocket::Driver::Hybi do
       it "changes the state to :closed" do
         expect(driver.state).to eq :closed
       end
+
+      it "does not write another close frame" do
+        expect(socket).not_to receive(:write)
+        driver.parse [0x88, 0x04, 0x03, 0xe9, 0x4f, 0x4b].pack("C*")
+      end
     end
   end
 
