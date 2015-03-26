@@ -85,6 +85,37 @@ describe WebSocket::Driver::Hybi do
         end
       end
 
+      describe "with invalid extensions" do
+        before do
+          env["HTTP_SEC_WEBSOCKET_EXTENSIONS"] = "x-webkit- -frame"
+        end
+
+        it "does not write a handshake" do
+          expect(socket).not_to receive(:write)
+          driver.start
+        end
+
+        it "does not trigger the onopen event" do
+          driver.start
+          expect(@open).to eq false
+        end
+
+        it "triggers the onerror event" do
+          driver.start
+          expect(@error.message).to eq "Invalid Sec-WebSocket-Extensions header: x-webkit- -frame"
+        end
+
+        it "triggers the onclose event" do
+          driver.start
+          expect(@close).to eq [1002, "Invalid Sec-WebSocket-Extensions header: x-webkit- -frame"]
+        end
+
+        it "changes the state to :closed" do
+          driver.start
+          expect(driver.state).to eq :closed
+        end
+      end
+
       describe "with custom headers" do
         before do
           driver.set_header "Authorization", "Bearer WAT"

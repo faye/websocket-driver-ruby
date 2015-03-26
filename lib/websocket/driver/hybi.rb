@@ -237,7 +237,13 @@ module WebSocket
       end
 
       def handshake_response
-        extensions = @extensions.generate_response(@socket.env['HTTP_SEC_WEBSOCKET_EXTENSIONS'])
+        begin
+          extensions = @extensions.generate_response(@socket.env['HTTP_SEC_WEBSOCKET_EXTENSIONS'])
+        rescue => e
+          fail(:protocol_error, e.message)
+          return nil
+        end
+
         @headers['Sec-WebSocket-Extensions'] = extensions if extensions
 
         start   = 'HTTP/1.1 101 Switching Protocols'

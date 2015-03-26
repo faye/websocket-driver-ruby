@@ -89,7 +89,9 @@ module WebSocket
 
     def start
       return false unless @ready_state == 0
-      @socket.write(Driver.encode(handshake_response, :binary))
+      response = handshake_response
+      return false unless response
+      @socket.write(Driver.encode(response, :binary))
       open unless @stage == -1
       true
     end
