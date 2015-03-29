@@ -1,3 +1,10 @@
+### 0.5.4 / 2015-03-29
+
+* Don't emit extra close frames if we receive a close frame after we already
+  sent one
+* Fail the connection when the driver receives an invalid
+  `Sec-WebSocket-Extensions` header
+
 ### 0.5.3 / 2015-02-22
 
 * Don't treat incoming data as WebSocket frames if a client driver is closed
@@ -21,7 +28,8 @@
 
 ### 0.3.5 / 2014-10-04
 
-* Fix bug where the `Server` driver doesn't pass `ping` callbacks to its delegate
+* Fix bug where the `Server` driver doesn't pass `ping` callbacks to its
+  delegate
 * Fix an arity error when calling `fail_request`
 * Allow `close` to be called before `start` to close the driver
 
@@ -29,7 +37,8 @@
 
 * Don't hold references to frame buffers after a message has been emitted
 * Make sure that `protocol` and `version` are exposed properly by the TCP driver
-* Correct HTTP header parsing based on RFC 7230; header names cannot contain backslashes
+* Correct HTTP header parsing based on RFC 7230; header names cannot contain
+  backslashes
 
 ### 0.3.3 / 2014-04-24
 
@@ -39,7 +48,8 @@
 
 ### 0.3.2 / 2013-12-29
 
-* Expand `max_length` to cover sequences of continuation frames and `draft-{75,76}`
+* Expand `max_length` to cover sequences of continuation frames and
+  `draft-{75,76}`
 * Decrease default maximum frame buffer size to 64MB
 * Stop parsing when the protocol enters a failure mode, to save CPU cycles
 
