@@ -54,6 +54,7 @@ Server-side sockets require one additional method:
   * `HTTP_CONNECTION`
   * `HTTP_HOST`
   * `HTTP_ORIGIN`
+  * `HTTP_SEC_WEBSOCKET_EXTENSIONS`
   * `HTTP_SEC_WEBSOCKET_KEY`
   * `HTTP_SEC_WEBSOCKET_KEY1`
   * `HTTP_SEC_WEBSOCKET_KEY2`
