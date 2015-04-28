@@ -115,8 +115,8 @@ module WebSocket
             when 4 then
               buffer = @reader.read(@frame.length)
               if buffer
-                emit_frame(buffer)
                 @stage = 0
+                emit_frame(buffer)
               end
 
             else
