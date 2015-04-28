@@ -7,7 +7,9 @@ module WebSocket
       end
 
       def add_listener(event, &listener)
-        @listeners[event.to_s] << listener
+        coerce = Object.new
+        coerce.define_singleton_method(:_, &listener)
+        @listeners[event.to_s] << coerce.method(:_).to_proc
       end
 
       def on(event, &listener)
