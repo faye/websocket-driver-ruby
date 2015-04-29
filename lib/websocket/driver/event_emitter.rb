@@ -7,14 +7,14 @@ module WebSocket
       end
 
       def add_listener(event, &listener)
-        @listeners[event.to_s] << listener
+        (@listeners[event.to_s] << listener).last
       end
 
       def on(event, &listener)
         add_listener(event, &listener)
       end
 
-      def remove_listener(event, &listener)
+      def remove_listener(event, listener)
         @listeners[event.to_s].delete(listener)
       end
 
