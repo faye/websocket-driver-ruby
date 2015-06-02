@@ -9,7 +9,7 @@ module WebSocket
       autoload :StreamReader, root + '/stream_reader'
 
       def self.generate_accept(key)
-        Base64.encode64(Digest::SHA1.digest(key + GUID)).strip
+        Base64.strict_encode64(Digest::SHA1.digest(key + GUID)).strip
       end
 
       GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'

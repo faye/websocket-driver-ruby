@@ -3,7 +3,7 @@ module WebSocket
 
     class Client < Hybi
       def self.generate_key
-        Base64.encode64((1..16).map { rand(255).chr } * '').strip
+        Base64.strict_encode64(SecureRandom.random_bytes(16))
       end
 
       attr_reader :status, :headers
@@ -32,7 +32,7 @@ module WebSocket
         end
 
         if uri.user
-          auth = Base64.encode64([uri.user, uri.password] * ':').gsub(/\n/, '')
+          auth = Base64.strict_encode64([uri.user, uri.password] * ':').gsub(/\n/, '')
           @headers['Authorization'] = 'Basic ' + auth
         end
       end
