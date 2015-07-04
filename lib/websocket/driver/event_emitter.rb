@@ -6,16 +6,20 @@ module WebSocket
         @listeners = Hash.new { |h,k| h[k] = [] }
       end
 
-      def add_listener(event, &listener)
+      def add_listener(event, callable = nil, &block)
+        listener = callable || block
         @listeners[event.to_s] << listener
+        listener
       end
 
-      def on(event, &listener)
-        add_listener(event, &listener)
+      def on(event, callable = nil, &block)
+        add_listener(event, callable, &block)
       end
 
-      def remove_listener(event, &listener)
+      def remove_listener(event, callable = nil, &block)
+        listener = callable || block
         @listeners[event.to_s].delete(listener)
+        listener
       end
 
       def remove_all_listeners(event = nil)
@@ -25,6 +29,8 @@ module WebSocket
           @listeners.clear
         end
       end
+
+    private
 
       def emit(event, *args)
         @listeners[event.to_s].dup.each do |listener|

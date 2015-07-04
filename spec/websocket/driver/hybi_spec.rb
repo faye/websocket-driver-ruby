@@ -30,7 +30,7 @@ describe WebSocket::Driver::Hybi do
 
   let :driver do
     driver = WebSocket::Driver::Hybi.new(socket, options)
-    driver.on(:open)    { |e| @open = true }
+    driver.on :open, -> e { @open = true }
     driver.on(:message) { |e| @message += e.data }
     driver.on(:error)   { |e| @error = e }
     driver.on(:close)   { |e| @close = [e.code, e.reason] }

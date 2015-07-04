@@ -146,7 +146,7 @@ module Connection
   def initialize
     @driver = WebSocket::Driver.server(self)
 
-    @driver.on(:connect) do
+    @driver.on :connect, -> (event) do
       if WebSocket::Driver.websocket?(@driver.env)
         @driver.start
       else
@@ -154,8 +154,8 @@ module Connection
       end
     end
 
-    @driver.on(:message) { |e| @driver.text(e.data) }
-    @driver.on(:close)   { |e| close_connection_after_writing }
+    @driver.on :message, -> (e) { @driver.text(e.data) }
+    @driver.on :close,   -> (e) { close_connection_after_writing }
   end
 
   def receive_data(data)
@@ -214,7 +214,7 @@ start sending incoming data to `driver.parse(data)` as normal, and call
 ```rb
 proxy = driver.proxy('http://username:password@proxy.example.com')
 
-proxy.on :connect do
+proxy.on :connect, -> (event) do
   driver.start
 end
 ```
@@ -226,7 +226,7 @@ In the event that proxy connection fails, `proxy` will emit an `:error`. You can
 inspect the proxy's response via `proxy.status` and `proxy.headers`.
 
 ```rb
-proxy.on :error do |error|
+proxy.on :error, -> (error) do
   puts error.message
   puts proxy.status
   puts proxy.headers.inspect
@@ -274,23 +274,23 @@ Note that most of these methods are commands: if they produce data that should
 be sent over the socket, they will give this to you by calling
 `socket.write(string)`.
 
-#### `driver.on('open') { |event| }`
+#### `driver.on 'open', -> (event) { }`
 
 Sets the callback block to execute when the socket becomes open.
 
-#### `driver.on('message') { |event| }`
+#### `driver.on 'message', -> (event) { }`
 
 Sets the callback block to execute when a message is received. `event` will have
 a `data` attribute containing either a string in the case of a text message or
 an array of integers in the case of a binary message.
 
-#### `driver.on('error') { |event| }`
+#### `driver.on 'error', -> (event) { }`
 
 Sets the callback to execute when a protocol error occurs due to the other peer
 sending an invalid byte sequence. `event` will have a `message` attribute
 describing the error.
 
-#### `driver.on('close') { |event| }`
+#### `driver.on 'close', -> (event) { }`
 
 Sets the callback block to execute when the socket becomes closed. The `event`
 object has `code` and `reason` attributes.

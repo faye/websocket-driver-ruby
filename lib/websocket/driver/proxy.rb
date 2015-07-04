@@ -56,7 +56,7 @@ module WebSocket
         @headers = Headers.new(@http.headers)
 
         if @status == 200
-          emit(:connect)
+          emit(:connect, ConnectEvent.new)
         else
           message = "Can't establish a connection to the server at #{@socket.url}"
           emit(:error, ProtocolError.new(message))
