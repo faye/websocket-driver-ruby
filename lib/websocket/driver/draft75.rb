@@ -6,6 +6,8 @@ module WebSocket
         super
         @stage = 0
 
+        @reader = StreamReader.new
+
         @headers['Upgrade'] = 'WebSocket'
         @headers['Connection'] = 'Upgrade'
         @headers['WebSocket-Origin'] = @socket.env['HTTP_ORIGIN']
@@ -23,10 +25,12 @@ module WebSocket
         true
       end
 
-      def parse(buffer)
+      def parse(incoming_buffer)
         return if @ready_state > 1
 
-        buffer.each_byte do |data|
+        @reader.put(incoming_buffer)
+
+        @reader.each_byte do |data|
           case @stage
             when -1 then
               @body << data
@@ -52,8 +56,8 @@ module WebSocket
 
             when 2 then
               if data == 0xFF
-                emit(:message, MessageEvent.new(Driver.encode(@buffer, :utf8)))
                 @stage = 0
+                emit(:message, MessageEvent.new(Driver.encode(@buffer, :utf8)))
               else
                 if @length
                   @skipped += 1

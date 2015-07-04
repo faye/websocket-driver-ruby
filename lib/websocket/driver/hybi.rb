@@ -6,7 +6,6 @@ module WebSocket
 
       autoload :Frame,        root + '/frame'
       autoload :Message,      root + '/message'
-      autoload :StreamReader, root + '/stream_reader'
 
       def self.generate_accept(key)
         Base64.strict_encode64(Digest::SHA1.digest(key + GUID)).strip
@@ -114,9 +113,10 @@ module WebSocket
 
             when 4 then
               buffer = @reader.read(@frame.length)
+
               if buffer
-                emit_frame(buffer)
                 @stage = 0
+                emit_frame(buffer)
               end
 
             else
