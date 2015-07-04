@@ -138,6 +138,10 @@ module WebSocket
         frame(message, :ping)
       end
 
+      def pong(message = '')
+        frame(message, :pong)
+      end
+
       def close(reason = nil, code = nil)
         reason ||= ''
         code   ||= ERRORS[:normal_closure]

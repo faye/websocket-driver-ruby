@@ -108,6 +108,10 @@ module WebSocket
       false
     end
 
+    def pong(*args)
+      false
+    end
+
     def close(reason = nil, code = nil)
       return false unless @ready_state == 1
       @ready_state = 3

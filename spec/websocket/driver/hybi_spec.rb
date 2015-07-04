@@ -197,6 +197,30 @@ describe WebSocket::Driver::Hybi do
       end
     end
 
+    describe :pong do
+      it "does not write to the socket" do
+        expect(socket).not_to receive(:write)
+        driver.pong
+      end
+
+      it "returns true" do
+        expect(driver.pong).to eq true
+      end
+
+      it "queues the pong until the handshake has been sent" do
+        expect(socket).to receive(:write).with(
+            "HTTP/1.1 101 Switching Protocols\r\n" +
+            "Upgrade: websocket\r\n" +
+            "Connection: Upgrade\r\n" +
+            "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
+            "\r\n")
+        expect(socket).to receive(:write).with(WebSocket::Driver.encode [0x8a, 0])
+
+        driver.pong
+        driver.start
+      end
+    end
+
     describe :close do
       it "does not write anything to the socket" do
         expect(socket).not_to receive(:write)
@@ -393,6 +417,17 @@ describe WebSocket::Driver::Hybi do
       end
     end
 
+    describe :pong do
+      it "writes a pong frame to the socket" do
+        driver.pong("mic check")
+        expect(@bytes).to eq [0x8a, 0x09, 0x6d, 0x69, 0x63, 0x20, 0x63, 0x68, 0x65, 0x63, 0x6b]
+      end
+
+      it "returns true" do
+        expect(driver.pong).to eq true
+      end
+    end
+
     describe :close do
       it "writes a close frame to the socket" do
         driver.close("<%= reasons %>", 1003)
@@ -465,6 +500,17 @@ describe WebSocket::Driver::Hybi do
       end
     end
 
+    describe :pong do
+      it "does not write to the socket" do
+        expect(socket).not_to receive(:write)
+        driver.pong
+      end
+
+      it "returns false" do
+        expect(driver.pong).to eq false
+      end
+    end
+
     describe :close do
       it "does not write to the socket" do
         expect(socket).not_to receive(:write)
@@ -522,6 +568,17 @@ describe WebSocket::Driver::Hybi do
 
       it "returns false" do
         expect(driver.ping).to eq false
+      end
+    end
+
+    describe :pong do
+      it "does not write to the socket" do
+        expect(socket).not_to receive(:write)
+        driver.pong
+      end
+
+      it "returns false" do
+        expect(driver.pong).to eq false
       end
     end
 
