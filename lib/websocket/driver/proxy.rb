@@ -25,7 +25,7 @@ module WebSocket
         @headers['Proxy-Connection'] = 'keep-alive'
 
         if @url.user
-          auth = Base64.strict_encode64([@url.user, @url.password] * ':').gsub(/\n/, '')
+          auth = Base64.strict_encode64([@url.user, @url.password] * ':')
           @headers['Proxy-Authorization'] = 'Basic ' + auth
         end
       end

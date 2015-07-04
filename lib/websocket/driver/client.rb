@@ -32,7 +32,7 @@ module WebSocket
         end
 
         if uri.user
-          auth = Base64.strict_encode64([uri.user, uri.password] * ':').gsub(/\n/, '')
+          auth = Base64.strict_encode64([uri.user, uri.password] * ':')
           @headers['Authorization'] = 'Basic ' + auth
         end
       end
