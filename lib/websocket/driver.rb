@@ -121,6 +121,18 @@ module WebSocket
 
   private
 
+    def emit(*args)
+      super
+    rescue => error
+      emit(:error, error)
+      shutdown(1011, error.message)
+    end
+
+    def shutdown(code, reason)
+      @ready_state = 3
+      emit(:close, CloseEvent.new(code, reason))
+    end
+
     def open
       @ready_state = 1
       @queue.each { |message| frame(*message) }

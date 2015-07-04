@@ -258,10 +258,9 @@ module WebSocket
       def shutdown(code, reason)
         frame(reason, :close, code) if @ready_state < 2
         @frame = @message = nil
-        @ready_state = 3
         @stage = 5
-        emit(:close, CloseEvent.new(code, reason))
         @extensions.close
+        super
       end
 
       def fail(type, message)

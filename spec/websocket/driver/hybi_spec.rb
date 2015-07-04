@@ -358,6 +358,25 @@ describe WebSocket::Driver::Hybi do
         driver.parse [0x89, 0x04, 0x4f, 0x48, 0x41, 0x49].pack("C*")
         expect(@bytes).to eq [0x8a, 0x04, 0x4f, 0x48, 0x41, 0x49]
       end
+
+      describe "if a message listener raises an error" do
+        before do
+          driver.on :message, -> e { raise StandardError, "event error" }
+          driver.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f].pack("C*")
+        end
+
+        it "triggers the onerror event" do
+          expect(@error.message).to eq("event error")
+        end
+
+        it "triggers the onclose event" do
+          expect(@close).to eq [1011, "event error"]
+        end
+
+        it "changes the state to :closed" do
+          expect(driver.state).to eq :closed
+        end
+      end
     end
 
     describe :frame do

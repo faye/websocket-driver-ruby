@@ -30,8 +30,6 @@ module WebSocket
         end
       end
 
-    private
-
       def emit(event, *args)
         @listeners[event.to_s].dup.each do |listener|
           listener.call(*args)
