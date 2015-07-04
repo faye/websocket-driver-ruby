@@ -276,23 +276,23 @@ be sent over the socket, they will give this to you by calling
 
 #### `driver.on 'open', -> (event) { }`
 
-Sets the callback block to execute when the socket becomes open.
+Adds a callback block to execute when the socket becomes open.
 
 #### `driver.on 'message', -> (event) { }`
 
-Sets the callback block to execute when a message is received. `event` will have
-a `data` attribute containing either a string in the case of a text message or
-an array of integers in the case of a binary message.
+Adds a callback block to execute when a message is received. `event` will have a
+`data` attribute containing either a string in the case of a text message or an
+array of integers in the case of a binary message.
 
 #### `driver.on 'error', -> (event) { }`
 
-Sets the callback to execute when a protocol error occurs due to the other peer
+Adds a callback to execute when a protocol error occurs due to the other peer
 sending an invalid byte sequence. `event` will have a `message` attribute
 describing the error.
 
 #### `driver.on 'close', -> (event) { }`
 
-Sets the callback block to execute when the socket becomes closed. The `event`
+Adds a callback block to execute when the socket becomes closed. The `event`
 object has `code` and `reason` attributes.
 
 #### `driver.add_extension(extension)`
