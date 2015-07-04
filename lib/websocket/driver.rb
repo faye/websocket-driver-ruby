@@ -130,6 +130,7 @@ module WebSocket
 
     def shutdown(code, reason)
       @ready_state = 3
+      @stage = 5
       emit(:close, CloseEvent.new(code, reason))
     end
 

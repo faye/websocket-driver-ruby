@@ -258,7 +258,6 @@ module WebSocket
       def shutdown(code, reason)
         frame(reason, :close, code) if @ready_state < 2
         @frame = @message = nil
-        @stage = 5
         @extensions.close
         super
       end
