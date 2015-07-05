@@ -108,15 +108,15 @@ module WebSocket
             when 3 then
               buffer = @reader.read(4)
               if buffer
-                @frame.masking_key = buffer
                 @stage = 4
+                @frame.masking_key = buffer
               end
 
             when 4 then
               buffer = @reader.read(@frame.length)
               if buffer
-                emit_frame(buffer)
                 @stage = 0
+                emit_frame(buffer)
               end
 
             else
@@ -255,17 +255,19 @@ module WebSocket
         headers.join("\r\n")
       end
 
-      def shutdown(code, reason)
+      def shutdown(code, reason, &error)
         frame(reason, :close, code) if @ready_state < 2
         @frame = @message = nil
+        @ready_state = 3
+        @stage = 5
         @extensions.close
-        super
+        error.call if error
+        emit(:close, CloseEvent.new(code, reason))
       end
 
       def fail(type, message)
         return if @ready_state > 1
-        emit(:error, ProtocolError.new(message))
-        shutdown(ERRORS[type], message)
+        shutdown(ERRORS[type], message) { emit(:error, ProtocolError.new(message)) }
       end
 
       def parse_opcode(data)
@@ -278,6 +280,8 @@ module WebSocket
         @frame.rsv2   = rsvs[1]
         @frame.rsv3   = rsvs[2]
         @frame.opcode = (data & OPCODE)
+
+        @stage = 1
 
         unless @extensions.valid_frame_rsv?(@frame)
           return fail(:protocol_error,
@@ -297,37 +301,34 @@ module WebSocket
         if @message and OPENING_OPCODES.include?(@frame.opcode)
           return fail(:protocol_error, 'Received new data frame but previous continuous frame is unfinished')
         end
-
-        @stage = 1
       end
 
       def parse_length(data)
-        @frame.masked = (data & MASK) == MASK
-        if @require_masking and not @frame.masked
-          return fail(:unacceptable, 'Received unmasked frame but masking is required')
-        end
-
         @frame.length = (data & LENGTH)
+        @frame.masked = (data & MASK) == MASK
 
         if @frame.length >= 0 and @frame.length <= 125
-          return unless check_frame_length
           @stage = @frame.masked ? 3 : 4
+          return unless check_frame_length
         else
-          @frame.length_bytes = (@frame.length == 126) ? 2 : 8
           @stage = 2
+          @frame.length_bytes = (@frame.length == 126) ? 2 : 8
+        end
+
+        if @require_masking and not @frame.masked
+          return fail(:unacceptable, 'Received unmasked frame but masking is required')
         end
       end
 
       def parse_extended_length(buffer)
         @frame.length = integer(buffer)
+        @stage = @frame.masked ? 3 : 4
 
         unless MESSAGE_OPCODES.include?(@frame.opcode) or @frame.length <= 125
           return fail(:protocol_error, "Received control frame having too long payload: #{@frame.length}")
         end
 
         return unless check_frame_length
-
-        @stage  = @frame.masked ? 3 : 4
       end
 
       def check_frame_length

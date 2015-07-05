@@ -121,17 +121,7 @@ module WebSocket
 
   private
 
-    def emit(*args)
-      super
-    rescue Exception => error
-      emit(:error, error)
-      shutdown(1011, error.message)
-    end
-
     def shutdown(code, reason)
-      @ready_state = 3
-      @stage = 5
-      emit(:close, CloseEvent.new(code, reason))
     end
 
     def open
