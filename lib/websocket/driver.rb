@@ -123,7 +123,7 @@ module WebSocket
 
     def emit(*args)
       super
-    rescue => error
+    rescue Exception => error
       emit(:error, error)
       shutdown(1011, error.message)
     end

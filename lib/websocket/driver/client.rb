@@ -124,8 +124,8 @@ module WebSocket
 
         begin
           @extensions.activate(@headers['Sec-WebSocket-Extensions'])
-        rescue ::WebSocket::Extensions::ExtensionError => e
-          return fail_handshake(e.message)
+        rescue ::WebSocket::Extensions::ExtensionError => error
+          return fail_handshake(error.message)
         end
       end
     end

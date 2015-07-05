@@ -236,15 +236,15 @@ module WebSocket
 
         @socket.write(buffer.pack('C*'))
 
-      rescue ::WebSocket::Extensions::ExtensionError => e
-        fail(:extension_error, e.message)
+      rescue ::WebSocket::Extensions::ExtensionError => error
+        fail(:extension_error, error.message)
       end
 
       def handshake_response
         begin
           extensions = @extensions.generate_response(@socket.env['HTTP_SEC_WEBSOCKET_EXTENSIONS'])
-        rescue => e
-          fail(:protocol_error, e.message)
+        rescue => error
+          fail(:protocol_error, error.message)
           return nil
         end
 
@@ -406,8 +406,8 @@ module WebSocket
         else
           fail(:encoding_error, 'Could not decode a text frame as UTF-8')
         end
-      rescue ::WebSocket::Extensions::ExtensionError => e
-        fail(:extension_error, e.message)
+      rescue ::WebSocket::Extensions::ExtensionError => error
+        fail(:extension_error, error.message)
       end
 
       def integer(buffer)
