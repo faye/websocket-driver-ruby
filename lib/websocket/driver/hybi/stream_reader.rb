@@ -1,28 +1,47 @@
 module WebSocket
   class Driver
-
     class Hybi
       class StreamReader
         def initialize
           @buffer = Driver.encode('', :binary)
+          @offset = 0
         end
 
-        def put(string)
-          return unless string and string.bytesize > 0
-          @buffer << Driver.encode(string, :binary)
+        def put(buffer)
+          return unless buffer and buffer.bytesize > 0
+          @buffer << Driver.encode(buffer, :binary)
         end
 
+        # Try to minimise the number of reallocations done:
+        MINIMUM_AUTOMATIC_PRUNE_OFFSET = 128
+
+        # Read bytes from the data:
         def read(length)
-          buffer_size = @buffer.bytesize
-          return nil if length > buffer_size
+          return nil if (@offset + length) > @buffer.bytesize
 
-          chunk   = @buffer.byteslice(0, length)
-          @buffer = @buffer.byteslice(length, buffer_size - length)
+          chunk = @buffer.byteslice(@offset, length)
+          @offset += chunk.bytesize
 
-          chunk
+          prune if @offset > MINIMUM_AUTOMATIC_PRUNE_OFFSET
+
+          return chunk
         end
+
+      protected
+
+        def prune
+          buffer_size = @buffer.bytesize
+
+          if @offset > buffer_size
+            @buffer = Driver.encode('', :binary)
+          else
+            @buffer = @buffer.byteslice(@offset, buffer_size - @offset)
+          end
+
+          @offset = 0
+        end
+
       end
     end
-
   end
 end
