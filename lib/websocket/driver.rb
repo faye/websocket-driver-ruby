@@ -56,6 +56,7 @@ module WebSocket
     autoload :Hybi,         root + '/hybi'
     autoload :Proxy,        root + '/proxy'
     autoload :Server,       root + '/server'
+    autoload :StreamReader, root + '/stream_reader'
 
     include EventEmitter
     attr_reader :protocol, :ready_state
