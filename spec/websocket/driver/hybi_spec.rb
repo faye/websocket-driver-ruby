@@ -358,6 +358,23 @@ describe WebSocket::Driver::Hybi do
         driver.parse [0x89, 0x04, 0x4f, 0x48, 0x41, 0x49].pack("C*")
         expect(@bytes).to eq [0x8a, 0x04, 0x4f, 0x48, 0x41, 0x49]
       end
+
+      describe "when a message listener raises an error" do
+        before do
+          @messages = []
+
+          driver.on :message do |msg|
+            @messages << msg.data
+            raise 'an error'
+          end
+        end
+
+        it "parses unmasked text frames without dropping input" do
+          driver.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x81, 0x05].pack("C*") rescue nil
+          driver.parse [0x57, 0x6f, 0x72, 0x6c, 0x64].pack("C*") rescue nil
+          expect(@messages).to eq(["Hello", "World"])
+        end
+      end
     end
 
     describe :frame do
