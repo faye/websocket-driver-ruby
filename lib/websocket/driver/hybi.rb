@@ -192,6 +192,9 @@ module WebSocket
 
         send_frame(frame)
         true
+
+      rescue ::WebSocket::Extensions::ExtensionError => error
+        fail(:extension_error, error.message)
       end
 
     private
@@ -235,9 +238,6 @@ module WebSocket
         end
 
         @socket.write(buffer.pack('C*'))
-
-      rescue ::WebSocket::Extensions::ExtensionError => error
-        fail(:extension_error, error.message)
       end
 
       def handshake_response
