@@ -305,8 +305,8 @@ module WebSocket
       end
 
       def parse_length(data)
-        @frame.length = (data & LENGTH)
         @frame.masked = (data & MASK) == MASK
+        @frame.length = (data & LENGTH)
 
         if @frame.length >= 0 and @frame.length <= 125
           @stage = @frame.masked ? 3 : 4
