@@ -255,7 +255,7 @@ module WebSocket
         headers.join("\r\n")
       end
 
-      def shutdown(code, reason, &error)
+      def shutdown(code, reason, error = false)
         @frame = @message = nil
         @stage = 5
         @extensions.close
@@ -263,13 +263,13 @@ module WebSocket
         frame(reason, :close, code) if @ready_state < 2
         @ready_state = 3
 
-        error.call if error
+        emit(:error, ProtocolError.new(reason)) if error
         emit(:close, CloseEvent.new(code, reason))
       end
 
       def fail(type, message)
         return if @ready_state > 1
-        shutdown(ERRORS[type], message) { emit(:error, ProtocolError.new(message)) }
+        shutdown(ERRORS[type], message, true)
       end
 
       def parse_opcode(data)
