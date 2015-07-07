@@ -123,9 +123,6 @@ module WebSocket
 
   private
 
-    def shutdown(code, reason)
-    end
-
     def open
       @ready_state = 1
       @queue.each { |message| frame(*message) }
