@@ -43,6 +43,28 @@ shared_examples_for "draft-75 protocol" do
         driver.parse [0x6c, 0x6f, 0xff].pack("C*")
         expect(@message).to eq "Hello"
       end
+
+      describe "when a message listener raises an error" do
+        before do
+          @messages = []
+
+          driver.on :message do |msg|
+            @messages << msg.data
+            raise "an error"
+          end
+        end
+
+        it "is not trapped by the parser" do
+          buffer = [0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff].pack('C*')
+          expect { driver.parse buffer }.to raise_error(RuntimeError, "an error")
+        end
+
+        it "parses text frames without dropping input" do
+          driver.parse [0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0xff, 0x00, 0x57].pack("C*") rescue nil
+          driver.parse [0x6f, 0x72, 0x6c, 0x64, 0xff].pack("C*") rescue nil
+          expect(@messages).to eq(["Hello", "World"])
+        end
+      end
     end
 
     describe :frame do
