@@ -23,27 +23,27 @@ module WebSocket
         true
       end
 
-      def parse(data)
+      def parse(buffer)
         return if @ready_state > 1
 
-        @reader.put(data)
+        @reader.put(buffer)
 
-        @reader.each_byte do |byte|
+        @reader.each_byte do |data|
           case @stage
             when -1 then
-              @body << byte
+              @body << data
               send_handshake_body
 
             when 0 then
-              parse_leading_byte(byte)
+              parse_leading_byte(data)
 
             when 1 then
-              value = (byte & 0x7F)
+              value = (data & 0x7F)
               @length = value + 128 * @length
 
               if @closing and @length.zero?
                 return close
-              elsif (0x80 & byte) != 0x80
+              elsif (0x80 & data) != 0x80
                 if @length.zero?
                   @stage = 0
                 else
@@ -53,7 +53,7 @@ module WebSocket
               end
 
             when 2 then
-              if byte == 0xFF
+              if data == 0xFF
                 @stage = 0
                 emit(:message, MessageEvent.new(Driver.encode(@buffer, :utf8)))
               else
@@ -61,7 +61,7 @@ module WebSocket
                   @skipped += 1
                   @stage = 0 if @skipped == @length
                 else
-                  @buffer << byte
+                  @buffer << data
                   return close if @buffer.size > @max_length
                 end
               end
