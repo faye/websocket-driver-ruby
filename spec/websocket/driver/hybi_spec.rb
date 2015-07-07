@@ -365,8 +365,13 @@ describe WebSocket::Driver::Hybi do
 
           driver.on :message do |msg|
             @messages << msg.data
-            raise 'an error'
+            raise "an error"
           end
+        end
+
+        it "is not trapped by the parser" do
+          buffer = [0x81, 0x02, 0x48, 0x65].pack('C*')
+          expect { driver.parse buffer }.to raise_error(RuntimeError, "an error")
         end
 
         it "parses unmasked text frames without dropping input" do
