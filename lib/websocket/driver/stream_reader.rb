@@ -1,6 +1,10 @@
 module WebSocket
   class Driver
+
     class StreamReader
+      # Try to minimise the number of reallocations done:
+      MINIMUM_AUTOMATIC_PRUNE_OFFSET = 128
+
       def initialize
         @buffer = Driver.encode('', :binary)
         @offset = 0
@@ -10,9 +14,6 @@ module WebSocket
         return unless buffer and buffer.bytesize > 0
         @buffer << Driver.encode(buffer, :binary)
       end
-
-      # Try to minimise the number of reallocations done:
-      MINIMUM_AUTOMATIC_PRUNE_OFFSET = 128
 
       # Read bytes from the data:
       def read(length)
@@ -35,7 +36,7 @@ module WebSocket
         end
       end
 
-    protected
+    private
 
       def prune
         buffer_size = @buffer.bytesize
@@ -48,7 +49,7 @@ module WebSocket
 
         @offset = 0
       end
-
     end
+
   end
 end
