@@ -255,7 +255,7 @@ module WebSocket
         headers.join("\r\n")
       end
 
-      def shutdown(code, reason, &error)
+      def shutdown(code, reason)
         @frame = @message = nil
         @stage = 5
         @extensions.close
@@ -263,7 +263,7 @@ module WebSocket
         frame(reason, :close, code) if @ready_state < 2
         @ready_state = 3
 
-        error.call if error
+        yield if block_given?
         emit(:close, CloseEvent.new(code, reason))
       end
 
