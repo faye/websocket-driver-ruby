@@ -4,8 +4,8 @@ module WebSocket
     class Hybi < Driver
       root = File.expand_path('../hybi', __FILE__)
 
-      autoload :Frame,        root + '/frame'
-      autoload :Message,      root + '/message'
+      autoload :Frame,   root + '/frame'
+      autoload :Message, root + '/message'
 
       def self.generate_accept(key)
         Base64.strict_encode64(Digest::SHA1.digest(key + GUID))
