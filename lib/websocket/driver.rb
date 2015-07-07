@@ -66,6 +66,7 @@ module WebSocket
       Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols])
 
       @socket      = socket
+      @reader      = StreamReader.new
       @options     = options
       @max_length  = options[:max_length] || MAX_LENGTH
       @headers     = Headers.new

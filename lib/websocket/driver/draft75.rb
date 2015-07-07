@@ -6,8 +6,6 @@ module WebSocket
         super
         @stage = 0
 
-        @reader = StreamReader.new
-
         @headers['Upgrade'] = 'WebSocket'
         @headers['Connection'] = 'Upgrade'
         @headers['WebSocket-Origin'] = @socket.env['HTTP_ORIGIN']

@@ -54,7 +54,6 @@ module WebSocket
         super
 
         @extensions      = ::WebSocket::Extensions.new
-        @reader          = StreamReader.new
         @stage           = 0
         @masking         = options[:masking]
         @protocols       = options[:protocols] || []
