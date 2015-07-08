@@ -80,8 +80,8 @@ module WebSocket
 
       def fail_handshake(message)
         message = "Error during WebSocket handshake: #{message}"
-        emit(:error, ProtocolError.new(message))
         @ready_state = 3
+        emit(:error, ProtocolError.new(message))
         emit(:close, CloseEvent.new(ERRORS[:protocol_error], message))
       end
 
