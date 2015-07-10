@@ -274,23 +274,23 @@ Note that most of these methods are commands: if they produce data that should
 be sent over the socket, they will give this to you by calling
 `socket.write(string)`.
 
-#### `driver.on 'open', -> (event) { }`
+#### `driver.on :open, -> (event) { }`
 
 Adds a callback block to execute when the socket becomes open.
 
-#### `driver.on 'message', -> (event) { }`
+#### `driver.on :message, -> (event) { }`
 
 Adds a callback block to execute when a message is received. `event` will have a
 `data` attribute containing either a string in the case of a text message or an
 array of integers in the case of a binary message.
 
-#### `driver.on 'error', -> (event) { }`
+#### `driver.on :error, -> (event) { }`
 
 Adds a callback to execute when a protocol error occurs due to the other peer
 sending an invalid byte sequence. `event` will have a `message` attribute
 describing the error.
 
-#### `driver.on 'close', -> (event) { }`
+#### `driver.on :close, -> (event) { }`
 
 Adds a callback block to execute when the socket becomes closed. The `event`
 object has `code` and `reason` attributes.
