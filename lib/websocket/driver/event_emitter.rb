@@ -13,7 +13,11 @@ module WebSocket
       end
 
       def on(event, callable = nil, &block)
-        add_listener(event, callable, &block)
+        if callable
+          add_listener(event, callable)
+        else
+          add_listener(event, &block)
+        end
       end
 
       def remove_listener(event, callable = nil, &block)
