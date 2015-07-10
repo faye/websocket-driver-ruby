@@ -48,8 +48,8 @@ module WebSocket
         true
       end
 
-      def parse(buffer)
-        @http.parse(buffer)
+      def parse(chunk)
+        @http.parse(chunk)
         return unless @http.complete?
 
         @status = @http.code

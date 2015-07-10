@@ -66,8 +66,8 @@ module WebSocket
         parse(@body[BODY_SIZE..-1]) if @body.bytesize > BODY_SIZE
       end
 
-      def parse_leading_byte(data)
-        return super unless data == 0xFF
+      def parse_leading_byte(octet)
+        return super unless octet == 0xFF
         @closing = true
         @length = 0
         @stage = 1

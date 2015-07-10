@@ -51,9 +51,9 @@ module WebSocket
         @stage == -1
       end
 
-      def parse(data)
-        data.each_byte do |byte|
-          if byte == LF and @stage < 2
+      def parse(chunk)
+        chunk.each_byte do |octet|
+          if octet == LF and @stage < 2
             @buffer.pop if @buffer.last == CR
             if @buffer.empty?
               complete if @stage == 1
@@ -71,7 +71,7 @@ module WebSocket
             end
             @buffer = []
           else
-            @buffer << byte if @stage >= 0
+            @buffer << octet if @stage >= 0
             error if @stage < 2 and @buffer.size > MAX_LINE_LENGTH
           end
         end

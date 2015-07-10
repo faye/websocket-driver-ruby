@@ -23,27 +23,27 @@ module WebSocket
         true
       end
 
-      def parse(buffer)
+      def parse(chunk)
         return if @ready_state > 1
 
-        @reader.put(buffer)
+        @reader.put(chunk)
 
-        @reader.each_byte do |data|
+        @reader.each_byte do |octet|
           case @stage
             when -1 then
-              @body << data
+              @body << octet
               send_handshake_body
 
             when 0 then
-              parse_leading_byte(data)
+              parse_leading_byte(octet)
 
             when 1 then
-              value = (data & 0x7F)
+              value = (octet & 0x7F)
               @length = value + 128 * @length
 
               if @closing and @length.zero?
                 return close
-              elsif (0x80 & data) != 0x80
+              elsif (0x80 & octet) != 0x80
                 if @length.zero?
                   @stage = 0
                 else
@@ -53,7 +53,7 @@ module WebSocket
               end
 
             when 2 then
-              if data == 0xFF
+              if octet == 0xFF
                 @stage = 0
                 emit(:message, MessageEvent.new(Driver.encode(@buffer, :utf8)))
               else
@@ -61,7 +61,7 @@ module WebSocket
                   @skipped += 1
                   @stage = 0 if @skipped == @length
                 else
-                  @buffer << data
+                  @buffer << octet
                   return close if @buffer.size > @max_length
                 end
               end
@@ -69,9 +69,9 @@ module WebSocket
         end
       end
 
-      def frame(data, type = nil, error_type = nil)
-        return queue([data, type, error_type]) if @ready_state == 0
-        frame = ["\x00", data, "\xFF"].map { |s| Driver.encode(s, :binary) } * ''
+      def frame(buffer, type = nil, error_type = nil)
+        return queue([buffer, type, error_type]) if @ready_state == 0
+        frame = ["\x00", buffer, "\xFF"].map { |s| Driver.encode(s, :binary) } * ''
         @socket.write(Driver.encode(frame, :binary))
         true
       end
@@ -84,8 +84,8 @@ module WebSocket
         headers.join("\r\n")
       end
 
-      def parse_leading_byte(data)
-        if (0x80 & data) == 0x80
+      def parse_leading_byte(octet)
+        if (0x80 & octet) == 0x80
           @length = 0
           @stage  = 1
         else

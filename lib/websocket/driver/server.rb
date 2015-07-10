@@ -39,10 +39,10 @@ module WebSocket
         end
       end
 
-      def parse(buffer)
-        return @delegate.parse(buffer) if @delegate
+      def parse(chunk)
+        return @delegate.parse(chunk) if @delegate
 
-        @http.parse(buffer)
+        @http.parse(chunk)
         return fail_request('Invalid HTTP request') if @http.error?
         return unless @http.complete?
 
@@ -56,8 +56,8 @@ module WebSocket
         emit(:connect, ConnectEvent.new)
       end
 
-      def write(data)
-        @socket.write(Driver.encode(data, :binary))
+      def write(buffer)
+        @socket.write(Driver.encode(buffer, :binary))
       end
 
     private

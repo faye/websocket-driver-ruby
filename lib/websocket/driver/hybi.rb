@@ -86,8 +86,8 @@ module WebSocket
         true
       end
 
-      def parse(data)
-        @reader.put(data)
+      def parse(chunk)
+        @reader.put(chunk)
         buffer = true
         while buffer
           case @stage
@@ -158,18 +158,18 @@ module WebSocket
         end
       end
 
-      def frame(data, type = nil, code = nil)
-        return queue([data, type, code]) if @ready_state <= 0
+      def frame(buffer, type = nil, code = nil)
+        return queue([buffer, type, code]) if @ready_state <= 0
         return false unless @ready_state == 1
 
         message = Message.new
         frame   = Frame.new
-        is_text = String === data
+        is_text = String === buffer
 
         message.rsv1   = message.rsv2 = message.rsv3 = false
         message.opcode = OPCODES[type || (is_text ? :text : :binary)]
 
-        payload = is_text ? data.bytes.to_a : data
+        payload = is_text ? buffer.bytes.to_a : buffer
         if code
           payload = [(code >> 8) & BYTE, code & BYTE, *payload]
         end
@@ -271,16 +271,16 @@ module WebSocket
         shutdown(ERRORS[type], message, true)
       end
 
-      def parse_opcode(data)
-        rsvs = [RSV1, RSV2, RSV3].map { |rsv| (data & rsv) == rsv }
+      def parse_opcode(octet)
+        rsvs = [RSV1, RSV2, RSV3].map { |rsv| (octet & rsv) == rsv }
 
         @frame = Frame.new
 
-        @frame.final  = (data & FIN) == FIN
+        @frame.final  = (octet & FIN) == FIN
         @frame.rsv1   = rsvs[0]
         @frame.rsv2   = rsvs[1]
         @frame.rsv3   = rsvs[2]
-        @frame.opcode = (data & OPCODE)
+        @frame.opcode = (octet & OPCODE)
 
         @stage = 1
 
@@ -304,9 +304,9 @@ module WebSocket
         end
       end
 
-      def parse_length(data)
-        @frame.masked = (data & MASK) == MASK
-        @frame.length = (data & LENGTH)
+      def parse_length(octet)
+        @frame.masked = (octet & MASK) == MASK
+        @frame.length = (octet & LENGTH)
 
         if @frame.length >= 0 and @frame.length <= 125
           @stage = @frame.masked ? 3 : 4
@@ -414,8 +414,8 @@ module WebSocket
 
       def integer(buffer)
         number = 0
-        buffer.each_byte.with_index do |data, i|
-          number += data << (8 * (buffer.bytesize - 1 - i))
+        buffer.each_byte.with_index do |octet, i|
+          number += octet << (8 * (buffer.bytesize - 1 - i))
         end
         number
       end

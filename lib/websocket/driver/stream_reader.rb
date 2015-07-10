@@ -10,9 +10,9 @@ module WebSocket
         @offset = 0
       end
 
-      def put(buffer)
-        return unless buffer and buffer.bytesize > 0
-        @buffer << Driver.encode(buffer, :binary)
+      def put(chunk)
+        return unless chunk and chunk.bytesize > 0
+        @buffer << Driver.encode(chunk, :binary)
       end
 
       # Read bytes from the data:
@@ -30,9 +30,9 @@ module WebSocket
       def each_byte
         prune
 
-        @buffer.each_byte do |value|
+        @buffer.each_byte do |octet|
           @offset += 1
-          yield value
+          yield octet
         end
       end
 

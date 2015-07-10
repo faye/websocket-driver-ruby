@@ -52,11 +52,11 @@ module WebSocket
         true
       end
 
-      def parse(buffer)
+      def parse(chunk)
         return if @ready_state == 3
         return super if @ready_state > 0
 
-        @http.parse(buffer)
+        @http.parse(chunk)
         return fail_handshake('Invalid HTTP response') if @http.error?
         return unless @http.complete?
 
