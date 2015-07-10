@@ -50,6 +50,8 @@ module WebSocket
       MIN_RESERVED_ERROR = 3000
       MAX_RESERVED_ERROR = 4999
 
+      PACK_FORMATS = {2 => 'n', 8 => 'Q>'}
+
       def initialize(socket, options = {})
         super
 
@@ -170,9 +172,7 @@ module WebSocket
         message.opcode = OPCODES[type || (is_text ? :text : :binary)]
 
         payload = is_text ? buffer.bytes.to_a : buffer
-        if code
-          payload = [(code >> 8) & BYTE, code & BYTE, *payload]
-        end
+        payload = [code].pack(PACK_FORMATS[2]).bytes.to_a + payload if code
         message.data = payload.pack('C*')
 
         if MESSAGE_OPCODES.include?(message.opcode)
@@ -215,18 +215,10 @@ module WebSocket
           buffer[1] = masked | length
         elsif length <= 65535
           buffer[1] = masked | 126
-          buffer[2] = (length >> 8) & BYTE
-          buffer[3] = length & BYTE
+          buffer[2..3] = [length].pack(PACK_FORMATS[2]).bytes.to_a
         else
           buffer[1] = masked | 127
-          buffer[2] = (length >> 56) & BYTE
-          buffer[3] = (length >> 48) & BYTE
-          buffer[4] = (length >> 40) & BYTE
-          buffer[5] = (length >> 32) & BYTE
-          buffer[6] = (length >> 24) & BYTE
-          buffer[7] = (length >> 16) & BYTE
-          buffer[8] = (length >> 8)  & BYTE
-          buffer[9] = length & BYTE
+          buffer[2..9] = [length].pack(PACK_FORMATS[8]).bytes.to_a
         end
 
         if frame.masked
@@ -322,7 +314,7 @@ module WebSocket
       end
 
       def parse_extended_length(buffer)
-        @frame.length = integer(buffer)
+        @frame.length = buffer.unpack(PACK_FORMATS[buffer.bytesize]).first
         @stage = @frame.masked ? 3 : 4
 
         unless MESSAGE_OPCODES.include?(@frame.opcode) or @frame.length <= 125
@@ -410,14 +402,6 @@ module WebSocket
         end
       rescue ::WebSocket::Extensions::ExtensionError => error
         fail(:extension_error, error.message)
-      end
-
-      def integer(buffer)
-        number = 0
-        buffer.each_byte.with_index do |octet, i|
-          number += octet << (8 * (buffer.bytesize - 1 - i))
-        end
-        number
       end
     end
 

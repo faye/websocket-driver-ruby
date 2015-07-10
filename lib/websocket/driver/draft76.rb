@@ -53,9 +53,7 @@ module WebSocket
         key2   = env['HTTP_SEC_WEBSOCKET_KEY2']
         value2 = number_from_key(key2) / spaces_in_key(key2)
 
-        Digest::MD5.digest(big_endian(value1) +
-                           big_endian(value2) +
-                           head)
+        Digest::MD5.digest([value1, value2, head].pack('N2A*'))
       end
 
       def send_handshake_body
@@ -79,14 +77,6 @@ module WebSocket
 
       def spaces_in_key(key)
         key.scan(/ /).size
-      end
-
-      def big_endian(number)
-        string = Driver.encode('', :binary)
-        [24, 16, 8, 0].each do |offset|
-          string << (number >> offset & 0xFF).chr
-        end
-        string
       end
     end
 
