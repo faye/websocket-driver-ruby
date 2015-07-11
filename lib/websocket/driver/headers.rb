@@ -5,7 +5,7 @@ module WebSocket
       ALLOWED_DUPLICATES = %w[set-cookie set-cookie2 warning www-authenticate]
 
       def initialize(received = {})
-        @raw   = received
+        @raw = received
         clear
 
         @received = {}

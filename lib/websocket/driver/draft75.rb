@@ -6,9 +6,9 @@ module WebSocket
         super
         @stage = 0
 
-        @headers['Upgrade'] = 'WebSocket'
-        @headers['Connection'] = 'Upgrade'
-        @headers['WebSocket-Origin'] = @socket.env['HTTP_ORIGIN']
+        @headers['Upgrade']            = 'WebSocket'
+        @headers['Connection']         = 'Upgrade'
+        @headers['WebSocket-Origin']   = @socket.env['HTTP_ORIGIN']
         @headers['WebSocket-Location'] = @socket.url
       end
 
@@ -38,17 +38,16 @@ module WebSocket
               parse_leading_byte(octet)
 
             when 1 then
-              value = (octet & 0x7F)
-              @length = value + 128 * @length
+              @length = (octet & 0x7F) + 128 * @length
 
               if @closing and @length.zero?
                 return close
-              elsif (0x80 & octet) != 0x80
+              elsif (octet & 0x80) != 0x80
                 if @length.zero?
                   @stage = 0
                 else
                   @skipped = 0
-                  @stage = 2
+                  @stage   = 2
                 end
               end
 
@@ -71,8 +70,8 @@ module WebSocket
 
       def frame(buffer, type = nil, error_type = nil)
         return queue([buffer, type, error_type]) if @ready_state == 0
-        frame = ["\x00", buffer, "\xFF"].map { |s| Driver.encode(s, :binary) } * ''
-        @socket.write(Driver.encode(frame, :binary))
+        frame = [0x00, buffer, 0xFF].pack('CA*C')
+        @socket.write(frame)
         true
       end
 
@@ -85,7 +84,7 @@ module WebSocket
       end
 
       def parse_leading_byte(octet)
-        if (0x80 & octet) == 0x80
+        if (octet & 0x80) == 0x80
           @length = 0
           @stage  = 1
         else

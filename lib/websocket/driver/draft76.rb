@@ -29,7 +29,7 @@ module WebSocket
 
       def close(reason = nil, code = nil)
         return false if @ready_state == 3
-        @socket.write(Driver.encode("\xFF\x00", :binary))
+        @socket.write([0xFF, 0x00].pack('C*'))
         @ready_state = 3
         emit(:close, CloseEvent.new(nil, nil))
         true
@@ -67,8 +67,8 @@ module WebSocket
       def parse_leading_byte(octet)
         return super unless octet == 0xFF
         @closing = true
-        @length = 0
-        @stage = 1
+        @length  = 0
+        @stage   = 1
       end
 
       def number_from_key(key)

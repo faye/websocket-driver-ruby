@@ -68,8 +68,8 @@ module WebSocket
         sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
         protos  = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
 
-        @headers['Upgrade'] = 'websocket'
-        @headers['Connection'] = 'Upgrade'
+        @headers['Upgrade']              = 'websocket'
+        @headers['Connection']           = 'Upgrade'
         @headers['Sec-WebSocket-Accept'] = Hybi.generate_accept(sec_key)
 
         if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']

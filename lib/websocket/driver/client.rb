@@ -21,10 +21,10 @@ module WebSocket
         path      = (uri.path == '') ? '/' : uri.path
         @pathname = path + (uri.query ? '?' + uri.query : '')
 
-        @headers['Host'] = host
-        @headers['Upgrade'] = 'websocket'
-        @headers['Connection'] = 'Upgrade'
-        @headers['Sec-WebSocket-Key'] = @key
+        @headers['Host']                  = host
+        @headers['Upgrade']               = 'websocket'
+        @headers['Connection']            = 'Upgrade'
+        @headers['Sec-WebSocket-Key']     = @key
         @headers['Sec-WebSocket-Version'] = '13'
 
         if @protocols.size > 0

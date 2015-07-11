@@ -52,7 +52,7 @@ module WebSocket
         @http.parse(chunk)
         return unless @http.complete?
 
-        @status = @http.code
+        @status  = @http.code
         @headers = Headers.new(@http.headers)
 
         if @status == 200
