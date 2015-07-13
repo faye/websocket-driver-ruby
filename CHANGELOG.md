@@ -1,3 +1,10 @@
+### 0.6.1 / 2015-07-13
+
+* Fix how events are stored in `EventEmitter` to fix a backward-compatibility
+  violation introduced in the last release
+* Use the `Array#pack` and `String#unpack` methods for reading/writing numbers
+  to buffers rather than including duplicate logic for this
+
 ### 0.6.0 / 2015-07-08
 
 * Use `SecureRandom` to generate the `Sec-WebSocket-Key` header
