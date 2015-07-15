@@ -47,6 +47,7 @@ module WebSocket
       }
 
       ERROR_CODES        = ERRORS.values
+      DEFAULT_ERROR_CODE = 1000
       MIN_RESERVED_ERROR = 3000
       MAX_RESERVED_ERROR = 4999
 
@@ -354,8 +355,8 @@ module WebSocket
             @message << frame
 
           when OPCODES[:close] then
-            code   = (bytesize >= 2) ? 256 * bytes[0] + bytes[1] : nil
-            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], :utf8) : nil
+            code   = (bytesize >= 2) ? 256 * bytes[0] + bytes[1] : DEFAULT_ERROR_CODE
+            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], :utf8) : ''
 
             unless (bytesize == 0) or
                    (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
@@ -367,7 +368,7 @@ module WebSocket
               code = ERRORS[:protocol_error]
             end
 
-            shutdown(code, reason || '')
+            shutdown(code, reason)
 
           when OPCODES[:ping] then
             frame(payload, :pong)

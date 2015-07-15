@@ -562,6 +562,20 @@ describe WebSocket::Driver::Hybi do
         driver.parse [0x88, 0x04, 0x03, 0xe9, 0x4f, 0x4b].pack("C*")
       end
     end
+
+    describe "receiving a close frame with no code" do
+      before do
+        driver.parse [0x88, 0x00].pack("C*")
+      end
+
+      it "triggers the onclose event with code 1000" do
+        expect(@close).to eq [1000, ""]
+      end
+
+      it "changes the state to :closed" do
+        expect(driver.state).to eq :closed
+      end
+    end
   end
 
   describe "in the :closed state" do
