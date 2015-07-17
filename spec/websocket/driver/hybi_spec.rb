@@ -563,6 +563,20 @@ describe WebSocket::Driver::Hybi do
       end
     end
 
+    describe "receiving a close frame with a too-short payload" do
+      before do
+        driver.parse [0x88, 0x01, 0x03].pack("C*")
+      end
+
+      it "triggers the onclose event with a protocol error" do
+        expect(@close).to eq [1002, ""]
+      end
+
+      it "changes the state to :closed" do
+        expect(driver.state).to eq :closed
+      end
+    end
+
     describe "receiving a close frame with no code" do
       before do
         driver.parse [0x88, 0x00].pack("C*")
