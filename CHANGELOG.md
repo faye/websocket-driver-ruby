@@ -1,3 +1,7 @@
+### 0.6.2 / 2015-07-18
+
+* When the peer sends a close frame with no error code, emit 1000
+
 ### 0.6.1 / 2015-07-13
 
 * Fix how events are stored in `EventEmitter` to fix a backward-compatibility
