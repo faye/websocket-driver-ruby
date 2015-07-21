@@ -7,6 +7,7 @@ module WebSocket
       def initialize(socket, options = {})
         super
         @http = HTTP::Request.new
+        @delegate = nil
       end
 
       def env
