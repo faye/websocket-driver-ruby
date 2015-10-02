@@ -39,6 +39,7 @@ describe WebSocket::Driver::Draft76 do
     driver = WebSocket::Driver::Draft76.new(socket)
     driver.on(:open)    { |e| @open = true }
     driver.on(:message) { |e| @message += e.data }
+    driver.on(:error)   { |e| @error = e }
     driver.on(:close)   { |e| @close = true }
     driver
   end
@@ -83,6 +84,37 @@ describe WebSocket::Driver::Draft76 do
       it "sets the protocol version" do
         driver.start
         expect(driver.version).to eq "hixie-76"
+      end
+
+      describe "with an invalid key header" do
+        before do
+          env["HTTP_SEC_WEBSOCKET_KEY1"] = "2 L785 8o% s9Sy9@V. 4<1P5"
+        end
+
+        it "writes a closing handshake to the socket" do
+          expect(socket).to receive(:write).with([0xFF, 0x00].pack("C*"))
+          driver.start
+        end
+
+        it "does not trigger the onopen event" do
+          driver.start
+          expect(@open).to eq false
+        end
+
+        it "triggers the onerror event" do
+          driver.start
+          expect(@error.message).to eq "Client sent invalid Sec-WebSocket-Key headers"
+        end
+
+        it "triggers the onclose event" do
+          driver.start
+          expect(@close).to eq true
+        end
+
+        it "changes the state to closed" do
+          driver.start
+          expect(driver.state).to eq :closed
+        end
       end
     end
 

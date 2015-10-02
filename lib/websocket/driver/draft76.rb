@@ -38,6 +38,24 @@ module WebSocket
     private
 
       def handshake_response
+        env     = @socket.env
+
+        key1    = env['HTTP_SEC_WEBSOCKET_KEY1']
+        number1 = number_from_key(key1)
+        spaces1 = spaces_in_key(key1)
+
+        key2    = env['HTTP_SEC_WEBSOCKET_KEY2']
+        number2 = number_from_key(key2)
+        spaces2 = spaces_in_key(key2)
+
+        if number1 % spaces1 != 0 or number2 % spaces2 != 0
+          emit(:error, ProtocolError.new('Client sent invalid Sec-WebSocket-Key headers'))
+          close
+          return nil
+        end
+
+        @key_values = [number1 / spaces1, number2 / spaces2]
+
         start   = 'HTTP/1.1 101 WebSocket Protocol Handshake'
         headers = [start, @headers.to_s, '']
         headers.join("\r\n")
@@ -46,14 +64,8 @@ module WebSocket
       def handshake_signature
         return nil unless @body.bytesize >= BODY_SIZE
 
-        head   = @body[0...BODY_SIZE]
-        env    = @socket.env
-        key1   = env['HTTP_SEC_WEBSOCKET_KEY1']
-        value1 = number_from_key(key1) / spaces_in_key(key1)
-        key2   = env['HTTP_SEC_WEBSOCKET_KEY2']
-        value2 = number_from_key(key2) / spaces_in_key(key2)
-
-        Digest::MD5.digest([value1, value2, head].pack('N2A*'))
+        head = @body[0...BODY_SIZE]
+        Digest::MD5.digest((@key_values + [head]).pack('N2A*'))
       end
 
       def send_handshake_body
