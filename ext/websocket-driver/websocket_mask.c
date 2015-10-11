@@ -20,7 +20,7 @@ method_websocket_mask(VALUE self,
                       VALUE mask)
 {
   char *payload_s, *mask_s, *unmasked_s;
-  int i, n;
+  long i, n;
   VALUE unmasked;
 
   if (mask == Qnil || RSTRING_LEN(mask) != 4) {
