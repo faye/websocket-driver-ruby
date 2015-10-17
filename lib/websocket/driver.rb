@@ -46,6 +46,7 @@ module WebSocket
     CloseEvent   = Struct.new(:code, :reason)
 
     ProtocolError      = Class.new(StandardError)
+    URIError           = Class.new(ArgumentError)
     ConfigurationError = Class.new(ArgumentError)
 
     autoload :Client,       root + '/client'

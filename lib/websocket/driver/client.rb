@@ -2,6 +2,8 @@ module WebSocket
   class Driver
 
     class Client < Hybi
+      VALID_SCHEMES = %w[ws wss]
+
       def self.generate_key
         Base64.strict_encode64(SecureRandom.random_bytes(16))
       end
@@ -16,7 +18,11 @@ module WebSocket
         @accept      = Hybi.generate_accept(@key)
         @http        = HTTP::Response.new
 
-        uri       = URI.parse(@socket.url)
+        uri = URI.parse(@socket.url)
+        unless VALID_SCHEMES.include?(uri.scheme)
+          raise URIError, "#{socket.url} is not a valid WebSocket URL"
+        end
+
         host      = uri.host + (uri.port ? ":#{uri.port}" : '')
         path      = (uri.path == '') ? '/' : uri.path
         @pathname = path + (uri.query ? '?' + uri.query : '')

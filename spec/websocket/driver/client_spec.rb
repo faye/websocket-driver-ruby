@@ -113,6 +113,14 @@ describe WebSocket::Driver::Client do
         end
       end
 
+      describe "with an invalid URL" do
+        let(:url) { "stream.wikimedia.org/rc" }
+
+        it "throws an URIError error" do
+          expect { driver }.to raise_error(WebSocket::Driver::URIError)
+        end
+      end
+
       describe "with custom headers" do
         before do
           driver.set_header "User-Agent", "Chrome"
