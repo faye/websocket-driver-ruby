@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module WebSocket
   class Driver
     # http://www.w3.org/International/questions/qa-forms-utf-8.en.php
