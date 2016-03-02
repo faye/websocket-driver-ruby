@@ -6,7 +6,7 @@ module WebSocket
       MINIMUM_AUTOMATIC_PRUNE_OFFSET = 128
 
       def initialize
-        @buffer = Driver.encode('', :binary)
+        @buffer = Driver.encode(String.new(''), :binary)
         @offset = 0
       end
 
