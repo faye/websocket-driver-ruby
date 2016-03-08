@@ -1,4 +1,5 @@
 # encoding=utf-8
+# frozen_string_literal: true
 
 require "spec_helper"
 
@@ -90,7 +91,7 @@ describe WebSocket::Driver::Draft75 do
             "WebSocket-Origin: http://www.example.com\r\n" +
             "WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", :binary)
+        expect(socket).to receive(:write).with(WebSocket::Driver.encode String.new("\x00Hi\xFF"), :binary)
 
         driver.frame("Hi")
         driver.start

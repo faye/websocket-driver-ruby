@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module WebSocket
   class Driver
     class Hybi
@@ -14,7 +15,7 @@ module WebSocket
           @rsv2   = false
           @rsv3   = false
           @opcode = nil
-          @data   = Driver.encode('', :binary)
+          @data   = Driver.encode(String.new(''), :binary)
         end
 
         def <<(frame)

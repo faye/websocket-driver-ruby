@@ -1,4 +1,5 @@
 # encoding=utf-8
+# frozen_string_literal: true
 
 require "spec_helper"
 
@@ -10,7 +11,7 @@ describe WebSocket::Driver::Draft76 do
   end
 
   let :response do
-    string = "\xB4\x9Cn@S\x04\x04&\xE5\e\xBFl\xB7\x9F\x1D\xF9"
+    string = String.new("\xB4\x9Cn@S\x04\x04&\xE5\e\xBFl\xB7\x9F\x1D\xF9")
     string.force_encoding("ASCII-8BIT") if string.respond_to?(:force_encoding)
     string
   end
@@ -137,7 +138,7 @@ describe WebSocket::Driver::Draft76 do
             "Sec-WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
         expect(socket).to receive(:write).with(response)
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", :binary)
+        expect(socket).to receive(:write).with(WebSocket::Driver.encode String.new("\x00Hi\xFF"), :binary)
 
         driver.frame("Hi")
         driver.start
@@ -191,7 +192,7 @@ describe WebSocket::Driver::Draft76 do
 
           it "sends any frames queued before the handshake was complete" do
             expect(socket).to receive(:write).with(response)
-            expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00hello\xFF", :binary)
+            expect(socket).to receive(:write).with(WebSocket::Driver.encode String.new("\x00hello\xFF"), :binary)
             driver.frame("hello")
             driver.parse(body)
             expect(@bytes).to eq [0, 104, 101, 108, 108, 111, 255]

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module WebSocket
   class Driver
 
@@ -8,7 +9,7 @@ module WebSocket
         super
         input  = @socket.env['rack.input']
         @stage = -1
-        @body  = Driver.encode(input ? input.read : '', :binary)
+        @body  = Driver.encode(input ? input.read : String.new(''), :binary)
 
         @headers.clear
         @headers['Upgrade'] = 'WebSocket'

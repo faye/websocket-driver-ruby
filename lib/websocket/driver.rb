@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Protocol references:
 #
 # * http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-75
