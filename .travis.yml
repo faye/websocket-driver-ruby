@@ -9,7 +9,7 @@ rvm:
   - 2.3.0
   - jruby-19mode
   - jruby-9
-  - rbx-2.5
+  - rbx-2
 
 script:
   - bundle exec rake compile
