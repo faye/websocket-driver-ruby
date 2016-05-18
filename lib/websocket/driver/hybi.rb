@@ -201,8 +201,6 @@ module WebSocket
 
       def send_frame(frame)
         length = frame.length
-        header = (length <= 125) ? 2 : (length <= 65535 ? 4 : 10)
-        offset = header + (frame.masked ? 4 : 0)
         buffer = []
         masked = frame.masked ? MASK : 0
 
