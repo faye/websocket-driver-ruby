@@ -188,6 +188,7 @@ describe WebSocket::Driver::Client do
       let(:proxy) { driver.proxy("http://proxy.example.com") }
 
       before do
+        @connect = nil
         proxy.on(:connect) { @connect = true }
         proxy.on(:error)   { |e| @error = e }
       end

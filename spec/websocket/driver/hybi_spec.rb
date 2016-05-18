@@ -417,6 +417,10 @@ describe WebSocket::Driver::Hybi do
     end
 
     describe :ping do
+      before do
+        @reply = nil
+      end
+
       it "writes a ping frame to the socket" do
         driver.ping("mic check")
         expect(@bytes).to eq [0x89, 0x09, 0x6d, 0x69, 0x63, 0x20, 0x63, 0x68, 0x65, 0x63, 0x6b]

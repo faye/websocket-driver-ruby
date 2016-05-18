@@ -64,6 +64,8 @@ module WebSocket
         @require_masking = options[:require_masking]
         @ping_callbacks  = {}
 
+        @frame = @message = nil
+
         return unless @socket.respond_to?(:env)
 
         sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']

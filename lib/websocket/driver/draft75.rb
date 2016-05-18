@@ -4,7 +4,9 @@ module WebSocket
     class Draft75 < Driver
       def initialize(socket, options = {})
         super
-        @stage = 0
+
+        @stage   = 0
+        @closing = false
 
         @headers['Upgrade']            = 'WebSocket'
         @headers['Connection']         = 'Upgrade'
