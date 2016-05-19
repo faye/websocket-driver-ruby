@@ -33,12 +33,11 @@ module WebSocket
       end
     end
 
-    unless String.instance_methods.include?(:force_encoding)
-      require root + '/utf8_match'
-    end
-
     MAX_LENGTH = 0x3ffffff
     STATES     = [:connecting, :open, :closing, :closed]
+
+    BINARY  = 'ASCII-8BIT'
+    UNICODE = 'UTF-8'
 
     ConnectEvent = Struct.new(nil)
     OpenEvent    = Struct.new(nil)
@@ -94,13 +93,14 @@ module WebSocket
       return false unless @ready_state == 0
       response = handshake_response
       return false unless response
-      @socket.write(Driver.encode(response, :binary))
+      @socket.write(response)
       open unless @stage == -1
       true
     end
 
     def text(message)
-      frame(message)
+      message = message.encode(UNICODE) unless message.encoding.name == UNICODE
+      frame(message, :text)
     end
 
     def binary(message)
@@ -159,14 +159,15 @@ module WebSocket
       case string
         when Array then
           string = string.pack('C*')
-          encoding ||= :binary
+          encoding ||= BINARY
         when String then
-          encoding ||= :utf8
+          encoding ||= UNICODE
       end
-      encodings = {:utf8 => 'UTF-8', :binary => 'ASCII-8BIT'}
-      string.force_encoding(encodings[encoding]) if string.respond_to?(:force_encoding)
-      return nil if encoding == :utf8 and not valid_utf8?(string)
-      string
+      unless string.encoding.name == encoding
+        string = string.dup if string.frozen?
+        string.force_encoding(encoding)
+      end
+      string.valid_encoding? ? string : nil
     end
 
     def self.validate_options(options, valid_keys)
@@ -174,14 +175,6 @@ module WebSocket
         unless valid_keys.include?(key)
           raise ConfigurationError, "Unrecognized option: #{key.inspect}"
         end
-      end
-    end
-
-    def self.valid_utf8?(string)
-      if defined?(UTF8_MATCH)
-        UTF8_MATCH =~ string ? true : false
-      else
-        string.valid_encoding?
       end
     end
 

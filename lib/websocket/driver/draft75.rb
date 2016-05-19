@@ -56,7 +56,7 @@ module WebSocket
             when 2 then
               if octet == 0xFF
                 @stage = 0
-                emit(:message, MessageEvent.new(Driver.encode(@buffer, :utf8)))
+                emit(:message, MessageEvent.new(Driver.encode(@buffer, UNICODE)))
               else
                 if @length
                   @skipped += 1

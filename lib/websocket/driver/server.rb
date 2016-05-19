@@ -58,7 +58,7 @@ module WebSocket
       end
 
       def write(buffer)
-        @socket.write(Driver.encode(buffer, :binary))
+        @socket.write(buffer)
       end
 
     private

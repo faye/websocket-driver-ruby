@@ -8,7 +8,7 @@ module WebSocket
         super
         input  = @socket.env['rack.input']
         @stage = -1
-        @body  = Driver.encode(input ? input.read : '', :binary)
+        @body  = (input ? input.read : String.new('')).force_encoding(BINARY)
 
         @headers.clear
         @headers['Upgrade'] = 'WebSocket'
@@ -70,7 +70,7 @@ module WebSocket
 
       def send_handshake_body
         return unless signature = handshake_signature
-        @socket.write(Driver.encode(signature, :binary))
+        @socket.write(signature)
         @stage = 0
         open
         parse(@body[BODY_SIZE..-1]) if @body.bytesize > BODY_SIZE

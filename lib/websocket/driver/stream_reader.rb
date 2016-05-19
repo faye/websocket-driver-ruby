@@ -6,13 +6,13 @@ module WebSocket
       MINIMUM_AUTOMATIC_PRUNE_OFFSET = 128
 
       def initialize
-        @buffer = Driver.encode('', :binary)
+        @buffer = String.new('').force_encoding(BINARY)
         @offset = 0
       end
 
       def put(chunk)
         return unless chunk and chunk.bytesize > 0
-        @buffer << Driver.encode(chunk, :binary)
+        @buffer << chunk.force_encoding(BINARY)
       end
 
       # Read bytes from the data:
@@ -42,7 +42,7 @@ module WebSocket
         buffer_size = @buffer.bytesize
 
         if @offset > buffer_size
-          @buffer = Driver.encode('', :binary)
+          @buffer = String.new('').force_encoding(BINARY)
         else
           @buffer = @buffer.byteslice(@offset, buffer_size - @offset)
         end

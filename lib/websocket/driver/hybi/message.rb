@@ -14,7 +14,7 @@ module WebSocket
           @rsv2   = false
           @rsv3   = false
           @opcode = nil
-          @data   = Driver.encode('', :binary)
+          @data   = String.new('').force_encoding(BINARY)
         end
 
         def <<(frame)
