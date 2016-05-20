@@ -1,3 +1,9 @@
+### 0.6.4 / 2016-05-20
+
+* Amend warnings issued when running with -W2
+* Make sure message strings passed in by the app are transcoded to UTF-8
+* Copy strings if necessary for frozen-string compatibility
+
 ### 0.6.3 / 2015-11-06
 
 * Reject draft-76 handshakes if their Sec-WebSocket-Key headers are invalid
