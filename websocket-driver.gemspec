@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.rdoc_options      = %w[--main README.md --markup markdown]
   s.require_paths     = %w[lib]
 
-  files = %w[README.md CHANGELOG.md] +
+  files = %w[README.md LICENSE.md CHANGELOG.md] +
           Dir.glob('ext/**/*.{c,java,rb}') +
           Dir.glob('{examples,lib}/**/*.rb')
 
