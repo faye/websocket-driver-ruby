@@ -15,6 +15,9 @@ else
   Rake::ExtensionTask.new('websocket-driver', spec) do |ext|
     ext.name = 'websocket_mask'
   end
+  Rake::ExtensionTask.new('websocket-parser', spec) do |ext|
+    ext.name = 'websocket_parser'
+  end
 end
 
 task :clean do
