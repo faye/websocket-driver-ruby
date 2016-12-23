@@ -87,7 +87,7 @@ void *wsd_Queue_shift(wsd_Queue *queue)
     void *value = head->value;
 
     queue->head = head->next;
-    if (queue->count == 0) queue->tail = NULL;
+    if (queue->count == 1) queue->tail = NULL;
 
     wsd_QueueNode_destroy(head);
     queue->count--;
