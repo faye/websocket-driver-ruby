@@ -46,7 +46,7 @@ int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
 
     pushed = wsd_ReadBuffer_push(parser->buffer, length, data);
     if (pushed != length) {
-        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to push chunk[%llu] to read buffer", length);
+        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to push chunk[%" PRIu64 "] to read buffer", length);
     }
 
     chunk = calloc(8, sizeof(uint8_t));
@@ -148,7 +148,7 @@ uint64_t wsd_Parser_parse_payload(wsd_Parser *parser)
 
     frame->payload = calloc(n, sizeof(uint8_t));
     if (frame->payload == NULL) {
-        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame payload[%llu]", n);
+        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame payload[%" PRIu64 "]", n);
         return 0;
     }
 

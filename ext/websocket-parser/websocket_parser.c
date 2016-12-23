@@ -21,7 +21,7 @@ void wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame)
     char *msg = NULL;
 
     printf("------------------------------------------------------------------------\n");
-    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %llu\n",
+    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %" PRIu64 "\n",
             frame->final, frame->rsv1, frame->rsv2, frame->rsv3,
             frame->opcode, frame->masked, frame->length);
     printf("------------------------------------------------------------------------\n");

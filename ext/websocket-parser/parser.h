@@ -1,6 +1,8 @@
 #ifndef _wsd_parser_h
 #define _wsd_parser_h
 
+#include <inttypes.h>
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
