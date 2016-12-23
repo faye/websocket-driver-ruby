@@ -1,7 +1,6 @@
 #ifndef _wsd_parser_h
 #define _wsd_parser_h
 
-#include <stdlib.h>
 #include <stdio.h>
 #include "read_buffer.h"
 #include "frame.h"

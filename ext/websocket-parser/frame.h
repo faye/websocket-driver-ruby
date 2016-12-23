@@ -1,6 +1,7 @@
 #ifndef _wsd_frame_h
 #define _wsd_frame_h
 
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct wsd_Frame {

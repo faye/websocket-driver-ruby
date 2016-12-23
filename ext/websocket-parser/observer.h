@@ -1,7 +1,6 @@
 #ifndef _wsd_observer_h
 #define _wsd_observer_h
 
-#include <stdlib.h>
 #include "frame.h"
 
 typedef void (*wsd_cb_on_frame)(void *receiver, wsd_Frame *frame);

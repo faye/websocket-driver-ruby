@@ -1,6 +1,7 @@
 #ifndef _wsd_queue_h
 #define _wsd_queue_h
 
+#include <stdint.h>
 #include <stdlib.h>
 
 /*-------------------------------------------------------------------*/

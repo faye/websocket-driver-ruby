@@ -1,7 +1,6 @@
 #ifndef _wsd_read_buffer_h
 #define _wsd_read_buffer_h
 
-#include <stdlib.h>
 #include <string.h>
 #include "queue.h"
 
