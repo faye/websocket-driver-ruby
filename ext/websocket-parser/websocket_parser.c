@@ -14,7 +14,11 @@ void            wsd_QueueNode_destroy(wsd_QueueNode *node);
 wsd_QueueNode *wsd_QueueNode_create(void *value)
 {
     wsd_QueueNode *node = calloc(1, sizeof(wsd_QueueNode));
+    if (!node) return NULL;
+
     node->value = value;
+    node->next  = NULL;
+
     return node;
 }
 
@@ -50,7 +54,12 @@ void *      wsd_Queue_shift(wsd_Queue *queue);
 wsd_Queue *wsd_Queue_create()
 {
     wsd_Queue *queue = calloc(1, sizeof(wsd_Queue));
+    if (queue == NULL) return NULL;
+
     queue->count = 0;
+    queue->head  = NULL;
+    queue->tail  = NULL;
+
     return queue;
 }
 
@@ -110,14 +119,13 @@ wsd_Chunk *wsd_Chunk_create(uint64_t length, uint8_t *data)
     wsd_Chunk *chunk = calloc(1, sizeof(wsd_Chunk));
     if (chunk == NULL) return NULL;
 
-    chunk->length = length;
-    chunk->data = calloc(length, sizeof(char));
-
+    chunk->data = calloc(length, sizeof(uint8_t));
     if (chunk->data == NULL) {
         free(chunk);
         return NULL;
     }
 
+    chunk->length = length;
     memcpy(chunk->data, data, length);
 
     return chunk;
@@ -155,7 +163,7 @@ wsd_ReadBuffer *wsd_ReadBuffer_create()
     }
 
     buffer->capacity = 0;
-    buffer->cursor = 0;
+    buffer->cursor   = 0;
 
     return buffer;
 }
@@ -176,7 +184,10 @@ uint64_t wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *d
     wsd_Chunk *chunk = wsd_Chunk_create(length, data);
     if (chunk == NULL) return 0;
 
-    wsd_Queue_push(buffer->queue, chunk);
+    if (wsd_Queue_push(buffer->queue, chunk) != 1) {
+        wsd_Chunk_destroy(chunk);
+        return 0;
+    }
 
     buffer->capacity += length;
     return length;
@@ -234,6 +245,10 @@ void        wsd_Frame_mask(wsd_Frame *frame);
 wsd_Frame *wsd_Frame_create()
 {
     wsd_Frame *frame = calloc(1, sizeof(wsd_Frame));
+    if (frame == NULL) return NULL;
+
+    frame->payload = NULL;
+
     return frame;
 }
 
@@ -280,6 +295,16 @@ void wsd_Message_destroy(wsd_Message *message)
 #define WSD_MASK    0x80
 #define WSD_LENGTH  0x7f
 
+#define WSD_NORMAL_CLOSURE          1000
+#define WSD_GOING_AWAY              1001
+#define WSD_PROTOCOL_ERROR          1002
+#define WSD_UNACCEPTABLE            1003
+#define WSD_ENCODING_ERROR          1007
+#define WSD_POLICY_VIOLATION        1008
+#define WSD_TOO_LARGE               1009
+#define WSD_EXTENSION_ERROR         1010
+#define WSD_UNEXPECTED_CONDITION    1011
+
 typedef struct wsd_Parser {
     int stage;
     int masking;
@@ -287,6 +312,8 @@ typedef struct wsd_Parser {
     wsd_ReadBuffer *buffer;
     wsd_Frame *frame;
     wsd_Message *message;
+    int error_code;
+    char *error_message;
 } wsd_Parser;
 
 wsd_Parser *    wsd_Parser_create();
@@ -294,7 +321,15 @@ void            wsd_Parser_destroy(wsd_Parser *parser);
 int             wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data);
 void            wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk);
 void            wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk);
+uint64_t        wsd_Parser_parse_payload(wsd_Parser *parser);
 void            wsd_Parser_emit_frame(wsd_Parser *parser);
+
+#define wsd_Parser_error(P, C, M, ...) \
+    if (P->error_code == 0) { \
+        P->stage = 0; \
+        P->error_code = C; \
+        asprintf(&P->error_message, M, ##__VA_ARGS__); \
+    }
 
 wsd_Parser *wsd_Parser_create()
 {
@@ -307,9 +342,15 @@ wsd_Parser *wsd_Parser_create()
         return NULL;
     }
 
-    parser->stage = 1;
     parser->masking = 1;
     parser->require_masking = 1;
+
+    parser->stage = 1;
+    parser->frame = NULL;
+    parser->message = NULL;
+
+    parser->error_code = 0;
+    parser->error_message = NULL;
 
     return parser;
 }
@@ -320,52 +361,69 @@ void wsd_Parser_destroy(wsd_Parser *parser)
 
     wsd_ReadBuffer_destroy(parser->buffer);
     wsd_Frame_destroy(parser->frame);
-    // wsd_Message_destroy(parser->message);
+    wsd_Message_destroy(parser->message);
+    if (parser->error_message) free(parser->error_message);
     free(parser);
 }
 
 int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
 {
-    wsd_ReadBuffer_push(parser->buffer, length, data);
-    uint8_t *chunk = calloc(8, sizeof(char));
-    uint64_t rc = 1;
+    uint64_t pushed = wsd_ReadBuffer_push(parser->buffer, length, data);
+    if (pushed != length) {
+        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to push chunk[%llu] to read buffer", length);
+    }
 
-    while (rc) {
+    uint8_t *chunk = calloc(8, sizeof(uint8_t));
+    if (chunk == NULL) {
+        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate memory for frame header");
+    }
+
+    uint64_t n = 0;
+    uint64_t readlen = 1;
+
+    while (readlen > 0) {
         switch (parser->stage) {
             case 1:
-                rc = wsd_ReadBuffer_read(parser->buffer, 2, chunk);
-                if (rc) wsd_Parser_parse_head(parser, chunk);
+                n = 2;
+                readlen = wsd_ReadBuffer_read(parser->buffer, n, chunk);
+                if (readlen == n) wsd_Parser_parse_head(parser, chunk);
                 break;
 
             case 2:
-                rc = wsd_ReadBuffer_read(parser->buffer, parser->frame->length_bytes, chunk);
-                if (rc) wsd_Parser_parse_extended_length(parser, chunk);
+                n = parser->frame->length_bytes;
+                readlen = wsd_ReadBuffer_read(parser->buffer, n, chunk);
+                if (readlen == n) wsd_Parser_parse_extended_length(parser, chunk);
                 break;
 
             case 3:
-                rc = wsd_ReadBuffer_read(parser->buffer, 4, parser->frame->masking_key);
-                if (rc) parser->stage = 4;
+                n = 4;
+                readlen = wsd_ReadBuffer_read(parser->buffer, n, parser->frame->masking_key);
+                if (readlen == n) parser->stage = 4;
                 break;
 
             case 4:
-                parser->frame->payload = calloc(parser->frame->length, sizeof(char));
-                rc = wsd_ReadBuffer_read(parser->buffer, parser->frame->length, parser->frame->payload);
-                if (rc) wsd_Parser_emit_frame(parser);
+                n = parser->frame->length;
+                readlen = wsd_Parser_parse_payload(parser);
+                if (readlen == n) wsd_Parser_emit_frame(parser);
                 break;
 
             default:
-                rc = 0;
+                readlen = 0;
                 break;
         }
     }
 
-    free(chunk);
-    return 0;
+    if (chunk != NULL) free(chunk);
+    return parser->error_code;
 }
 
 void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
 {
     wsd_Frame *frame = wsd_Frame_create();
+    if (frame == NULL) {
+        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame");
+        return;
+    }
 
     frame->final  = (chunk[0] & WSD_FIN)  == WSD_FIN;
     frame->rsv1   = (chunk[0] & WSD_RSV1) == WSD_RSV1;
@@ -390,7 +448,9 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
     wsd_Frame *frame = parser->frame;
 
     if (frame->length == 126) {
-        frame->length = (uint64_t)chunk[0] << 8 | (uint64_t)chunk[1];
+        frame->length = (uint64_t)chunk[0] << 8 |
+                        (uint64_t)chunk[1];
+
     } else if (frame->length == 127) {
         frame->length = (uint64_t)chunk[0] << 56 |
                         (uint64_t)chunk[1] << 48 |
@@ -405,20 +465,45 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
     parser->stage = frame->masked ? 3 : 4;
 }
 
+uint64_t wsd_Parser_parse_payload(wsd_Parser *parser)
+{
+    wsd_ReadBuffer *buffer = parser->buffer;
+    wsd_Frame *frame = parser->frame;
+    uint64_t n = frame->length;
+
+    if (buffer->capacity < n) return 0;
+
+    frame->payload = calloc(n, sizeof(uint8_t));
+    if (frame->payload == NULL) {
+        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame payload[%llu]", n);
+        return 0;
+    }
+
+    return wsd_ReadBuffer_read(buffer, n, frame->payload);
+}
+
 void wsd_Parser_emit_frame(wsd_Parser *parser)
 {
     parser->stage = 1;
+
     wsd_Frame *frame = parser->frame;
+    parser->frame = NULL;
 
     wsd_Frame_mask(frame);
 
-    printf("------------------------------------------------------------------------\n");
-    printf("[FRAME] final: %d, opcode: %d, masked: %d, length: %llu\n", frame->final, frame->opcode, frame->masked, frame->length);
+    // TODO handle frame or add to message
+    // TODO wsd_Frame_destroy(frame) when no longer needed
 
-    char *message = calloc(frame->length + 1, sizeof(char));
-    memcpy(message, frame->payload, frame->length);
-    printf("[PAYLOAD] %s\n\n", message);
-    free(message);
+    printf("------------------------------------------------------------------------\n");
+    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %llu\n",
+            frame->final, frame->rsv1, frame->rsv2, frame->rsv3,
+            frame->opcode, frame->masked, frame->length);
+    printf("------------------------------------------------------------------------\n");
+
+    char *msg = calloc(frame->length + 1, sizeof(char));
+    memcpy(msg, frame->payload, frame->length);
+    printf("[PAYLOAD] %s\n\n", msg);
+    free(msg);
 }
 
 /*-------------------------------------------------------------------*/
@@ -440,8 +525,11 @@ void Init_websocket_parser()
 VALUE wsd_WebSocketParser_initialize(VALUE self)
 {
     wsd_Parser *parser = wsd_Parser_create();
+    if (parser == NULL) return Qnil;
+
     VALUE ruby_parser = Data_Wrap_Struct(rb_cObject, NULL, wsd_Parser_destroy, parser);
     rb_iv_set(self, "@parser", ruby_parser);
+
     return Qnil;
 }
 
@@ -452,6 +540,7 @@ VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
 
     wsd_Parser *parser;
     Data_Get_Struct(rb_iv_get(self, "@parser"), wsd_Parser, parser);
+    if (parser == NULL) return Qnil;
 
     wsd_Parser_parse(parser, length, (uint8_t *)data);
 
