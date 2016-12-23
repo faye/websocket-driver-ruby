@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include "parser.h"
 
 wsd_Parser *wsd_Parser_create()
