@@ -4,8 +4,8 @@
 void    Init_websocket_parser();
 
 VALUE   wsd_WebSocketParser_initialize(VALUE self);
-void    wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame);
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
+void    wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame);
 
 static VALUE wsd_RWebSocketParser = Qnil;
 
@@ -14,22 +14,6 @@ void Init_websocket_parser()
     wsd_RWebSocketParser = rb_define_class("WebSocketParser", rb_cObject);
     rb_define_method(wsd_RWebSocketParser, "initialize", wsd_WebSocketParser_initialize, 0);
     rb_define_method(wsd_RWebSocketParser, "parse", wsd_WebSocketParser_parse, 1);
-}
-
-void wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame)
-{
-    char *msg = NULL;
-
-    printf("------------------------------------------------------------------------\n");
-    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %" PRIu64 "\n",
-            frame->final, frame->rsv1, frame->rsv2, frame->rsv3,
-            frame->opcode, frame->masked, frame->length);
-    printf("------------------------------------------------------------------------\n");
-
-    msg = calloc(frame->length + 1, sizeof(char));
-    memcpy(msg, frame->payload, frame->length);
-    printf("[PAYLOAD] %s\n\n", msg);
-    free(msg);
 }
 
 VALUE wsd_WebSocketParser_initialize(VALUE self)
@@ -61,4 +45,20 @@ VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
     wsd_Parser_parse(parser, length, (uint8_t *)data);
 
     return Qnil;
+}
+
+void wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame)
+{
+    char *msg = NULL;
+
+    printf("------------------------------------------------------------------------\n");
+    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %" PRIu64 "\n",
+            frame->final, frame->rsv1, frame->rsv2, frame->rsv3,
+            frame->opcode, frame->masked, frame->length);
+    printf("------------------------------------------------------------------------\n");
+
+    msg = calloc(frame->length + 1, sizeof(char));
+    memcpy(msg, frame->payload, frame->length);
+    printf("[PAYLOAD] %s\n\n", msg);
+    free(msg);
 }
