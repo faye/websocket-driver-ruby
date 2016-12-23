@@ -17,6 +17,7 @@ wsd_Parser *wsd_Parser_create()
     parser->stage = 1;
     parser->frame = NULL;
     parser->message = NULL;
+    parser->observer = NULL;
 
     parser->error_code = 0;
     parser->error_message = NULL;
@@ -31,6 +32,7 @@ void wsd_Parser_destroy(wsd_Parser *parser)
     wsd_ReadBuffer_destroy(parser->buffer);
     wsd_Frame_destroy(parser->frame);
     wsd_Message_destroy(parser->message);
+    wsd_Observer_destroy(parser->observer);
     if (parser->error_message) free(parser->error_message);
     free(parser);
 }
@@ -163,14 +165,5 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
     // TODO handle frame or add to message
     // TODO wsd_Frame_destroy(frame) when no longer needed
 
-    printf("------------------------------------------------------------------------\n");
-    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %llu\n",
-            frame->final, frame->rsv1, frame->rsv2, frame->rsv3,
-            frame->opcode, frame->masked, frame->length);
-    printf("------------------------------------------------------------------------\n");
-
-    char *msg = calloc(frame->length + 1, sizeof(char));
-    memcpy(msg, frame->payload, frame->length);
-    printf("[PAYLOAD] %s\n\n", msg);
-    free(msg);
+    wsd_Observer_on_frame(parser->observer, frame);
 }

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "read_buffer.h"
 #include "frame.h"
+#include "observer.h"
 
 #define WSD_FIN     0x80
 #define WSD_RSV1    0x40
@@ -31,6 +32,7 @@ typedef struct wsd_Parser {
     wsd_ReadBuffer *buffer;
     wsd_Frame *frame;
     wsd_Message *message;
+    wsd_Observer *observer;
     int error_code;
     char *error_message;
 } wsd_Parser;
