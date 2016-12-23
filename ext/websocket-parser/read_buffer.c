@@ -70,9 +70,9 @@ uint64_t wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *d
 
 uint64_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target)
 {
-    if (buffer->capacity < length) return 0;
-
     uint64_t offset = 0;
+
+    if (buffer->capacity < length) return 0;
 
     while (offset < length) {
         wsd_Chunk *chunk = buffer->queue->head->value;

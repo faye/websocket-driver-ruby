@@ -58,10 +58,13 @@ int wsd_Queue_push(wsd_Queue *queue, void *value)
 
 void *wsd_Queue_shift(wsd_Queue *queue)
 {
+    wsd_QueueNode *head = NULL;
+    void *value = NULL;
+
     if (queue->count == 0) return NULL;
 
-    wsd_QueueNode *head = queue->head;
-    void *value = head->value;
+    head  = queue->head;
+    value = head->value;
 
     queue->head = head->next;
     if (queue->count == 1) queue->tail = NULL;

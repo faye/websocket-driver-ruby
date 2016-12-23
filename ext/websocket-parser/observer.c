@@ -20,8 +20,10 @@ void wsd_Observer_destroy(wsd_Observer *observer)
 
 void wsd_Observer_on_frame(wsd_Observer *observer, wsd_Frame *frame)
 {
+    wsd_cb_on_frame cb = NULL;
+
     if (observer == NULL) return;
 
-    wsd_cb_on_frame cb = observer->on_frame;
+    cb = observer->on_frame;
     if (cb) cb(observer->receiver, frame);
 }

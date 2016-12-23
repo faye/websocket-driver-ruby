@@ -20,9 +20,9 @@ void wsd_Frame_destroy(wsd_Frame *frame)
 
 void wsd_Frame_mask(wsd_Frame *frame)
 {
-    if (!frame->masked) return;
-
     uint64_t i = 0;
+
+    if (!frame->masked) return;
 
     for (i = 0; i < frame->length; i++) {
         frame->payload[i] ^= frame->masking_key[i % 4];
