@@ -8,8 +8,8 @@ typedef struct wsd_QueueNode {
     struct wsd_QueueNode *next;
 } wsd_QueueNode;
 
-wsd_QueueNode *wsd_QueueNode_create(void *value);
-void wsd_QueueNode_destroy(wsd_QueueNode *node);
+wsd_QueueNode * wsd_QueueNode_create(void *value);
+void            wsd_QueueNode_destroy(wsd_QueueNode *node);
 
 wsd_QueueNode *wsd_QueueNode_create(void *value)
 {
@@ -32,10 +32,10 @@ typedef struct wsd_Queue {
     wsd_QueueNode *tail;
 } wsd_Queue;
 
-wsd_Queue *wsd_Queue_create();
-void wsd_Queue_destroy(wsd_Queue *queue);
-int wsd_Queue_push(wsd_Queue *queue, void *value);
-void *wsd_Queue_shift(wsd_Queue *queue);
+wsd_Queue * wsd_Queue_create();
+void        wsd_Queue_destroy(wsd_Queue *queue);
+int         wsd_Queue_push(wsd_Queue *queue, void *value);
+void *      wsd_Queue_shift(wsd_Queue *queue);
 
 #define wsd_QueueNode_next(N) (N == NULL) ? NULL : N->next
 
@@ -102,8 +102,8 @@ typedef struct wsd_Chunk {
     uint8_t *data;
 } wsd_Chunk;
 
-wsd_Chunk *wsd_Chunk_create(uint64_t length, uint8_t *data);
-void wsd_Chunk_destroy(wsd_Chunk *chunk);
+wsd_Chunk * wsd_Chunk_create(uint64_t length, uint8_t *data);
+void        wsd_Chunk_destroy(wsd_Chunk *chunk);
 
 wsd_Chunk *wsd_Chunk_create(uint64_t length, uint8_t *data)
 {
@@ -138,10 +138,10 @@ typedef struct wsd_ReadBuffer {
     uint64_t cursor;
 } wsd_ReadBuffer;
 
-wsd_ReadBuffer *wsd_ReadBuffer_create();
-void wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer);
-uint64_t wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *data);
-uint64_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target);
+wsd_ReadBuffer *    wsd_ReadBuffer_create();
+void                wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer);
+uint64_t            wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *data);
+uint64_t            wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target);
 
 wsd_ReadBuffer *wsd_ReadBuffer_create()
 {
@@ -227,9 +227,9 @@ typedef struct wsd_Frame {
     uint8_t *payload;
 } wsd_Frame;
 
-wsd_Frame *wsd_Frame_create();
-void wsd_Frame_destroy(wsd_Frame *frame);
-void wsd_Frame_mask(wsd_Frame *frame);
+wsd_Frame * wsd_Frame_create();
+void        wsd_Frame_destroy(wsd_Frame *frame);
+void        wsd_Frame_mask(wsd_Frame *frame);
 
 wsd_Frame *wsd_Frame_create()
 {
@@ -261,19 +261,24 @@ typedef struct wsd_Message {
 
 } wsd_Message;
 
-wsd_Message *wsd_Message_create();
-void wsd_Message_destroy(wsd_Message *frame);
+wsd_Message *   wsd_Message_create();
+void            wsd_Message_destroy(wsd_Message *message);
+
+void wsd_Message_destroy(wsd_Message *message)
+{
+    // TODO
+}
 
 /*-------------------------------------------------------------------*/
 /* Parser */
 
-#define WSD_FIN    0x80
-#define WSD_RSV1   0x40
-#define WSD_RSV2   0x20
-#define WSD_RSV3   0x10
-#define WSD_OPCODE 0x0f
-#define WSD_MASK   0x80
-#define WSD_LENGTH 0x7f
+#define WSD_FIN     0x80
+#define WSD_RSV1    0x40
+#define WSD_RSV2    0x20
+#define WSD_RSV3    0x10
+#define WSD_OPCODE  0x0f
+#define WSD_MASK    0x80
+#define WSD_LENGTH  0x7f
 
 typedef struct wsd_Parser {
     int stage;
@@ -284,12 +289,12 @@ typedef struct wsd_Parser {
     wsd_Message *message;
 } wsd_Parser;
 
-wsd_Parser *wsd_Parser_create();
-void wsd_Parser_destroy(wsd_Parser *parser);
-int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data);
-void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk);
-void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk);
-void wsd_Parser_emit_frame(wsd_Parser *parser);
+wsd_Parser *    wsd_Parser_create();
+void            wsd_Parser_destroy(wsd_Parser *parser);
+int             wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data);
+void            wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk);
+void            wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk);
+void            wsd_Parser_emit_frame(wsd_Parser *parser);
 
 wsd_Parser *wsd_Parser_create()
 {
