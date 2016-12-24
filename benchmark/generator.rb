@@ -13,11 +13,11 @@ def create_frames(message_size, fragments)
     final  = (i == fragments - 1)
     opcode = (i == 0) ? 1 : 0
 
-    frame(final, opcode, bytes)
+    build_frame(final, opcode, bytes)
   end
 end
 
-def frame(final, opcode, bytes)
+def build_frame(final, opcode, bytes)
   masked = 0x80
   mask   = masked.zero? ? [] : (1..4).map { rand 0xff }
   length = bytes.size
@@ -33,10 +33,10 @@ def frame(final, opcode, bytes)
     frame << (masked | length)
   elsif length <= 65535
     frame << (masked | 126)
-    frame += [length].pack('n').bytes
+    frame += [length].pack('n').bytes.to_a
   else
     frame << (masked | 127)
-    frame += [length].pack('Q>').bytes
+    frame += [length].pack('Q>').bytes.to_a
   end
 
   frame + mask + bytes
