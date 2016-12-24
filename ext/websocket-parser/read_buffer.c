@@ -21,7 +21,7 @@ void wsd_Chunk_destroy(wsd_Chunk *chunk)
 {
     if (chunk == NULL) return;
 
-    if (chunk->data != NULL) free(chunk->data);
+    free(chunk->data);
     chunk->data = NULL;
 
     free(chunk);

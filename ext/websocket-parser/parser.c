@@ -42,7 +42,7 @@ void wsd_Parser_destroy(wsd_Parser *parser)
     wsd_Observer_destroy(parser->observer);
     parser->observer = NULL;
 
-    if (parser->error_message != NULL) free(parser->error_message);
+    free(parser->error_message);
     parser->error_message = NULL;
 
     free(parser);
@@ -72,32 +72,28 @@ int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
                 readlen = wsd_ReadBuffer_read(parser->buffer, n, chunk);
                 if (readlen == n) wsd_Parser_parse_head(parser, chunk);
                 break;
-
             case 2:
                 n = parser->frame->length_bytes;
                 readlen = wsd_ReadBuffer_read(parser->buffer, n, chunk);
                 if (readlen == n) wsd_Parser_parse_extended_length(parser, chunk);
                 break;
-
             case 3:
                 n = 4;
                 readlen = wsd_ReadBuffer_read(parser->buffer, n, parser->frame->masking_key);
                 if (readlen == n) parser->stage = 4;
                 break;
-
             case 4:
                 n = parser->frame->length;
                 readlen = wsd_Parser_parse_payload(parser);
                 if (readlen == n) wsd_Parser_emit_frame(parser);
                 break;
-
             default:
                 readlen = 0;
                 break;
         }
     }
 
-    if (chunk != NULL) free(chunk);
+    free(chunk);
     return parser->error_code;
 }
 
