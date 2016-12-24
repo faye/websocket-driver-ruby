@@ -26,9 +26,8 @@
 #define WSD_UNEXPECTED_CONDITION    1011
 
 typedef struct wsd_Parser {
-    int stage;
-    int masking;
     int require_masking;
+    int stage;
     wsd_ReadBuffer *buffer;
     wsd_Frame *frame;
     wsd_Message *message;

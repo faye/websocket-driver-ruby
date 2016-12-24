@@ -13,13 +13,12 @@ wsd_Parser *wsd_Parser_create()
         return NULL;
     }
 
-    parser->masking = 1;
     parser->require_masking = 1;
+    parser->observer = NULL;
 
     parser->stage = 1;
     parser->frame = NULL;
     parser->message = NULL;
-    parser->observer = NULL;
 
     parser->error_code = 0;
     parser->error_message = NULL;
