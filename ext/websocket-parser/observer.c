@@ -15,6 +15,9 @@ void wsd_Observer_destroy(wsd_Observer *observer)
 {
     if (observer == NULL) return;
 
+    observer->receiver = NULL;
+    observer->on_frame = NULL;
+
     free(observer);
 }
 

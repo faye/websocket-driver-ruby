@@ -37,6 +37,10 @@ void wsd_Queue_destroy(wsd_Queue *queue) {
     { wsd_Queue_each(queue, node) {
         wsd_QueueNode_destroy(node);
     } }
+
+    queue->head = NULL;
+    queue->tail = NULL;
+
     free(queue);
 }
 
