@@ -1,5 +1,10 @@
 #include "queue.h"
 
+struct wsd_QueueNode {
+    void *value;
+    wsd_QueueNode *next;
+};
+
 wsd_QueueNode *wsd_QueueNode_create(void *value)
 {
     wsd_QueueNode *node = calloc(1, sizeof(wsd_QueueNode));
@@ -22,6 +27,12 @@ void wsd_QueueNode_destroy(wsd_QueueNode *node)
 }
 
 
+struct wsd_Queue {
+    uint32_t count;
+    wsd_QueueNode *head;
+    wsd_QueueNode *tail;
+};
+
 wsd_Queue *wsd_Queue_create()
 {
     wsd_Queue *queue = calloc(1, sizeof(wsd_Queue));
@@ -34,17 +45,34 @@ wsd_Queue *wsd_Queue_create()
     return queue;
 }
 
-void wsd_Queue_destroy(wsd_Queue *queue) {
+#define wsd_Queue_next(N) (N == NULL) ? NULL : N->next
+
+void wsd_Queue_destroy(wsd_Queue *queue)
+{
+    wsd_QueueNode *node = NULL;
+    wsd_QueueNode *next = NULL;
+
     if (queue == NULL) return;
 
-    { wsd_Queue_each(queue, node) {
+    for (node = queue->head, next = wsd_Queue_next(node);
+         node != NULL;
+         node = node->next, next = wsd_Queue_next(node)) {
         wsd_QueueNode_destroy(node);
-    } }
+    }
 
     queue->head = NULL;
     queue->tail = NULL;
 
     free(queue);
+}
+
+void wsd_Queue_each(wsd_Queue *queue, wsd_Queue_cb callback)
+{
+    wsd_QueueNode *node = NULL;
+
+    for (node = queue->head; node != NULL; node = node->next) {
+        callback(node->value);
+    }
 }
 
 int wsd_Queue_push(wsd_Queue *queue, void *value)

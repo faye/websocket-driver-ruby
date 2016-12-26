@@ -60,9 +60,7 @@ void wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer)
 {
     if (buffer == NULL) return;
 
-    { wsd_Queue_each(buffer->queue, node) {
-        wsd_Chunk_destroy(node->value);
-    } }
+    wsd_Queue_each(buffer->queue, (wsd_Queue_cb)wsd_Chunk_destroy);
 
     wsd_clear_pointer(wsd_Queue_destroy, buffer->queue);
 
