@@ -1,5 +1,11 @@
 #include "read_buffer.h"
 
+
+struct wsd_Chunk {
+    uint64_t length;
+    uint8_t *data;
+};
+
 wsd_Chunk *wsd_Chunk_create(uint64_t length, uint8_t *data)
 {
     wsd_Chunk *chunk = calloc(1, sizeof(wsd_Chunk));
@@ -26,6 +32,12 @@ void wsd_Chunk_destroy(wsd_Chunk *chunk)
     free(chunk);
 }
 
+
+struct wsd_ReadBuffer {
+    wsd_Queue *queue;
+    uint64_t capacity;
+    uint64_t cursor;
+};
 
 wsd_ReadBuffer *wsd_ReadBuffer_create()
 {

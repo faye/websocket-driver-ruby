@@ -5,20 +5,14 @@
 #include "queue.h"
 #include "util.h"
 
-typedef struct wsd_Chunk {
-    uint64_t length;
-    uint8_t *data;
-} wsd_Chunk;
+
+typedef struct wsd_Chunk wsd_Chunk;
 
 wsd_Chunk * wsd_Chunk_create(uint64_t length, uint8_t *data);
 void        wsd_Chunk_destroy(wsd_Chunk *chunk);
 
 
-typedef struct wsd_ReadBuffer {
-    wsd_Queue *queue;
-    uint64_t capacity;
-    uint64_t cursor;
-} wsd_ReadBuffer;
+typedef struct wsd_ReadBuffer wsd_ReadBuffer;
 
 wsd_ReadBuffer *    wsd_ReadBuffer_create();
 void                wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer);
