@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include "queue.h"
+#include "util.h"
 
 typedef struct wsd_Chunk {
     uint64_t length;

@@ -6,6 +6,7 @@
 #include "read_buffer.h"
 #include "frame.h"
 #include "observer.h"
+#include "util.h"
 
 #define WSD_FIN     0x80
 #define WSD_RSV1    0x40

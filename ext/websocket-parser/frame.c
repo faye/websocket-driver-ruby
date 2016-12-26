@@ -14,8 +14,7 @@ void wsd_Frame_destroy(wsd_Frame *frame)
 {
     if (frame == NULL) return;
 
-    free(frame->payload);
-    frame->payload = NULL;
+    wsd_clear_pointer(free, frame->payload);
 
     free(frame);
 }

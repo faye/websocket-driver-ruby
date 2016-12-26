@@ -30,20 +30,11 @@ void wsd_Parser_destroy(wsd_Parser *parser)
 {
     if (parser == NULL) return;
 
-    wsd_ReadBuffer_destroy(parser->buffer);
-    parser->buffer = NULL;
-
-    wsd_Frame_destroy(parser->frame);
-    parser->frame = NULL;
-
-    wsd_Message_destroy(parser->message);
-    parser->message = NULL;
-
-    wsd_Observer_destroy(parser->observer);
-    parser->observer = NULL;
-
-    free(parser->error_message);
-    parser->error_message = NULL;
+    wsd_clear_pointer(wsd_ReadBuffer_destroy, parser->buffer);
+    wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
+    wsd_clear_pointer(wsd_Message_destroy, parser->message);
+    wsd_clear_pointer(wsd_Observer_destroy, parser->observer);
+    wsd_clear_pointer(free, parser->error_message);
 
     free(parser);
 }

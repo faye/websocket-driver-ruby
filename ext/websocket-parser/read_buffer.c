@@ -21,8 +21,7 @@ void wsd_Chunk_destroy(wsd_Chunk *chunk)
 {
     if (chunk == NULL) return;
 
-    free(chunk->data);
-    chunk->data = NULL;
+    wsd_clear_pointer(free, chunk->data);
 
     free(chunk);
 }
@@ -53,8 +52,7 @@ void wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer)
         wsd_Chunk_destroy(node->value);
     } }
 
-    wsd_Queue_destroy(buffer->queue);
-    buffer->queue = NULL;
+    wsd_clear_pointer(wsd_Queue_destroy, buffer->queue);
 
     free(buffer);
 }

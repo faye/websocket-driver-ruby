@@ -15,6 +15,9 @@ void wsd_QueueNode_destroy(wsd_QueueNode *node)
 {
     if (node == NULL) return;
 
+    node->value = NULL;
+    node->next  = NULL;
+
     free(node);
 }
 

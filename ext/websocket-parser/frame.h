@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "util.h"
 
 typedef struct wsd_Frame {
     int final;
