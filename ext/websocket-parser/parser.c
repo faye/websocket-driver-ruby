@@ -142,7 +142,7 @@ uint64_t wsd_Parser_parse_payload(wsd_Parser *parser)
     wsd_Frame *frame = parser->frame;
     uint64_t n = frame->length;
 
-    if (buffer->capacity < n) return 0;
+    if (!wsd_ReadBuffer_has_capacity(buffer, n)) return 0;
 
     frame->payload = calloc(n, sizeof(uint8_t));
     if (frame->payload == NULL) {
@@ -150,7 +150,10 @@ uint64_t wsd_Parser_parse_payload(wsd_Parser *parser)
         return 0;
     }
 
-    return wsd_ReadBuffer_read(buffer, n, frame->payload);
+    n = wsd_ReadBuffer_read(buffer, n, frame->payload);
+    wsd_Frame_mask(frame);
+
+    return n;
 }
 
 void wsd_Parser_emit_frame(wsd_Parser *parser)
@@ -161,8 +164,6 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
 
     frame = parser->frame;
     parser->frame = NULL;
-
-    wsd_Frame_mask(frame);
 
     // TODO handle frame or add to message
     // TODO wsd_Frame_destroy(frame) when no longer needed

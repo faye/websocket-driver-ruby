@@ -71,6 +71,11 @@ uint64_t wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *d
     return length;
 }
 
+int wsd_ReadBuffer_has_capacity(wsd_ReadBuffer *buffer, uint64_t length)
+{
+    return buffer->capacity >= length;
+}
+
 uint64_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target)
 {
     uint64_t offset = 0;
@@ -78,7 +83,7 @@ uint64_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *t
     if (buffer->capacity < length) return 0;
 
     while (offset < length) {
-        wsd_Chunk *chunk = buffer->queue->head->value;
+        wsd_Chunk *chunk = wsd_Queue_peek(buffer->queue);
 
         uint64_t available  = chunk->length - buffer->cursor;
         uint64_t required   = length - offset;

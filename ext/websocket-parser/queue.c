@@ -63,6 +63,15 @@ int wsd_Queue_push(wsd_Queue *queue, void *value)
     return 1;
 }
 
+void *wsd_Queue_peek(wsd_Queue *queue)
+{
+    if (queue->count == 0) {
+        return NULL;
+    } else {
+        return queue->head->value;
+    }
+}
+
 void *wsd_Queue_shift(wsd_Queue *queue)
 {
     wsd_QueueNode *head = NULL;

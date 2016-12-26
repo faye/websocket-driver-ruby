@@ -23,6 +23,7 @@ typedef struct wsd_ReadBuffer {
 wsd_ReadBuffer *    wsd_ReadBuffer_create();
 void                wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer);
 uint64_t            wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *data);
+int                 wsd_ReadBuffer_has_capacity(wsd_ReadBuffer *buffer, uint64_t length);
 uint64_t            wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target);
 
 #endif

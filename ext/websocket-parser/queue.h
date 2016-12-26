@@ -24,6 +24,7 @@ typedef struct wsd_Queue {
 wsd_Queue * wsd_Queue_create();
 void        wsd_Queue_destroy(wsd_Queue *queue);
 int         wsd_Queue_push(wsd_Queue *queue, void *value);
+void *      wsd_Queue_peek(wsd_Queue *queue);
 void *      wsd_Queue_shift(wsd_Queue *queue);
 
 #define wsd_QueueNode_next(N) (N == NULL) ? NULL : N->next
