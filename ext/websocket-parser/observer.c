@@ -1,5 +1,10 @@
 #include "observer.h"
 
+struct wsd_Observer {
+    void *receiver;
+    wsd_cb_on_frame on_frame;
+};
+
 wsd_Observer * wsd_Observer_create(void *receiver, wsd_cb_on_frame on_frame)
 {
     wsd_Observer *observer = calloc(1, sizeof(wsd_Observer));

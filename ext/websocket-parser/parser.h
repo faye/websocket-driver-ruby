@@ -26,18 +26,9 @@
 #define WSD_EXTENSION_ERROR         1010
 #define WSD_UNEXPECTED_CONDITION    1011
 
-typedef struct wsd_Parser {
-    int require_masking;
-    int stage;
-    wsd_ReadBuffer *buffer;
-    wsd_Frame *frame;
-    wsd_Message *message;
-    wsd_Observer *observer;
-    int error_code;
-    char *error_message;
-} wsd_Parser;
+typedef struct wsd_Parser wsd_Parser;
 
-wsd_Parser *    wsd_Parser_create();
+wsd_Parser *    wsd_Parser_create(wsd_Observer *observer);
 void            wsd_Parser_destroy(wsd_Parser *parser);
 int             wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data);
 void            wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk);

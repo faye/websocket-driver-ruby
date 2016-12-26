@@ -2,7 +2,18 @@
 
 #include "parser.h"
 
-wsd_Parser *wsd_Parser_create()
+struct wsd_Parser {
+    int require_masking;
+    int stage;
+    wsd_ReadBuffer *buffer;
+    wsd_Frame *frame;
+    wsd_Message *message;
+    wsd_Observer *observer;
+    int error_code;
+    char *error_message;
+};
+
+wsd_Parser *wsd_Parser_create(wsd_Observer *observer)
 {
     wsd_Parser *parser = calloc(1, sizeof(wsd_Parser));
     if (parser == NULL) return NULL;
@@ -14,7 +25,7 @@ wsd_Parser *wsd_Parser_create()
     }
 
     parser->require_masking = 1;
-    parser->observer = NULL;
+    parser->observer = observer;
 
     parser->stage = 1;
     parser->frame = NULL;

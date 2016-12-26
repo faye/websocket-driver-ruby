@@ -18,14 +18,17 @@ void Init_websocket_parser()
 
 VALUE wsd_WebSocketParser_initialize(VALUE self)
 {
+    wsd_Observer *observer = NULL;
     VALUE ruby_parser;
 
-    wsd_Parser *parser = wsd_Parser_create();
-    if (parser == NULL) return Qnil;
-
-    parser->observer = wsd_Observer_create(
+    observer = wsd_Observer_create(
             (void *) self,
             (wsd_cb_on_frame) wsd_WebSocketParser_on_frame);
+
+    if (observer == NULL) return Qnil;
+
+    wsd_Parser *parser = wsd_Parser_create(observer);
+    if (parser == NULL) return Qnil;
 
     ruby_parser = Data_Wrap_Struct(rb_cObject, NULL, wsd_Parser_destroy, parser);
     rb_iv_set(self, "@parser", ruby_parser);
