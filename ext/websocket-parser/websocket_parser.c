@@ -1,5 +1,5 @@
-#include <ruby.h>
 #include "parser.h"
+#include "rb_util.h"
 
 void    Init_websocket_parser();
 
@@ -53,6 +53,7 @@ VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
     return Qnil;
 }
 
+
 void wsd_Driver_on_message(VALUE driver, wsd_Message *message)
 {
     VALUE opcode = INT2FIX(message->opcode);
@@ -65,16 +66,15 @@ void wsd_Driver_on_message(VALUE driver, wsd_Message *message)
     VALUE string;
 
     data = calloc(message->length, sizeof(uint8_t));
-    if (data == NULL) return; // TODO cleanup parser and message
+    if (data == NULL) return; // TODO signal error back to the parser
 
     copied = wsd_Message_copy(message, data);
     string = rb_str_new((char *)data, copied);
 
-    wsd_Message_destroy(message);
     free(data);
 
-    ID emit_message = rb_intern("emit_message");
-    rb_funcall(driver, emit_message, 5, opcode, rsv1, rsv2, rsv3, string);
+    VALUE argv[] = { opcode, rsv1, rsv2, rsv3, string };
+    wsd_safe_rb_funcall2(driver, rb_intern("emit_message"), 5, argv);
 }
 
 void wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame)

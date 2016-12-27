@@ -214,8 +214,7 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
 
 void wsd_Parser_emit_message(wsd_Parser *parser)
 {
-    wsd_Message *message = parser->message;
-    parser->message = NULL;
+    wsd_Observer_on_message(parser->observer, parser->message);
 
-    wsd_Observer_on_message(parser->observer, message);
+    wsd_clear_pointer(wsd_Message_destroy, parser->message);
 }
