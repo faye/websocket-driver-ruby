@@ -21,6 +21,7 @@ void Init_websocket_parser()
 VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options)
 {
     wsd_Observer *observer = NULL;
+    wsd_Parser *parser = NULL;
     VALUE ruby_parser;
 
     observer = wsd_Observer_create(
@@ -30,7 +31,7 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options)
 
     if (observer == NULL) return Qnil;
 
-    wsd_Parser *parser = wsd_Parser_create(observer);
+    parser = wsd_Parser_create(observer);
     if (parser == NULL) return Qnil;
 
     ruby_parser = Data_Wrap_Struct(rb_cObject, NULL, wsd_Parser_destroy, parser);
@@ -61,20 +62,21 @@ void wsd_Driver_on_message(VALUE driver, wsd_Message *message)
     VALUE rsv2   = message->rsv2 ? Qtrue : Qfalse;
     VALUE rsv3   = message->rsv3 ? Qtrue : Qfalse;
 
+    int argc = 5;
+    VALUE argv[5] = { opcode, rsv1, rsv2, rsv3 };
+
     uint8_t *data = NULL;
     uint64_t copied = 0;
-    VALUE string;
 
     data = calloc(message->length, sizeof(uint8_t));
     if (data == NULL) return; // TODO signal error back to the parser
 
     copied = wsd_Message_copy(message, data);
-    string = rb_str_new((char *)data, copied);
+    argv[argc - 1] = rb_str_new((char *)data, copied);
 
     free(data);
 
-    VALUE argv[] = { opcode, rsv1, rsv2, rsv3, string };
-    wsd_safe_rb_funcall2(driver, rb_intern("emit_message"), 5, argv);
+    wsd_safe_rb_funcall2(driver, rb_intern("emit_message"), argc, argv);
 }
 
 void wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame)
