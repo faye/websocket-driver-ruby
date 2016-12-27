@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "util.h"
 
 typedef struct wsd_Frame {
@@ -21,13 +22,6 @@ typedef struct wsd_Frame {
 wsd_Frame * wsd_Frame_create();
 void        wsd_Frame_destroy(wsd_Frame *frame);
 void        wsd_Frame_mask(wsd_Frame *frame);
-
-
-typedef struct wsd_Message {
-
-} wsd_Message;
-
-wsd_Message *   wsd_Message_create();
-void            wsd_Message_destroy(wsd_Message *message);
+uint64_t    wsd_Frame_copy(wsd_Frame *frame, uint64_t *offset, uint8_t *target);
 
 #endif

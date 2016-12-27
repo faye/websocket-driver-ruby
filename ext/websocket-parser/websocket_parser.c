@@ -3,27 +3,30 @@
 
 void    Init_websocket_parser();
 
-VALUE   wsd_WebSocketParser_initialize(VALUE self);
+VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options);
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
-void    wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame);
+
+void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
+void    wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame);
 
 static VALUE wsd_RWebSocketParser = Qnil;
 
 void Init_websocket_parser()
 {
     wsd_RWebSocketParser = rb_define_class("WebSocketParser", rb_cObject);
-    rb_define_method(wsd_RWebSocketParser, "initialize", wsd_WebSocketParser_initialize, 0);
+    rb_define_method(wsd_RWebSocketParser, "initialize", wsd_WebSocketParser_initialize, 2);
     rb_define_method(wsd_RWebSocketParser, "parse", wsd_WebSocketParser_parse, 1);
 }
 
-VALUE wsd_WebSocketParser_initialize(VALUE self)
+VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options)
 {
     wsd_Observer *observer = NULL;
     VALUE ruby_parser;
 
     observer = wsd_Observer_create(
-            (void *) self,
-            (wsd_cb_on_frame) wsd_WebSocketParser_on_frame);
+            (void *) driver,
+            (wsd_cb_on_message) wsd_Driver_on_message,
+            (wsd_cb_on_frame) wsd_Driver_on_frame);
 
     if (observer == NULL) return Qnil;
 
@@ -50,7 +53,31 @@ VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
     return Qnil;
 }
 
-void wsd_WebSocketParser_on_frame(VALUE self, wsd_Frame *frame)
+void wsd_Driver_on_message(VALUE driver, wsd_Message *message)
+{
+    VALUE opcode = INT2FIX(message->opcode);
+    VALUE rsv1   = message->rsv1 ? Qtrue : Qfalse;
+    VALUE rsv2   = message->rsv2 ? Qtrue : Qfalse;
+    VALUE rsv3   = message->rsv3 ? Qtrue : Qfalse;
+
+    uint8_t *data = NULL;
+    uint64_t copied = 0;
+    VALUE string;
+
+    data = calloc(message->length, sizeof(uint8_t));
+    if (data == NULL) return; // TODO cleanup parser and message
+
+    copied = wsd_Message_copy(message, data);
+    string = rb_str_new((char *)data, copied);
+
+    wsd_Message_destroy(message);
+    free(data);
+
+    ID emit_message = rb_intern("emit_message");
+    rb_funcall(driver, emit_message, 5, opcode, rsv1, rsv2, rsv3, string);
+}
+
+void wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame)
 {
     char *msg = NULL;
 

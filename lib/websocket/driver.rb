@@ -20,6 +20,7 @@ module WebSocket
 
     root = File.expand_path('../driver', __FILE__)
     require 'websocket_mask'
+    require 'websocket_parser'
 
     if RUBY_PLATFORM =~ /java/
       require 'jruby'
@@ -54,6 +55,7 @@ module WebSocket
     autoload :EventEmitter, root + '/event_emitter'
     autoload :Headers,      root + '/headers'
     autoload :Hybi,         root + '/hybi'
+    autoload :Native,       root + '/native'
     autoload :Proxy,        root + '/proxy'
     autoload :Server,       root + '/server'
     autoload :StreamReader, root + '/stream_reader'

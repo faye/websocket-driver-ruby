@@ -1,12 +1,18 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'benchmark/ips'
-
-require 'websocket_parser'
+require 'websocket/driver'
 
 require File.expand_path('../generator', __FILE__)
 
-driver = WebSocketParser.new
+socket = Object.new
+driver = WebSocket::Driver::Native.new(socket)
+
+driver.on :message do |message|
+  s = message.data
+  p [:received, [s.bytesize, s.encoding], s]
+  puts
+end
 
 message_count  = 5
 message_size   = 2 ** 8

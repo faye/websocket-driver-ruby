@@ -4,11 +4,14 @@
 
 struct wsd_Parser {
     int require_masking;
-    int stage;
+
     wsd_ReadBuffer *buffer;
+    wsd_Observer *observer;
+
+    int stage;
     wsd_Frame *frame;
     wsd_Message *message;
-    wsd_Observer *observer;
+
     int error_code;
     char *error_message;
 };
@@ -169,15 +172,50 @@ uint64_t wsd_Parser_parse_payload(wsd_Parser *parser)
 
 void wsd_Parser_emit_frame(wsd_Parser *parser)
 {
-    wsd_Frame *frame = NULL;
+    wsd_Frame *frame = parser->frame;
 
     parser->stage = 1;
 
-    frame = parser->frame;
-    parser->frame = NULL;
+    switch (frame->opcode) {
+        case WSD_OPCODE_CONTINUTATION:
+            if (parser->message == NULL) {
+                wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received unexpected continuation frame");
+                return;
+            }
+            if (!wsd_Message_push_frame(parser->message, frame)) {
+                wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to add frame to message");
+                return;
+            }
+            break;
 
-    // TODO handle frame or add to message
-    // TODO wsd_Frame_destroy(frame) when no longer needed
+        case WSD_OPCODE_TEXT:
+        case WSD_OPCODE_BINARY:
+            parser->message = wsd_Message_create(frame);
+            if (parser->message == NULL) {
+                wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate message");
+                return;
+            }
+            break;
 
-    wsd_Observer_on_frame(parser->observer, frame);
+        case WSD_OPCODE_CLOSE:
+        case WSD_OPCODE_PING:
+        case WSD_OPCODE_PONG:
+            // TODO
+            break;
+    }
+
+    if (frame->opcode <= WSD_OPCODE_BINARY) {
+        parser->frame = NULL;
+        if (frame->final) wsd_Parser_emit_message(parser);
+    } else {
+        wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
+    }
+}
+
+void wsd_Parser_emit_message(wsd_Parser *parser)
+{
+    wsd_Message *message = parser->message;
+    parser->message = NULL;
+
+    wsd_Observer_on_message(parser->observer, message);
 }

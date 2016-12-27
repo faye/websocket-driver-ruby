@@ -75,6 +75,15 @@ void wsd_Queue_each(wsd_Queue *queue, wsd_Queue_cb callback)
     }
 }
 
+void wsd_Queue_scan(wsd_Queue *queue, uint64_t *offset, uint8_t *target, wsd_Queue_scan_cb callback)
+{
+    wsd_QueueNode *node = NULL;
+
+    for (node = queue->head; node != NULL; node = node->next) {
+        callback(node->value, offset, target);
+    }
+}
+
 int wsd_Queue_push(wsd_Queue *queue, void *value)
 {
     wsd_QueueNode *node = wsd_QueueNode_create(value);

@@ -30,8 +30,12 @@ void wsd_Frame_mask(wsd_Frame *frame)
     }
 }
 
-
-void wsd_Message_destroy(wsd_Message *message)
+uint64_t wsd_Frame_copy(wsd_Frame *frame, uint64_t *offset, uint8_t *target)
 {
-    // TODO
+    uint64_t n = frame->length;
+
+    memcpy(target + *offset, frame->payload, n);
+    *offset += n;
+
+    return n;
 }
