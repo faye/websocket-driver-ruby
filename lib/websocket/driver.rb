@@ -19,7 +19,15 @@ module WebSocket
   class Driver
 
     root = File.expand_path('../driver', __FILE__)
-    require 'websocket_mask'
+
+    begin
+      # Load C native extension
+      require 'websocket_mask'
+    rescue LoadError
+      # Fall back to pure-Ruby implementation
+      require 'websocket/mask'
+    end
+
 
     if RUBY_PLATFORM =~ /java/
       require 'jruby'
