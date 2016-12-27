@@ -54,9 +54,8 @@ void wsd_Queue_destroy(wsd_Queue *queue)
 
     if (queue == NULL) return;
 
-    for (node = queue->head, next = wsd_Queue_next(node);
-         node != NULL;
-         node = node->next, next = wsd_Queue_next(node)) {
+    for (node = queue->head; node != NULL; node = next) {
+        next = node->next;
         wsd_QueueNode_destroy(node);
     }
 
