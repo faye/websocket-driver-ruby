@@ -127,26 +127,62 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
         return;
     }
 
+    if (wsd_Parser_control_opcode(parser) && !frame->final) {
+        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received fragmented control frame: opcode = %d", frame->opcode);
+        return;
+    }
+
+    if (parser->message == NULL && frame->opcode == WSD_OPCODE_CONTINUTATION) {
+        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received unexpected continuation frame");
+        return;
+    }
+
+    if (parser->message != NULL && wsd_Parser_opening_opcode(parser)) {
+        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received new data frame but previous continuous frame is unfinished");
+        return;
+    }
+
+    if (parser->require_masking && !frame->masked) {
+        wsd_Parser_error(parser, WSD_UNACCEPTABLE, "Received unmasked frame but masking is required");
+        return;
+    }
+
     if (frame->length <= 125) {
+        // TODO check length
         parser->stage = frame->masked ? 3 : 4;
     } else {
         parser->stage = 2;
         frame->length_bytes = (frame->length == 126) ? 2 : 8;
     }
-
-    parser->frame = frame;
 }
 
 int wsd_Parser_valid_opcode(wsd_Parser *parser)
 {
+    return wsd_Parser_control_opcode(parser) ||
+           wsd_Parser_message_opcode(parser);
+}
+
+int wsd_Parser_control_opcode(wsd_Parser *parser)
+{
     int opcode = parser->frame->opcode;
 
-    return opcode == WSD_OPCODE_CONTINUTATION ||
-           opcode == WSD_OPCODE_TEXT ||
-           opcode == WSD_OPCODE_BINARY ||
-           opcode == WSD_OPCODE_CLOSE ||
+    return opcode == WSD_OPCODE_CLOSE ||
            opcode == WSD_OPCODE_PING ||
            opcode == WSD_OPCODE_PONG;
+}
+
+int wsd_Parser_message_opcode(wsd_Parser *parser)
+{
+    return wsd_Parser_opening_opcode(parser) ||
+           parser->frame->opcode == WSD_OPCODE_CONTINUTATION;
+}
+
+int wsd_Parser_opening_opcode(wsd_Parser *parser)
+{
+    int opcode = parser->frame->opcode;
+
+    return opcode == WSD_OPCODE_TEXT ||
+           opcode == WSD_OPCODE_BINARY;
 }
 
 void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
@@ -166,6 +202,11 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
                         (uint64_t)chunk[5] << 16 |
                         (uint64_t)chunk[6] <<  8 |
                         (uint64_t)chunk[7];
+    }
+
+    if (wsd_Parser_control_opcode(parser) && frame->length > 125) {
+        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received control frame having too long payload: %" PRIu64, frame->length);
+        return;
     }
 
     parser->stage = frame->masked ? 3 : 4;
