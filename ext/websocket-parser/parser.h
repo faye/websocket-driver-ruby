@@ -39,6 +39,7 @@ wsd_Parser *    wsd_Parser_create(wsd_Observer *observer);
 void            wsd_Parser_destroy(wsd_Parser *parser);
 int             wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data);
 void            wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk);
+int             wsd_Parser_valid_opcode(wsd_Parser *parser);
 void            wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk);
 uint64_t        wsd_Parser_parse_payload(wsd_Parser *parser);
 void            wsd_Parser_emit_frame(wsd_Parser *parser);
@@ -49,6 +50,7 @@ void            wsd_Parser_emit_message(wsd_Parser *parser);
         P->stage = 0; \
         P->error_code = C; \
         asprintf(&P->error_message, M, ##__VA_ARGS__); \
+        wsd_Observer_on_error(P->observer, P->error_code, P->error_message); \
     }
 
 #endif

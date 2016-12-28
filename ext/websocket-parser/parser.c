@@ -118,6 +118,15 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
     frame->masked = (chunk[1] & WSD_MASK) == WSD_MASK;
     frame->length = (chunk[1] & WSD_LENGTH);
 
+    parser->frame = frame;
+
+    // TODO check RSV bits by calling back the ruby driver (requires extensions)
+
+    if (!wsd_Parser_valid_opcode(parser)) {
+        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Unrecognized frame opcode: %d", frame->opcode);
+        return;
+    }
+
     if (frame->length <= 125) {
         parser->stage = frame->masked ? 3 : 4;
     } else {
@@ -126,6 +135,18 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
     }
 
     parser->frame = frame;
+}
+
+int wsd_Parser_valid_opcode(wsd_Parser *parser)
+{
+    int opcode = parser->frame->opcode;
+
+    return opcode == WSD_OPCODE_CONTINUTATION ||
+           opcode == WSD_OPCODE_TEXT ||
+           opcode == WSD_OPCODE_BINARY ||
+           opcode == WSD_OPCODE_CLOSE ||
+           opcode == WSD_OPCODE_PING ||
+           opcode == WSD_OPCODE_PONG;
 }
 
 void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
