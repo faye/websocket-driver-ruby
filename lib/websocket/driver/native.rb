@@ -116,26 +116,26 @@ module WebSocket
       end
 
       def handle_message(opcode, rsv1, rsv2, rsv3, data)
-        payload = case opcode
-          when Hybi::OPCODES[:text]   then Driver.encode(data, UNICODE)
-          when Hybi::OPCODES[:binary] then data.bytes.to_a
-        end
-
-        if payload.nil?
-          fail(:encoding_error, 'Could not decode a text frame as UTF-8')
-        end
-
         message = Hybi::Message.new
 
         message.opcode = opcode
         message.rsv1   = rsv1
         message.rsv2   = rsv2
         message.rsv3   = rsv3
-        message.data   = payload
+        message.data   = data
 
         message = @extensions.process_incoming_message(message)
 
-        emit(:message, MessageEvent.new(message.data))
+        payload = case opcode
+          when Hybi::OPCODES[:text]   then Driver.encode(message.data, UNICODE)
+          when Hybi::OPCODES[:binary] then message.data.bytes.to_a
+        end
+
+        if payload.nil?
+          fail(:encoding_error, 'Could not decode a text frame as UTF-8')
+        end
+
+        emit(:message, MessageEvent.new(payload))
 
       rescue ::WebSocket::Extensions::ExtensionError => error
         fail(:extension_error, error.message)
