@@ -8,13 +8,13 @@
 #include "read_buffer.h"
 #include "util.h"
 
-#define WSD_FIN     0x80
-#define WSD_RSV1    0x40
-#define WSD_RSV2    0x20
-#define WSD_RSV3    0x10
-#define WSD_OPCODE  0x0f
-#define WSD_MASK    0x80
-#define WSD_LENGTH  0x7f
+#define WSD_FIN                     0x80
+#define WSD_RSV1                    0x40
+#define WSD_RSV2                    0x20
+#define WSD_RSV3                    0x10
+#define WSD_OPCODE                  0x0f
+#define WSD_MASK                    0x80
+#define WSD_LENGTH                  0x7f
 
 #define WSD_OPCODE_CONTINUTATION    0
 #define WSD_OPCODE_TEXT             1
@@ -33,6 +33,8 @@
 #define WSD_EXTENSION_ERROR         1010
 #define WSD_UNEXPECTED_CONDITION    1011
 
+#define WSD_MAX_MESSAGE_LENGTH      0x3ffffff
+
 typedef struct wsd_Parser wsd_Parser;
 
 wsd_Parser *    wsd_Parser_create(wsd_Observer *observer, int require_masking);
@@ -44,6 +46,7 @@ int             wsd_Parser_control_opcode(wsd_Parser *parser);
 int             wsd_Parser_message_opcode(wsd_Parser *parser);
 int             wsd_Parser_opening_opcode(wsd_Parser *parser);
 void            wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk);
+int             wsd_Parser_check_length(wsd_Parser *parser);
 uint64_t        wsd_Parser_parse_payload(wsd_Parser *parser);
 void            wsd_Parser_emit_frame(wsd_Parser *parser);
 void            wsd_Parser_emit_message(wsd_Parser *parser);
