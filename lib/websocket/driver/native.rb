@@ -6,7 +6,7 @@ module WebSocket
         super
 
         @extensions = ::WebSocket::Extensions.new
-        @parser     = ::WebSocketParser.new(self, options)
+        @parser     = ::WebSocketParser.new(self, options.fetch(:require_masking, false))
 
         @masking   = options[:masking]
         @protocols = options[:protocols] || []

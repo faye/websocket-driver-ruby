@@ -3,7 +3,7 @@
 
 void    Init_websocket_parser();
 
-VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options);
+VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking);
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
 
 void    wsd_Driver_on_error(VALUE driver, int code, char *message);
@@ -19,7 +19,7 @@ void Init_websocket_parser()
     rb_define_method(wsd_RWebSocketParser, "parse", wsd_WebSocketParser_parse, 1);
 }
 
-VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options)
+VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking)
 {
     wsd_Observer *observer = NULL;
     wsd_Parser *parser = NULL;
@@ -33,7 +33,7 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE options)
 
     if (observer == NULL) return Qnil;
 
-    parser = wsd_Parser_create(observer);
+    parser = wsd_Parser_create(observer, require_masking == Qtrue ? 1 : 0);
     if (parser == NULL) return Qnil;
 
     ruby_parser = Data_Wrap_Struct(rb_cObject, NULL, wsd_Parser_destroy, parser);

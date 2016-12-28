@@ -16,7 +16,7 @@ struct wsd_Parser {
     char *error_message;
 };
 
-wsd_Parser *wsd_Parser_create(wsd_Observer *observer)
+wsd_Parser *wsd_Parser_create(wsd_Observer *observer, int require_masking)
 {
     wsd_Parser *parser = calloc(1, sizeof(wsd_Parser));
     if (parser == NULL) return NULL;
@@ -27,7 +27,7 @@ wsd_Parser *wsd_Parser_create(wsd_Observer *observer)
         return NULL;
     }
 
-    parser->require_masking = 1;
+    parser->require_masking = require_masking;
     parser->observer = observer;
 
     parser->stage = 1;
