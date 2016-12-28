@@ -141,6 +141,17 @@ module WebSocket
         fail(:extension_error, error.message)
       end
 
+      def handle_ping(payload)
+        frame(payload, :pong)
+      end
+
+      def handle_pong(payload)
+        message = Driver.encode(payload, UNICODE)
+        callback = @ping_callbacks[message]
+        @ping_callbacks.delete(message)
+        callback.call if callback
+      end
+
       def send_frame(frame)
         length = frame.length
         buffer = []

@@ -8,6 +8,8 @@ VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
 
 void    wsd_Driver_on_error(VALUE driver, int code, char *message);
 void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
+void    wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame);
+void    wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame);
 void    wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame);
 
 static VALUE wsd_RWebSocketParser = Qnil;
@@ -29,6 +31,8 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_mas
             (void *) driver,
             (wsd_cb_on_error) wsd_Driver_on_error,
             (wsd_cb_on_message) wsd_Driver_on_message,
+            (wsd_cb_on_frame) wsd_Driver_on_ping,
+            (wsd_cb_on_frame) wsd_Driver_on_pong,
             (wsd_cb_on_frame) wsd_Driver_on_frame);
 
     if (observer == NULL) return Qnil;
@@ -88,6 +92,24 @@ void wsd_Driver_on_message(VALUE driver, wsd_Message *message)
     free(data);
 
     wsd_safe_rb_funcall2(driver, rb_intern("handle_message"), argc, argv);
+}
+
+void wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame)
+{
+    int argc = 1;
+    VALUE string = rb_str_new((char *)frame->payload, frame->length);
+    VALUE argv[1] = { string };
+
+    wsd_safe_rb_funcall2(driver, rb_intern("handle_ping"), argc, argv);
+}
+
+void wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame)
+{
+    int argc = 1;
+    VALUE string = rb_str_new((char *)frame->payload, frame->length);
+    VALUE argv[1] = { string };
+
+    wsd_safe_rb_funcall2(driver, rb_intern("handle_pong"), argc, argv);
 }
 
 void wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame)

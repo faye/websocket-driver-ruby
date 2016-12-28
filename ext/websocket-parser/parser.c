@@ -274,9 +274,14 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
             break;
 
         case WSD_OPCODE_CLOSE:
+            break;
+
         case WSD_OPCODE_PING:
+            wsd_Observer_on_ping(parser->observer, frame);
+            break;
+
         case WSD_OPCODE_PONG:
-            // TODO
+            wsd_Observer_on_pong(parser->observer, frame);
             break;
     }
 
