@@ -68,6 +68,8 @@ module WebSocket
               end
           end
         end
+
+        reraise_emit_exception
       end
 
       def frame(buffer, type = nil, error_type = nil)

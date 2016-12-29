@@ -41,6 +41,7 @@ module WebSocket
 
       def parse(chunk)
         @parser.parse(chunk)
+        reraise_emit_exception
       end
 
       def binary(message)

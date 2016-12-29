@@ -127,6 +127,8 @@ module WebSocket
               buffer = nil
           end
         end
+
+        reraise_emit_exception
       end
 
       def binary(message)

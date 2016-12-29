@@ -38,6 +38,9 @@ module WebSocket
         @listeners[event.to_s].dup.each do |listener|
           listener.call(*args)
         end
+
+      rescue => error
+        @emit_exception ||= error
       end
 
       def listener_count(event)
@@ -47,6 +50,16 @@ module WebSocket
 
       def listeners(event)
         @listeners[event.to_s]
+      end
+
+    private
+
+      def reraise_emit_exception
+        if @emit_exception
+          error = @emit_exception
+          @emit_exception = nil
+          raise error
+        end
       end
     end
 
