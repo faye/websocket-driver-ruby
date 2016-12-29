@@ -13,26 +13,15 @@ require 'stringio'
 require 'uri'
 require 'websocket/extensions'
 
+begin
+  require 'websocket_driver'
+rescue LoadError
+end
+
 module WebSocket
   autoload :HTTP, File.expand_path('../http', __FILE__)
 
   class Driver
-
-    root = File.expand_path('../driver', __FILE__)
-    require 'websocket_mask'
-    require 'websocket_parser'
-
-    if RUBY_PLATFORM =~ /java/
-      require 'jruby'
-      com.jcoglan.websocket.WebsocketMaskService.new.basicLoad(JRuby.runtime)
-    end
-
-    unless Mask.respond_to?(:mask)
-      def Mask.mask(payload, mask)
-        @instance ||= new
-        @instance.mask(payload, mask)
-      end
-    end
 
     MAX_LENGTH = 0x3ffffff
     STATES     = [:connecting, :open, :closing, :closed]
@@ -48,6 +37,8 @@ module WebSocket
     ProtocolError      = Class.new(StandardError)
     URIError           = Class.new(ArgumentError)
     ConfigurationError = Class.new(ArgumentError)
+
+    root = File.expand_path('../driver', __FILE__)
 
     autoload :Client,       root + '/client'
     autoload :Draft75,      root + '/draft75'
@@ -187,6 +178,17 @@ module WebSocket
       env['REQUEST_METHOD'] == 'GET' and
       connection.downcase.split(/ *, */).include?('upgrade') and
       upgrade.downcase == 'websocket'
+    end
+
+    class Mask
+      def self.mask(payload, mask)
+        return payload if payload.nil? or mask.nil?
+
+        payload.bytesize.times do |i|
+          payload.setbyte(i, payload.getbyte(i) ^ mask.getbyte(i % 4))
+        end
+        payload
+      end
     end
 
   end

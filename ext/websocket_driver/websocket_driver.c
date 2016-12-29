@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "rb_util.h"
 
-void    Init_websocket_parser();
+void    Init_websocket_driver();
 
 VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking);
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
@@ -15,7 +15,7 @@ void    wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame);
 
 static VALUE wsd_RWebSocketParser = Qnil;
 
-void Init_websocket_parser()
+void Init_websocket_driver()
 {
     wsd_RWebSocketParser = rb_define_class("WebSocketParser", rb_cObject);
     rb_define_method(wsd_RWebSocketParser, "initialize", wsd_WebSocketParser_initialize, 2);

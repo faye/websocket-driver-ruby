@@ -3,13 +3,11 @@ require 'bundler/setup'
 require 'benchmark/ips'
 require 'websocket/driver'
 
-require 'websocket_parser'
-
 require File.expand_path('../generator', __FILE__)
 
 socket = Object.new
 driver = WebSocket::Driver::Hybi.new(socket)
-parser = WebSocketParser.new
+parser = WebSocket::Driver::Native.new(socket)
 
 message_count  = 100
 message_size   = 2 ** 7

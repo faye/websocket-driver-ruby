@@ -11,5 +11,5 @@ rvm:
   - jruby-9
 
 script:
-  - bundle exec rake compile
+  - bundle exec rake compile || true
   - bundle exec rspec -c spec

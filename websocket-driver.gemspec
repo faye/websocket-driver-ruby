@@ -15,11 +15,8 @@ Gem::Specification.new do |s|
           Dir.glob('ext/**/*.{c,h,java,rb}') +
           Dir.glob('{examples,lib}/**/*.rb')
 
-  if RUBY_PLATFORM =~ /java/
-    s.platform = 'java'
-    files << 'lib/websocket_mask.jar'
-  else
-    s.extensions << 'ext/websocket-driver/extconf.rb'
+  if RUBY_PLATFORM !~ /java/
+    s.extensions << 'ext/websocket_driver/extconf.rb'
   end
 
   s.files = files
