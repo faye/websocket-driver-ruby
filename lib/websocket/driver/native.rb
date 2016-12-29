@@ -141,6 +141,10 @@ module WebSocket
         fail(:extension_error, error.message)
       end
 
+      def handle_close(code, reason)
+        shutdown(code, reason)
+      end
+
       def handle_ping(payload)
         frame(payload, :pong)
       end

@@ -33,6 +33,10 @@
 #define WSD_EXTENSION_ERROR         1010
 #define WSD_UNEXPECTED_CONDITION    1011
 
+#define WSD_DEFAULT_ERROR_CODE      1000
+#define WSD_MIN_RESERVED_ERROR      3000
+#define WSD_MAX_RESERVED_ERROR      4999
+
 #define WSD_MAX_MESSAGE_LENGTH      0x3ffffff
 
 typedef struct wsd_Parser wsd_Parser;
@@ -49,6 +53,7 @@ void            wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *ch
 int             wsd_Parser_check_length(wsd_Parser *parser);
 uint64_t        wsd_Parser_parse_payload(wsd_Parser *parser);
 void            wsd_Parser_emit_frame(wsd_Parser *parser);
+int             wsd_Parser_valid_close_code(int code);
 void            wsd_Parser_emit_message(wsd_Parser *parser);
 
 #define wsd_Parser_error(P, C, M, ...) \

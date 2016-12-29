@@ -250,6 +250,10 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
 {
     wsd_Frame *frame = parser->frame;
 
+    int code        = 0;
+    uint64_t length = 0;
+    uint8_t *reason = NULL;
+
     parser->stage = 1;
 
     switch (frame->opcode) {
@@ -274,6 +278,21 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
             break;
 
         case WSD_OPCODE_CLOSE:
+            if (frame->length == 0) {
+                code   = WSD_DEFAULT_ERROR_CODE;
+                length = 0;
+                reason = NULL;
+            } else if (frame->length >= 2) {
+                code   = frame->payload[0] << 8 | frame->payload[1];
+                length = frame->length - 2;
+                reason = frame->payload + 2;
+            }
+
+            if (!wsd_Parser_valid_close_code(code)) {
+                code = WSD_PROTOCOL_ERROR;
+                // TODO emit error on invalid code
+            }
+            wsd_Observer_on_close(parser->observer, code, length, reason);
             break;
 
         case WSD_OPCODE_PING:
@@ -291,6 +310,20 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
     } else {
         wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
     }
+}
+
+int wsd_Parser_valid_close_code(int code)
+{
+    return code == WSD_NORMAL_CLOSURE ||
+           code == WSD_GOING_AWAY ||
+           code == WSD_PROTOCOL_ERROR ||
+           code == WSD_UNACCEPTABLE ||
+           code == WSD_ENCODING_ERROR ||
+           code == WSD_POLICY_VIOLATION ||
+           code == WSD_TOO_LARGE ||
+           code == WSD_EXTENSION_ERROR ||
+           code == WSD_UNEXPECTED_CONDITION ||
+           (code >= WSD_MIN_RESERVED_ERROR && code <= WSD_MAX_RESERVED_ERROR);
 }
 
 void wsd_Parser_emit_message(wsd_Parser *parser)

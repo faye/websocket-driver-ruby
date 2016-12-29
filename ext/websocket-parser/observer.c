@@ -4,6 +4,7 @@ struct wsd_Observer {
     void *receiver;
     wsd_cb_on_error on_error;
     wsd_cb_on_message on_message;
+    wsd_cb_on_close on_close;
     wsd_cb_on_frame on_ping;
     wsd_cb_on_frame on_pong;
     wsd_cb_on_frame on_frame;
@@ -12,6 +13,7 @@ struct wsd_Observer {
 wsd_Observer * wsd_Observer_create(void *receiver,
                                    wsd_cb_on_error on_error,
                                    wsd_cb_on_message on_message,
+                                   wsd_cb_on_close on_close,
                                    wsd_cb_on_frame on_ping,
                                    wsd_cb_on_frame on_pong,
                                    wsd_cb_on_frame on_frame)
@@ -22,6 +24,7 @@ wsd_Observer * wsd_Observer_create(void *receiver,
     observer->receiver   = receiver;
     observer->on_error   = on_error;
     observer->on_message = on_message;
+    observer->on_close   = on_close;
     observer->on_ping    = on_ping;
     observer->on_pong    = on_pong;
     observer->on_frame   = on_frame;
@@ -36,6 +39,7 @@ void wsd_Observer_destroy(wsd_Observer *observer)
     observer->receiver   = NULL;
     observer->on_error   = NULL;
     observer->on_message = NULL;
+    observer->on_close   = NULL;
     observer->on_ping    = NULL;
     observer->on_pong    = NULL;
     observer->on_frame   = NULL;
@@ -61,6 +65,16 @@ void wsd_Observer_on_message(wsd_Observer *observer, wsd_Message *message)
 
     cb = observer->on_message;
     if (cb) cb(observer->receiver, message);
+}
+
+void wsd_Observer_on_close(wsd_Observer *observer, int code, uint64_t length, uint8_t *reason)
+{
+    wsd_cb_on_close cb = NULL;
+
+    if (observer == NULL) return;
+
+    cb = observer->on_close;
+    if (cb) cb(observer->receiver, code, length, reason);
 }
 
 void wsd_Observer_on_ping(wsd_Observer *observer, wsd_Frame *frame)
