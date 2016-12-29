@@ -58,7 +58,7 @@ int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
     uint64_t pushed = 0;
     uint8_t *chunk = NULL;
     uint64_t n = 0;
-    uint64_t readlen = 1;
+    uint64_t readlen = 0;
 
     pushed = wsd_ReadBuffer_push(parser->buffer, length, data);
     if (pushed != length) {
@@ -70,7 +70,7 @@ int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
         wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate memory for frame header");
     }
 
-    while (readlen > 0) {
+    while (readlen == n) {
         switch (parser->stage) {
             case 1:
                 n = 2;
@@ -93,6 +93,7 @@ int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
                 if (readlen == n) wsd_Parser_emit_frame(parser);
                 break;
             default:
+                n = 1;
                 readlen = 0;
                 break;
         }
