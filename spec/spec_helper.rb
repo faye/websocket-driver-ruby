@@ -3,6 +3,7 @@ require 'bundler/setup'
 
 require File.expand_path('../../lib/websocket/driver', __FILE__)
 require File.expand_path('../websocket/driver/draft75_examples', __FILE__)
+require File.expand_path('../websocket/driver/hybi_examples', __FILE__)
 
 module EncodingHelper
   def encode(message)
