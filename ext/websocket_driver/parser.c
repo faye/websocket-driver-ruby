@@ -258,10 +258,6 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
 
     switch (frame->opcode) {
         case WSD_OPCODE_CONTINUTATION:
-            if (parser->message == NULL) {
-                wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received unexpected continuation frame");
-                return;
-            }
             if (!wsd_Message_push_frame(parser->message, frame)) {
                 wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to add frame to message");
                 return;
