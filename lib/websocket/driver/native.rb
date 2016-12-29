@@ -143,7 +143,9 @@ module WebSocket
       end
 
       def handle_close(code, reason)
-        shutdown(code, reason)
+        reason = Driver.encode(reason, UNICODE)
+        code = Hybi::ERRORS[:protocol_error] if reason.nil? # TODO emit error
+        shutdown(code, reason || '')
       end
 
       def handle_ping(payload)
