@@ -121,6 +121,12 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
     parser->frame = frame;
 
     // TODO check RSV bits by calling back the ruby driver (requires extensions)
+    if (frame->rsv1 || frame->rsv2 || frame->rsv3) {
+        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR,
+                "One or more reserved bits are on: reserved1 = %d, reserved2 = %d, reserved3 = %d",
+                frame->rsv1, frame->rsv2, frame->rsv3);
+        return;
+    }
 
     if (!wsd_Parser_valid_opcode(parser)) {
         wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Unrecognized frame opcode: %d", frame->opcode);
