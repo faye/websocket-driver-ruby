@@ -6,7 +6,7 @@ void    Init_websocket_driver();
 VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking);
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
 
-void    wsd_Driver_on_error(VALUE driver, int code, char *message);
+void    wsd_Driver_on_error(VALUE driver, int code, char *reason);
 void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
 void    wsd_Driver_on_close(VALUE driver, int code, uint64_t length, uint8_t *reason);
 void    wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame);
@@ -62,10 +62,10 @@ VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
     return Qnil;
 }
 
-void wsd_Driver_on_error(VALUE driver, int code, char *message)
+void wsd_Driver_on_error(VALUE driver, int code, char *reason)
 {
     VALUE rcode   = INT2FIX(code);
-    VALUE rmsg    = rb_str_new2(message);
+    VALUE rmsg    = rb_str_new2(reason);
     int argc      = 2;
     VALUE argv[2] = { rcode, rmsg };
 

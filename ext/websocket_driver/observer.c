@@ -47,14 +47,14 @@ void wsd_Observer_destroy(wsd_Observer *observer)
     free(observer);
 }
 
-void wsd_Observer_on_error(wsd_Observer *observer, int code, char *message)
+void wsd_Observer_on_error(wsd_Observer *observer, int code, char *reason)
 {
     wsd_cb_on_error cb = NULL;
 
     if (observer == NULL) return;
 
     cb = observer->on_error;
-    if (cb) cb(observer->receiver, code, message);
+    if (cb) cb(observer->receiver, code, reason);
 }
 
 void wsd_Observer_on_message(wsd_Observer *observer, wsd_Message *message)

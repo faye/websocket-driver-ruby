@@ -60,8 +60,8 @@ void            wsd_Parser_emit_message(wsd_Parser *parser);
     if (P->error_code == 0) { \
         P->stage = 0; \
         P->error_code = C; \
-        asprintf(&P->error_message, M, ##__VA_ARGS__); \
-        wsd_Observer_on_error(P->observer, P->error_code, P->error_message); \
+        asprintf(&P->error_reason, M, ##__VA_ARGS__); \
+        wsd_Observer_on_error(P->observer, P->error_code, P->error_reason); \
     }
 
 #endif

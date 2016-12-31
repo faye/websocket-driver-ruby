@@ -13,7 +13,7 @@ struct wsd_Parser {
     wsd_Message *message;
 
     int error_code;
-    char *error_message;
+    char *error_reason;
 };
 
 wsd_Parser *wsd_Parser_create(wsd_Observer *observer, int require_masking)
@@ -35,7 +35,7 @@ wsd_Parser *wsd_Parser_create(wsd_Observer *observer, int require_masking)
     parser->message = NULL;
 
     parser->error_code = 0;
-    parser->error_message = NULL;
+    parser->error_reason = NULL;
 
     return parser;
 }
@@ -48,7 +48,7 @@ void wsd_Parser_destroy(wsd_Parser *parser)
     wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
     wsd_clear_pointer(wsd_Message_destroy, parser->message);
     wsd_clear_pointer(wsd_Observer_destroy, parser->observer);
-    wsd_clear_pointer(free, parser->error_message);
+    wsd_clear_pointer(free, parser->error_reason);
 
     free(parser);
 }

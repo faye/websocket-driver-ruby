@@ -112,8 +112,8 @@ module WebSocket
 
     private
 
-      def handle_error(code, message)
-        fail(code, message)
+      def handle_error(code, reason)
+        fail(code, reason)
       end
 
       def handle_message(opcode, rsv1, rsv2, rsv3, data)
