@@ -1,6 +1,6 @@
 Gemfile.lock
-Makefile
 pkg
 tmp
+*.dSYM
 *.gem
 *.jar
