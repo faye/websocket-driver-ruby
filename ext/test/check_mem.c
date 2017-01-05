@@ -2,7 +2,7 @@
 
 void autobahn_on_error(void *receiver, int code, char *reason)
 {
-    printf("ERROR: code = %d, reason = %s\n", code, reason);
+    printf("[ERROR] code = %d, reason = %s\n", code, reason);
 }
 
 int main()
@@ -34,5 +34,5 @@ int main()
         wsd_clear_pointer(wsd_Parser_destroy, parser);
     }
 
-    printf("OK\n");
+    printf("[OK]\n");
 }
