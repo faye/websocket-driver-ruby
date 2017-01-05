@@ -48,7 +48,10 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_mas
     if (observer == NULL) return Qnil;
 
     parser = wsd_Parser_create(observer, require_masking == Qtrue ? 1 : 0);
-    if (parser == NULL) return Qnil;
+    if (parser == NULL) {
+        wsd_Observer_destroy(observer);
+        return Qnil;
+    }
 
     ruby_parser = Data_Wrap_Struct(rb_cObject, NULL, wsd_Parser_destroy, parser);
     rb_iv_set(self, "@parser", ruby_parser);
