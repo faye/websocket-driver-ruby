@@ -22,6 +22,6 @@ typedef struct wsd_Frame {
 wsd_Frame * wsd_Frame_create();
 void        wsd_Frame_destroy(wsd_Frame *frame);
 void        wsd_Frame_mask(wsd_Frame *frame);
-uint64_t    wsd_Frame_copy(wsd_Frame *frame, uint64_t *offset, uint8_t *target);
+uint64_t    wsd_Frame_copy(wsd_Frame *frame, uint8_t *target, uint64_t offset);
 
 #endif

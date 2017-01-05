@@ -74,15 +74,6 @@ void wsd_Queue_each(wsd_Queue *queue, wsd_Queue_cb callback)
     }
 }
 
-void wsd_Queue_scan(wsd_Queue *queue, uint64_t *offset, uint8_t *target, wsd_Queue_scan_cb callback)
-{
-    wsd_QueueNode *node = NULL;
-
-    for (node = queue->head; node != NULL; node = node->next) {
-        callback(node->value, offset, target);
-    }
-}
-
 int wsd_Queue_push(wsd_Queue *queue, void *value)
 {
     wsd_QueueNode *node = wsd_QueueNode_create(value);
@@ -124,4 +115,34 @@ void *wsd_Queue_shift(wsd_Queue *queue)
     wsd_QueueNode_destroy(head);
     queue->count--;
     return value;
+}
+
+
+wsd_QueueIter *wsd_QueueIter_create(wsd_Queue *queue)
+{
+    wsd_QueueIter *iter = calloc(1, sizeof(wsd_QueueIter));
+    if (iter == NULL) return NULL;
+
+    if (queue->count > 0) {
+        iter->node  = queue->head;
+        iter->value = iter->node->value;
+    } else {
+        iter->node  = NULL;
+        iter->value = NULL;
+    }
+
+    return iter;
+}
+
+void wsd_QueueIter_destroy(wsd_QueueIter *iter)
+{
+    if (iter == NULL) return;
+
+    free(iter);
+}
+
+void wsd_QueueIter_next(wsd_QueueIter *iter)
+{
+    iter->node  = iter->node->next;
+    iter->value = iter->node ? iter->node->value : NULL;
 }

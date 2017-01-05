@@ -48,6 +48,15 @@ int wsd_Message_push_frame(wsd_Message *message, wsd_Frame *frame)
 uint64_t wsd_Message_copy(wsd_Message *message, uint8_t *target)
 {
     uint64_t offset = 0;
-    wsd_Queue_scan(message->frames, &offset, target, (wsd_Queue_scan_cb)wsd_Frame_copy);
+    wsd_QueueIter *iter = wsd_QueueIter_create(message->frames);
+
+    if (iter == NULL) return 0;
+
+    for (; iter->value; wsd_QueueIter_next(iter)) {
+        offset = wsd_Frame_copy(iter->value, target, offset);
+    }
+
+    wsd_QueueIter_destroy(iter);
+
     return offset;
 }
