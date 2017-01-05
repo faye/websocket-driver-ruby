@@ -193,18 +193,18 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
     wsd_Frame *frame = parser->frame;
 
     if (frame->length == 126) {
-        frame->length = (uint64_t)chunk[0] << 8 |
-                        (uint64_t)chunk[1];
+        frame->length = (uint64_t)chunk[0] << 8
+                      | (uint64_t)chunk[1];
 
     } else if (frame->length == 127) {
-        frame->length = (uint64_t)chunk[0] << 56 |
-                        (uint64_t)chunk[1] << 48 |
-                        (uint64_t)chunk[2] << 40 |
-                        (uint64_t)chunk[3] << 32 |
-                        (uint64_t)chunk[4] << 24 |
-                        (uint64_t)chunk[5] << 16 |
-                        (uint64_t)chunk[6] <<  8 |
-                        (uint64_t)chunk[7];
+        frame->length = (uint64_t)chunk[0] << 56
+                      | (uint64_t)chunk[1] << 48
+                      | (uint64_t)chunk[2] << 40
+                      | (uint64_t)chunk[3] << 32
+                      | (uint64_t)chunk[4] << 24
+                      | (uint64_t)chunk[5] << 16
+                      | (uint64_t)chunk[6] <<  8
+                      | (uint64_t)chunk[7];
     }
 
     if (wsd_Parser_control_opcode(frame->opcode) && frame->length > 125) {

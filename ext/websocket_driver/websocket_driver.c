@@ -1,10 +1,14 @@
 #include "parser.h"
+#include "unparser.h"
 #include "rb_util.h"
 
 void    Init_websocket_driver();
 
 VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking);
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
+
+VALUE   wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking);
+VALUE   wsd_WebSocketUnparser_frame(VALUE self, VALUE final, VALUE rsv1, VALUE rsv2, VALUE rsv3, VALUE opcode, VALUE masking_key, VALUE payload);
 
 void    wsd_Driver_on_error(VALUE driver, int code, char *reason);
 void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
@@ -13,13 +17,17 @@ void    wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame);
 void    wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame);
 void    wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame);
 
-static VALUE wsd_RWebSocketParser = Qnil;
-
 void Init_websocket_driver()
 {
-    wsd_RWebSocketParser = rb_define_class("WebSocketParser", rb_cObject);
-    rb_define_method(wsd_RWebSocketParser, "initialize", wsd_WebSocketParser_initialize, 2);
-    rb_define_method(wsd_RWebSocketParser, "parse", wsd_WebSocketParser_parse, 1);
+    VALUE WSN = rb_define_module("WebSocketNative");
+
+    VALUE Parser = rb_define_class_under(WSN, "Parser", rb_cObject);
+    rb_define_method(Parser, "initialize", wsd_WebSocketParser_initialize, 2);
+    rb_define_method(Parser, "parse", wsd_WebSocketParser_parse, 1);
+
+    VALUE Unparser = rb_define_class_under(WSN, "Unparser", rb_cObject);
+    rb_define_method(Unparser, "initialize", wsd_WebSocketUnparser_initialize, 2);
+    rb_define_method(Unparser, "frame", wsd_WebSocketUnparser_frame, 7);
 }
 
 VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking)
@@ -139,4 +147,62 @@ void wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame)
     memcpy(msg, frame->payload, frame->length);
     printf("[PAYLOAD] %s\n\n", msg);
     free(msg);
+}
+
+VALUE wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking)
+{
+    wsd_Unparser *unparser = NULL;
+    VALUE ruby_unparser;
+
+    unparser = wsd_Unparser_create(masking == Qtrue ? 1 : 0);
+    if (unparser == NULL) return Qnil;
+
+    ruby_unparser = Data_Wrap_Struct(rb_cObject, NULL, wsd_Unparser_destroy, unparser);
+    rb_iv_set(self, "@unparser", ruby_unparser);
+
+    return Qnil;
+}
+
+VALUE wsd_WebSocketUnparser_frame(VALUE self,
+                                  VALUE final, VALUE rsv1, VALUE rsv2, VALUE rsv3, VALUE opcode,
+                                  VALUE masking_key, VALUE payload)
+{
+    uint64_t length = RSTRING_LEN(payload);
+    char *data = RSTRING_PTR(payload);
+
+    wsd_Frame *frame = NULL;
+    uint64_t buflen = 0;
+    uint8_t *buf = NULL;
+    VALUE string;
+
+    wsd_Unparser *unparser;
+    Data_Get_Struct(rb_iv_get(self, "@unparser"), wsd_Unparser, unparser);
+    if (unparser == NULL) return Qnil;
+
+    frame = wsd_Frame_create();
+    if (frame == NULL) return Qnil;
+
+    frame->payload = calloc(length, sizeof(uint8_t));
+    if (frame->payload == NULL) {
+        wsd_Frame_destroy(frame);
+        return Qnil;
+    }
+
+    frame->final  = (final == Qtrue);
+    frame->rsv1   = (rsv1 == Qtrue);
+    frame->rsv2   = (rsv2 == Qtrue);
+    frame->rsv3   = (rsv3 == Qtrue);
+    frame->opcode = NUM2INT(opcode);
+    frame->length = length;
+
+    memcpy(frame->masking_key, RSTRING_PTR(masking_key), 4);
+    memcpy(frame->payload, data, length);
+
+    buflen = wsd_Unparser_frame(unparser, frame, &buf);
+    wsd_Frame_destroy(frame);
+
+    string = rb_str_new((char *)buf, buflen);
+    free(buf);
+
+    return string;
 }

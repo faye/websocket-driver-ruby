@@ -5,10 +5,10 @@ module WebSocket
       def initialize(socket, options = {})
         super
 
+        @parser     = ::WebSocketNative::Parser.new(self, options.fetch(:require_masking, false))
+        @unparser   = ::WebSocketNative::Unparser.new(self, options.fetch(:masking, false))
         @extensions = ::WebSocket::Extensions.new
-        @parser     = ::WebSocketParser.new(self, options.fetch(:require_masking, false))
 
-        @masking   = options[:masking]
         @protocols = options[:protocols] || []
         @protocols = @protocols.strip.split(/ *, */) if String === @protocols
 
@@ -98,12 +98,15 @@ module WebSocket
         frame.rsv2        = message.rsv2
         frame.rsv3        = message.rsv3
         frame.opcode      = message.opcode
-        frame.masked      = !!@masking
-        frame.masking_key = SecureRandom.random_bytes(4) if frame.masked
+        frame.masking_key = SecureRandom.random_bytes(4)
         frame.length      = message.data.bytesize
         frame.payload     = message.data
 
-        send_frame(frame)
+        string = @unparser.frame(frame.final, frame.rsv1, frame.rsv2, frame.rsv3,
+                                 frame.opcode, frame.masking_key, frame.payload)
+
+        @socket.write(string)
+
         true
 
       rescue ::WebSocket::Extensions::ExtensionError => error
@@ -157,37 +160,6 @@ module WebSocket
         callback = @ping_callbacks[message]
         @ping_callbacks.delete(message)
         callback.call if callback
-      end
-
-      def send_frame(frame)
-        length = frame.length
-        buffer = []
-        masked = frame.masked ? Hybi::MASK : 0
-
-        buffer[0] = (frame.final ? Hybi::FIN : 0) |
-                    (frame.rsv1 ? Hybi::RSV1 : 0) |
-                    (frame.rsv2 ? Hybi::RSV2 : 0) |
-                    (frame.rsv3 ? Hybi::RSV3 : 0) |
-                    frame.opcode
-
-        if length <= 125
-          buffer[1] = masked | length
-        elsif length <= 65535
-          buffer[1] = masked | 126
-          buffer[2..3] = [length].pack(Hybi::PACK_FORMATS[2]).bytes.to_a
-        else
-          buffer[1] = masked | 127
-          buffer[2..9] = [length].pack(Hybi::PACK_FORMATS[8]).bytes.to_a
-        end
-
-        if frame.masked
-          buffer.concat(frame.masking_key.bytes.to_a)
-          buffer.concat(Mask.mask(frame.payload, frame.masking_key).bytes.to_a)
-        else
-          buffer.concat(frame.payload.bytes.to_a)
-        end
-
-        @socket.write(buffer.pack('C*'))
       end
 
       def handshake_response
