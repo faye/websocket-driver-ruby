@@ -23,9 +23,9 @@ module WebSocket
 
   class Driver
 
-    MAX_LENGTH = 0x3ffffff
-    STATES     = [:connecting, :open, :closing, :closed]
+    MAX_MESSAGE_LENGTH = 0x3ffffff
 
+    STATES  = [:connecting, :open, :closing, :closed]
     BINARY  = 'ASCII-8BIT'
     UNICODE = 'UTF-8'
 
@@ -56,12 +56,12 @@ module WebSocket
 
     def initialize(socket, options = {})
       super()
-      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols])
+      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols, :parser_class, :unparser_class])
 
       @socket      = socket
       @reader      = StreamReader.new
       @options     = options
-      @max_length  = options[:max_length] || MAX_LENGTH
+      @max_length  = options[:max_length] || MAX_MESSAGE_LENGTH
       @headers     = Headers.new
       @queue       = []
       @ready_state = 0

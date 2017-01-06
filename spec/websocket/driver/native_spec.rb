@@ -1,9 +1,11 @@
-describe WebSocket::Driver::Native do
-  next if RUBY_PLATFORM =~ /java/
+describe WebSocket::Driver::Hybi do
+  let(:parser_class)   { WebSocketNative::Parser }
+  let(:unparser_class) { WebSocketNative::Unparser }
 
   def create_driver
-    WebSocket::Driver::Native.new(socket, options)
+    WebSocket::Driver::Hybi.new(socket, options)
   end
 
   it_should_behave_like "hybi driver"
 end
+
