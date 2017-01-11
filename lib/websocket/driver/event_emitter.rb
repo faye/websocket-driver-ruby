@@ -3,6 +3,7 @@ module WebSocket
 
     module EventEmitter
       def initialize
+        @emit_exception = nil
         @listeners = Hash.new { |h,k| h[k] = [] }
       end
 

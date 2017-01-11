@@ -65,6 +65,7 @@ module WebSocket
       @headers     = Headers.new
       @queue       = []
       @ready_state = 0
+      @stage       = 0
     end
 
     def state
