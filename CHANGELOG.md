@@ -1,3 +1,7 @@
+### 0.6.5 / 2017-01-22
+
+* Provide a pure-Ruby fallback for the native unmasking code
+
 ### 0.6.4 / 2016-05-20
 
 * Amend warnings issued when running with -W2
