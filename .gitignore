@@ -1,6 +1,7 @@
 Gemfile.lock
 pkg
 tmp
+.vagrant
 *.dSYM
 *.gem
 *.jar

@@ -1,1 +1,4 @@
+afl_fuzzer
+afl-*
 check_mem
+fuzz_target
