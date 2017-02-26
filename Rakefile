@@ -5,7 +5,12 @@ spec = Gem::Specification.load('websocket-driver.gemspec')
 Gem::PackageTask.new(spec) do |pkg|
 end
 
-if RUBY_PLATFORM !~ /java/
+if RUBY_PLATFORM =~ /java/
+  require 'rake/javaextensiontask'
+  Rake::JavaExtensionTask.new('websocket_driver', spec) do |ext|
+    ext.name = 'websocket_driver'
+  end
+else
   require 'rake/extensiontask'
   Rake::ExtensionTask.new('websocket_driver', spec) do |ext|
     ext.name = 'websocket_driver'

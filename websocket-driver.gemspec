@@ -12,10 +12,12 @@ Gem::Specification.new do |s|
   s.require_paths     = %w[lib]
 
   files = %w[README.md LICENSE.md CHANGELOG.md] +
-          Dir.glob('ext/**/*.{c,h,java,rb}') +
           Dir.glob('{examples,lib}/**/*.rb')
 
-  if RUBY_PLATFORM !~ /java/
+  if RUBY_PLATFORM =~ /java/
+    files += Dir.glob('ext/**/*.java')
+  else
+    files += Dir.glob('ext/**/*.{c,h,rb}')
     s.extensions << 'ext/websocket_driver/extconf.rb'
   end
 

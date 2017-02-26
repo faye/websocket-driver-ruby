@@ -1,3 +1,5 @@
+require "spec_helper"
+
 describe WebSocket::Driver::Hybi do
   let(:parser_class)   { nil }
   let(:unparser_class) { nil }
