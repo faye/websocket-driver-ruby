@@ -48,53 +48,54 @@ public class WebsocketDriverService implements BasicLibraryService {
         public IRubyObject initialize(final ThreadContext context, final IRubyObject driver, IRubyObject requireMasking) {
             Observer observer = new Observer() {
                 public void onError(int code, String reason) {
-                    IRubyObject[] args = {
-                        RubySymbol.newSymbol(runtime, "handle_error"),
-                        RubyFixnum.newFixnum(runtime, code),
-                        new RubyString(runtime, RubyString.createStringClass(runtime), reason.getBytes())
-                    };
+                    IRubyObject[] args = {symbol("handle_error"), fixnum(code), string(reason.getBytes())};
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onMessage(Message message) {
                     IRubyObject[] args = {
-                        RubySymbol.newSymbol(runtime, "handle_message"),
-                        RubyFixnum.newFixnum(runtime, message.opcode),
-                        RubyBoolean.newBoolean(runtime, message.rsv1),
-                        RubyBoolean.newBoolean(runtime, message.rsv2),
-                        RubyBoolean.newBoolean(runtime, message.rsv3),
-                        new RubyString(runtime, RubyString.createStringClass(runtime), message.copy())
+                        symbol("handle_message"),
+                        fixnum(message.opcode),
+                        bool(message.rsv1),
+                        bool(message.rsv2),
+                        bool(message.rsv3),
+                        string(message.copy())
                     };
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onClose(int code, byte[] reason) {
-                    if (reason == null) reason = new byte[0];
-
-                    IRubyObject[] args = {
-                        RubySymbol.newSymbol(runtime, "handle_close"),
-                        RubyFixnum.newFixnum(runtime, code),
-                        new RubyString(runtime, RubyString.createStringClass(runtime), reason)
-                    };
+                    IRubyObject[] args = {symbol("handle_close"), fixnum(code), string(reason)};
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onPing(Frame frame) {
-                    IRubyObject[] args = {
-                        RubySymbol.newSymbol(runtime, "handle_ping"),
-                        new RubyString(runtime, RubyString.createStringClass(runtime), frame.payload)
-                    };
+                    IRubyObject[] args = {symbol("handle_ping"), string(frame.payload)};
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onPong(Frame frame) {
-                    IRubyObject[] args = {
-                        RubySymbol.newSymbol(runtime, "handle_pong"),
-                        new RubyString(runtime, RubyString.createStringClass(runtime), frame.payload)
-                    };
+                    IRubyObject[] args = {symbol("handle_pong"), string(frame.payload)};
                     ((RubyObject)driver).send(context, args, null);
                 }
+
+                private RubyBoolean bool(boolean value) {
+                    return RubyBoolean.newBoolean(runtime, value);
+                }
+
+                private RubyFixnum fixnum(int value) {
+                    return RubyFixnum.newFixnum(runtime, value);
+                }
+
+                private RubySymbol symbol(String name) {
+                    return RubySymbol.newSymbol(runtime, name);
+                }
+
+                private RubyString string(byte[] value) {
+                    return new RubyString(runtime, RubyString.createStringClass(runtime), value);
+                }
             };
+
             parser = new Parser(observer, requireMasking.isTrue());
             return null;
         }
