@@ -8,7 +8,7 @@ public class Message {
     public boolean rsv1;
     public boolean rsv2;
     public boolean rsv3;
-    int length;
+    long length;
     List<Frame> frames;
 
     Message() {
@@ -32,11 +32,11 @@ public class Message {
     }
 
     public byte[] copy() {
-        byte[] target = new byte[length];
+        byte[] target = new byte[(int)length];
         int offset = 0;
 
         for (Frame frame : frames) {
-            System.arraycopy(frame.payload, 0, target, offset, frame.length);
+            System.arraycopy(frame.payload, 0, target, offset, (int)frame.length);
             offset += frame.length;
         }
 

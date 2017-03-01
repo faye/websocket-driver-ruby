@@ -9,7 +9,7 @@ public class Frame {
     public boolean masked;
     public byte[] maskingKey;
     int lengthBytes;
-    public int length;
+    public long length;
     public byte[] payload;
 
     static void mask(Frame frame) {

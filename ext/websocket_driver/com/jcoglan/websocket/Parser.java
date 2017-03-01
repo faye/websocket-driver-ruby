@@ -83,7 +83,7 @@ public class Parser {
                     }
                     break;
                 case 4:
-                    chunk = buffer.read(frame.length);
+                    chunk = buffer.read((int)frame.length);
                     if (chunk != null) {
                         stage = 1;
                         emitFrame(chunk);
@@ -207,7 +207,7 @@ public class Parser {
     }
 
     private boolean checkLength() {
-        int length = (message == null) ? 0 : message.length;
+        long length = (message == null) ? 0 : message.length;
 
         if (length + frame.length > MAX_MESSAGE_LENGTH) {
             parseError(TOO_LARGE, "WebSocket frame length too large");
@@ -241,7 +241,7 @@ public class Parser {
                     code   = DEFAULT_ERROR_CODE;
                 } else if (frame.length >= 2) {
                     code   = bitshift(frame.payload[0], 8) | bitshift(frame.payload[1], 0);
-                    reason = Arrays.copyOfRange(frame.payload, 2, frame.length);
+                    reason = Arrays.copyOfRange(frame.payload, 2, (int)frame.length);
                 }
 
                 if (!validCloseCode(code)) {
