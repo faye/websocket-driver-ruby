@@ -12,7 +12,7 @@ module WebSocket
           buffer = []
           masked = @masking ? MASK : 0
 
-          buffer[0] = (head[0] ? FIN : 0) |
+          buffer[0] = (head[0] ? FIN  : 0) |
                       (head[1] ? RSV1 : 0) |
                       (head[2] ? RSV2 : 0) |
                       (head[3] ? RSV3 : 0) |

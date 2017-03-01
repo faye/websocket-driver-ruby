@@ -34,10 +34,10 @@ uint64_t wsd_Unparser_frame(wsd_Unparser *unparser, wsd_Frame *frame, uint8_t **
     buf = calloc(buflen, sizeof(uint8_t));
     if (buf == NULL) return 0;
 
-    buf[0] = (frame->final ? WSD_FIN : 0)
-           | (frame->rsv1 ? WSD_RSV1 : 0)
-           | (frame->rsv2 ? WSD_RSV2 : 0)
-           | (frame->rsv3 ? WSD_RSV3 : 0)
+    buf[0] = (frame->final ? WSD_FIN  : 0)
+           | (frame->rsv1  ? WSD_RSV1 : 0)
+           | (frame->rsv2  ? WSD_RSV2 : 0)
+           | (frame->rsv3  ? WSD_RSV3 : 0)
            | frame->opcode;
 
     if (unparser->masking) {

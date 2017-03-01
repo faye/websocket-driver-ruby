@@ -25,7 +25,7 @@ public class Unparser {
         byte[] buf  = new byte[buflen];
         int mask    = 0;
 
-        buf[0] = (byte)( (frame.fin ? FIN : 0)
+        buf[0] = (byte)( (frame.fin  ? FIN  : 0)
                        | (frame.rsv1 ? RSV1 : 0)
                        | (frame.rsv2 ? RSV2 : 0)
                        | (frame.rsv3 ? RSV3 : 0)
