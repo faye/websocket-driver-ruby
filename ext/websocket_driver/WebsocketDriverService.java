@@ -4,8 +4,10 @@ import com.jcoglan.websocket.Frame;
 import com.jcoglan.websocket.Message;
 import com.jcoglan.websocket.Observer;
 import com.jcoglan.websocket.Parser;
+import com.jcoglan.websocket.Unparser;
 
 import org.jruby.Ruby;
+import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyFixnum;
@@ -32,6 +34,14 @@ public class WebsocketDriverService implements BasicLibraryService {
             }
         });
         parser.defineAnnotatedMethods(RParser.class);
+
+        RubyClass unparser = websocket.defineClassUnder("Unparser", runtime.getObject(), new ObjectAllocator() {
+            public IRubyObject allocate(Ruby runtime, RubyClass rubyClass) {
+                return new RUnparser(runtime, rubyClass);
+            }
+        });
+        unparser.defineAnnotatedMethods(RUnparser.class);
+
         return true;
     }
 
@@ -105,6 +115,42 @@ public class WebsocketDriverService implements BasicLibraryService {
             byte[] bytes = ((RubyString)chunk).getBytes();
             parser.parse(bytes);
             return null;
+        }
+    }
+
+    public class RUnparser extends RubyObject {
+        private Unparser unparser;
+        private Ruby runtime;
+
+        public RUnparser(Ruby runtime, RubyClass rubyClass) {
+            super(runtime, rubyClass);
+            this.runtime = runtime;
+        }
+
+        @JRubyMethod
+        public IRubyObject initialize(IRubyObject driver, IRubyObject masking) {
+            unparser = new Unparser(masking.isTrue());
+            return null;
+        }
+
+        @JRubyMethod
+        public IRubyObject frame(IRubyObject head, IRubyObject maskingKey, IRubyObject payload) {
+            byte[] buffer  = ((RubyString)payload).getBytes();
+            RubyArray args = (RubyArray)head;
+
+            Frame frame      = new Frame();
+            frame.fin        = (Boolean)args.get(0);
+            frame.rsv1       = (Boolean)args.get(1);
+            frame.rsv2       = (Boolean)args.get(2);
+            frame.rsv3       = (Boolean)args.get(3);
+            frame.opcode     = ((Long)args.get(4)).intValue();
+            frame.length     = buffer.length;
+            frame.maskingKey = ((RubyString)maskingKey).getBytes();
+            frame.payload    = ((RubyString)payload).getBytes();
+
+            byte[] result = unparser.frame(frame);
+
+            return new RubyString(runtime, RubyString.createStringClass(runtime), result);
         }
     }
 }

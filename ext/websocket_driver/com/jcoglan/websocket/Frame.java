@@ -1,15 +1,15 @@
 package com.jcoglan.websocket;
 
 public class Frame {
-    boolean fin;
-    boolean rsv1;
-    boolean rsv2;
-    boolean rsv3;
-    int opcode;
-    boolean masked;
-    byte[] maskingKey;
+    public boolean fin;
+    public boolean rsv1;
+    public boolean rsv2;
+    public boolean rsv3;
+    public int opcode;
+    public boolean masked;
+    public byte[] maskingKey;
     int lengthBytes;
-    int length;
+    public int length;
     public byte[] payload;
 
     static void mask(Frame frame) {
