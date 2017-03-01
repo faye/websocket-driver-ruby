@@ -232,6 +232,7 @@ public class Parser {
                 break;
 
             case OPCODE_TEXT:
+            case OPCODE_BINARY:
                 message = new Message(frame);
                 break;
 
