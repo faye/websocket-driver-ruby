@@ -7,16 +7,16 @@ module WebSocket
           @masking = masking
         end
 
-        def frame(final, rsv1, rsv2, rsv3, opcode, masking_key, payload)
+        def frame(head, masking_key, payload)
           length = payload.bytesize
           buffer = []
           masked = @masking ? MASK : 0
 
-          buffer[0] = (final ? FIN : 0) |
-                      (rsv1 ? RSV1 : 0) |
-                      (rsv2 ? RSV2 : 0) |
-                      (rsv3 ? RSV3 : 0) |
-                      opcode
+          buffer[0] = (head[0] ? FIN : 0) |
+                      (head[1] ? RSV1 : 0) |
+                      (head[2] ? RSV2 : 0) |
+                      (head[3] ? RSV3 : 0) |
+                      head[4]
 
           if length <= 125
             buffer[1] = masked | length

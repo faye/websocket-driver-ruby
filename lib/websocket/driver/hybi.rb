@@ -144,7 +144,7 @@ module WebSocket
           message = @extensions.process_outgoing_message(message)
         end
 
-        string = @unparser.frame(true, message.rsv1, message.rsv2, message.rsv3, message.opcode,
+        string = @unparser.frame([true, message.rsv1, message.rsv2, message.rsv3, message.opcode],
                                  SecureRandom.random_bytes(4), message.data)
 
         @socket.write(string)

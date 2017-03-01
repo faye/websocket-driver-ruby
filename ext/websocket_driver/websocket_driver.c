@@ -8,7 +8,7 @@ VALUE   wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_m
 VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
 
 VALUE   wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking);
-VALUE   wsd_WebSocketUnparser_frame(VALUE self, VALUE final, VALUE rsv1, VALUE rsv2, VALUE rsv3, VALUE opcode, VALUE masking_key, VALUE payload);
+VALUE   wsd_WebSocketUnparser_frame(VALUE self, VALUE head, VALUE masking_key, VALUE payload);
 
 void    wsd_Driver_on_error(VALUE driver, int code, char *reason);
 void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
@@ -27,7 +27,7 @@ void Init_websocket_driver()
 
     VALUE Unparser = rb_define_class_under(WSN, "Unparser", rb_cObject);
     rb_define_method(Unparser, "initialize", wsd_WebSocketUnparser_initialize, 2);
-    rb_define_method(Unparser, "frame", wsd_WebSocketUnparser_frame, 7);
+    rb_define_method(Unparser, "frame", wsd_WebSocketUnparser_frame, 3);
 }
 
 VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking)
@@ -166,9 +166,7 @@ VALUE wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking)
     return Qnil;
 }
 
-VALUE wsd_WebSocketUnparser_frame(VALUE self,
-                                  VALUE final, VALUE rsv1, VALUE rsv2, VALUE rsv3, VALUE opcode,
-                                  VALUE masking_key, VALUE payload)
+VALUE wsd_WebSocketUnparser_frame(VALUE self, VALUE head, VALUE masking_key, VALUE payload)
 {
     uint64_t length = RSTRING_LEN(payload);
     char *data = RSTRING_PTR(payload);
@@ -191,11 +189,11 @@ VALUE wsd_WebSocketUnparser_frame(VALUE self,
         return Qnil;
     }
 
-    frame->final  = (final == Qtrue);
-    frame->rsv1   = (rsv1 == Qtrue);
-    frame->rsv2   = (rsv2 == Qtrue);
-    frame->rsv3   = (rsv3 == Qtrue);
-    frame->opcode = NUM2INT(opcode);
+    frame->final  = (rb_ary_entry(head, 0) == Qtrue);
+    frame->rsv1   = (rb_ary_entry(head, 1) == Qtrue);
+    frame->rsv2   = (rb_ary_entry(head, 2) == Qtrue);
+    frame->rsv3   = (rb_ary_entry(head, 3) == Qtrue);
+    frame->opcode = NUM2INT(rb_ary_entry(head, 4));
     frame->length = length;
 
     memcpy(frame->masking_key, RSTRING_PTR(masking_key), 4);
