@@ -5,8 +5,12 @@ require 'websocket/driver'
 require 'permessage_deflate'
 
 module Connection
+  OPTIONS = {
+    :native => (ENV['NATIVE'] == '1')
+  }
+
   def initialize
-    @driver = WebSocket::Driver.server(self)
+    @driver = WebSocket::Driver.server(self, OPTIONS)
     @driver.add_extension(PermessageDeflate)
 
     @driver.on(:connect) { |e| @driver.start if WebSocket::Driver.websocket? @driver.env }

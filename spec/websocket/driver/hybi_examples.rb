@@ -16,7 +16,7 @@ shared_examples_for "hybi driver" do
   end
 
   let :options do
-    {:masking => false, :parser_class => parser_class, :unparser_class => unparser_class}
+    {:masking => false}
   end
 
   let :socket do

@@ -56,7 +56,7 @@ module WebSocket
 
     def initialize(socket, options = {})
       super()
-      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols, :parser_class, :unparser_class])
+      Driver.validate_options(options, [:max_length, :masking, :native, :require_masking, :protocols])
 
       @socket      = socket
       @reader      = StreamReader.new

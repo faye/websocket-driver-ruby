@@ -58,8 +58,14 @@ module WebSocket
       def initialize(socket, options = {})
         super
 
-        @parser     = (options[:parser_class] || Hybi::Parser).new(self, options[:require_masking])
-        @unparser   = (options[:unparser_class] || Hybi::Unparser).new(self, options[:masking])
+        if options[:native] and defined? WebSocketNative
+          @parser   = WebSocketNative::Parser.new(self, options[:require_masking])
+          @unparser = WebSocketNative::Unparser.new(self, options[:masking])
+        else
+          @parser   = Hybi::Parser.new(self, options[:require_masking])
+          @unparser = Hybi::Unparser.new(self, options[:masking])
+        end
+
         @extensions = ::WebSocket::Extensions.new
 
         @protocols      = options[:protocols] || []
