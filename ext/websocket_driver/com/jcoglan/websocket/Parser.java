@@ -196,7 +196,7 @@ public class Parser {
                          | bitshift(chunk[7], 0);
         }
 
-        if (controlOpcode(frame.opcode) && frame.length < 125) {
+        if (controlOpcode(frame.opcode) && frame.length > 125) {
             parseError(PROTOCOL_ERROR, String.format("Received control frame having too long payload: %d", frame.length));
             return;
         }
