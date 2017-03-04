@@ -47,62 +47,46 @@ public class WebsocketDriverService implements BasicLibraryService {
 
     public class RParser extends RubyObject {
         private Parser parser;
-        private Ruby runtime;
+        private R r;
 
         public RParser(final Ruby runtime, RubyClass rubyClass) {
             super(runtime, rubyClass);
-            this.runtime = runtime;
+            this.r = new R(runtime);
         }
 
         @JRubyMethod
         public IRubyObject initialize(final ThreadContext context, final IRubyObject driver, IRubyObject requireMasking) {
             Observer observer = new Observer() {
                 public void onError(int code, String reason) {
-                    IRubyObject[] args = {symbol("handle_error"), fixnum(code), string(reason.getBytes())};
+                    IRubyObject[] args = {r.symbol("handle_error"), r.fixnum(code), r.string(reason.getBytes())};
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onMessage(Message message) {
                     IRubyObject[] args = {
-                        symbol("handle_message"),
-                        fixnum(message.opcode),
-                        bool(message.rsv1),
-                        bool(message.rsv2),
-                        bool(message.rsv3),
-                        string(message.copy())
+                        r.symbol("handle_message"),
+                        r.fixnum(message.opcode),
+                        r.bool(message.rsv1),
+                        r.bool(message.rsv2),
+                        r.bool(message.rsv3),
+                        r.string(message.copy())
                     };
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onClose(int code, byte[] reason) {
-                    IRubyObject[] args = {symbol("handle_close"), fixnum(code), string(reason)};
+                    IRubyObject[] args = {r.symbol("handle_close"), r.fixnum(code), r.string(reason)};
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onPing(Frame frame) {
-                    IRubyObject[] args = {symbol("handle_ping"), string(frame.payload)};
+                    IRubyObject[] args = {r.symbol("handle_ping"), r.string(frame.payload)};
                     ((RubyObject)driver).send(context, args, null);
                 }
 
                 public void onPong(Frame frame) {
-                    IRubyObject[] args = {symbol("handle_pong"), string(frame.payload)};
+                    IRubyObject[] args = {r.symbol("handle_pong"), r.string(frame.payload)};
                     ((RubyObject)driver).send(context, args, null);
-                }
-
-                private RubyBoolean bool(boolean value) {
-                    return RubyBoolean.newBoolean(runtime, value);
-                }
-
-                private RubyFixnum fixnum(int value) {
-                    return RubyFixnum.newFixnum(runtime, value);
-                }
-
-                private RubySymbol symbol(String name) {
-                    return RubySymbol.newSymbol(runtime, name);
-                }
-
-                private RubyString string(byte[] value) {
-                    return new RubyString(runtime, RubyString.createStringClass(runtime), value);
                 }
             };
 
@@ -120,11 +104,11 @@ public class WebsocketDriverService implements BasicLibraryService {
 
     public class RUnparser extends RubyObject {
         private Unparser unparser;
-        private Ruby runtime;
+        private R r;
 
         public RUnparser(Ruby runtime, RubyClass rubyClass) {
             super(runtime, rubyClass);
-            this.runtime = runtime;
+            this.r = new R(runtime);
         }
 
         @JRubyMethod
@@ -150,7 +134,31 @@ public class WebsocketDriverService implements BasicLibraryService {
 
             byte[] result = unparser.frame(frame);
 
-            return new RubyString(runtime, RubyString.createStringClass(runtime), result);
+            return r.string(result);
+        }
+    }
+
+    class R {
+        private Ruby runtime;
+
+        R(Ruby runtime) {
+            this.runtime = runtime;
+        }
+
+        RubyBoolean bool(boolean value) {
+            return RubyBoolean.newBoolean(runtime, value);
+        }
+
+        RubyFixnum fixnum(int value) {
+            return RubyFixnum.newFixnum(runtime, value);
+        }
+
+        RubySymbol symbol(String name) {
+            return RubySymbol.newSymbol(runtime, name);
+        }
+
+        RubyString string(byte[] value) {
+            return new RubyString(runtime, RubyString.createStringClass(runtime), value);
         }
     }
 }
