@@ -1,5 +1,6 @@
 import java.io.IOException;
 
+import com.jcoglan.websocket.Extensions;
 import com.jcoglan.websocket.Frame;
 import com.jcoglan.websocket.Message;
 import com.jcoglan.websocket.Observer;
@@ -56,6 +57,13 @@ public class WebsocketDriverService implements BasicLibraryService {
 
         @JRubyMethod
         public IRubyObject initialize(final ThreadContext context, final IRubyObject driver, IRubyObject requireMasking) {
+            Extensions extensions = new Extensions() {
+                public boolean validFrameRsv(boolean rsv1, boolean rsv2, boolean rsv3, int opcode) {
+                    IRubyObject[] args = {r.symbol("valid_frame_rsv?"), r.bool(rsv1), r.bool(rsv2), r.bool(rsv3), r.fixnum(opcode)};
+                    return ((RubyObject)driver).send(context, args, null).isTrue();
+                }
+            };
+
             Observer observer = new Observer() {
                 public void onError(int code, String reason) {
                     IRubyObject[] args = {r.symbol("handle_error"), r.fixnum(code), r.string(reason.getBytes())};
@@ -90,7 +98,7 @@ public class WebsocketDriverService implements BasicLibraryService {
                 }
             };
 
-            parser = new Parser(observer, requireMasking.isTrue());
+            parser = new Parser(extensions, observer, requireMasking.isTrue());
             return null;
         }
 

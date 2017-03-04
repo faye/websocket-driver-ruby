@@ -10,6 +10,8 @@ VALUE   wsd_WebSocketParser_parse(VALUE self, VALUE chunk);
 VALUE   wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking);
 VALUE   wsd_WebSocketUnparser_frame(VALUE self, VALUE head, VALUE masking_key, VALUE payload);
 
+int     wsd_Driver_valid_frame_rsv(VALUE driver, wsd_Frame *frame);
+
 void    wsd_Driver_on_error(VALUE driver, int code, char *reason);
 void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
 void    wsd_Driver_on_close(VALUE driver, int code, uint64_t length, uint8_t *reason);
@@ -32,9 +34,16 @@ void Init_websocket_driver()
 
 VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking)
 {
+    wsd_Extensions *extensions = NULL;
     wsd_Observer *observer = NULL;
     wsd_Parser *parser = NULL;
     VALUE ruby_parser;
+
+    extensions = wsd_Extensions_create(
+            (void *) driver,
+            (wsd_cb_valid_frame_rsv) wsd_Driver_valid_frame_rsv);
+
+    if (extensions == NULL) return Qnil;
 
     observer = wsd_Observer_create(
             (void *) driver,
@@ -45,10 +54,14 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_mas
             (wsd_cb_on_frame) wsd_Driver_on_pong,
             (wsd_cb_on_frame) wsd_Driver_on_frame);
 
-    if (observer == NULL) return Qnil;
+    if (observer == NULL) {
+        wsd_Extensions_destroy(extensions);
+        return Qnil;
+    }
 
-    parser = wsd_Parser_create(observer, require_masking == Qtrue ? 1 : 0);
+    parser = wsd_Parser_create(extensions, observer, require_masking == Qtrue ? 1 : 0);
     if (parser == NULL) {
+        wsd_Extensions_destroy(extensions);
         wsd_Observer_destroy(observer);
         return Qnil;
     }
@@ -73,10 +86,26 @@ VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
     return Qnil;
 }
 
+int wsd_Driver_valid_frame_rsv(VALUE driver, wsd_Frame *frame)
+{
+    VALUE rsv1   = frame->rsv1 ? Qtrue : Qfalse;
+    VALUE rsv2   = frame->rsv2 ? Qtrue : Qfalse;
+    VALUE rsv3   = frame->rsv3 ? Qtrue : Qfalse;
+    VALUE opcode = INT2FIX(frame->opcode);
+
+    int argc      = 4;
+    VALUE argv[4] = { rsv1, rsv2, rsv3, opcode };
+
+    VALUE result = wsd_safe_rb_funcall2(driver, rb_intern("valid_frame_rsv?"), argc, argv);
+
+    return result == Qtrue;
+}
+
 void wsd_Driver_on_error(VALUE driver, int code, char *reason)
 {
     VALUE rcode   = INT2FIX(code);
     VALUE rmsg    = rb_str_new2(reason);
+
     int argc      = 2;
     VALUE argv[2] = { rcode, rmsg };
 

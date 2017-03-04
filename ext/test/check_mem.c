@@ -15,12 +15,14 @@ int main()
     uint8_t chunk[chunk_size];
     uint64_t read = 0;
 
+    wsd_Extensions *extensions = NULL;
     wsd_Observer *observer = NULL;
     wsd_Parser *parser = NULL;
 
     for (i = 1; i <= 303; i++) {
+        extensions = wsd_Extensions_create_default();
         observer = wsd_Observer_create(0, autobahn_on_error, 0, 0, 0, 0, 0);
-        parser = wsd_Parser_create(observer, 1);
+        parser = wsd_Parser_create(extensions, observer, 1);
 
         sprintf(filename, "autobahn/test-%d.log", i);
         file = fopen(filename, "r");

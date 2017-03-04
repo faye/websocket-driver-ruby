@@ -6,6 +6,7 @@ struct wsd_Parser {
     int require_masking;
 
     wsd_ReadBuffer *buffer;
+    wsd_Extensions *extensions;
     wsd_Observer *observer;
 
     int stage;
@@ -16,7 +17,7 @@ struct wsd_Parser {
     char *error_reason;
 };
 
-wsd_Parser *wsd_Parser_create(wsd_Observer *observer, int require_masking)
+wsd_Parser *wsd_Parser_create(wsd_Extensions *extensions, wsd_Observer *observer, int require_masking)
 {
     wsd_Parser *parser = calloc(1, sizeof(wsd_Parser));
     if (parser == NULL) return NULL;
@@ -28,6 +29,7 @@ wsd_Parser *wsd_Parser_create(wsd_Observer *observer, int require_masking)
     }
 
     parser->require_masking = require_masking;
+    parser->extensions = extensions;
     parser->observer = observer;
 
     parser->stage = 1;
@@ -47,6 +49,7 @@ void wsd_Parser_destroy(wsd_Parser *parser)
     wsd_clear_pointer(wsd_ReadBuffer_destroy, parser->buffer);
     wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
     wsd_clear_pointer(wsd_Message_destroy, parser->message);
+    wsd_clear_pointer(wsd_Extensions_destroy, parser->extensions);
     wsd_clear_pointer(wsd_Observer_destroy, parser->observer);
     wsd_clear_pointer(free, parser->error_reason);
 
@@ -121,8 +124,7 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
 
     parser->frame = frame;
 
-    // TODO check RSV bits by calling back the ruby driver (requires extensions)
-    if (frame->rsv1 || frame->rsv2 || frame->rsv3) {
+    if (!wsd_Extensions_valid_frame_rsv(parser->extensions, frame)) {
         wsd_Parser_error(parser, WSD_PROTOCOL_ERROR,
                 "One or more reserved bits are on: reserved1 = %d, reserved2 = %d, reserved3 = %d",
                 frame->rsv1, frame->rsv2, frame->rsv3);

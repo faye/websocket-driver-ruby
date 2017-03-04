@@ -7,10 +7,11 @@ struct wsd_RubyCall {
     VALUE argv[8];
 };
 
-int wsd_safe_rb_funcall2(VALUE self, ID method, int argc, VALUE *argv)
+VALUE wsd_safe_rb_funcall2(VALUE self, ID method, int argc, VALUE *argv)
 {
     int i  = 0;
     int rc = 0;
+    VALUE result;
 
     wsd_RubyCall *call = calloc(1, sizeof(wsd_RubyCall));
     if (call == NULL) return 1;
@@ -23,10 +24,10 @@ int wsd_safe_rb_funcall2(VALUE self, ID method, int argc, VALUE *argv)
         call->argv[i] = argv[i];
     }
 
-    rb_protect(wsd_rb_call_method, (VALUE)call, &rc);
+    result = rb_protect(wsd_rb_call_method, (VALUE)call, &rc);
     free(call);
 
-    return rc;
+    return result;
 }
 
 VALUE wsd_rb_call_method(VALUE call)

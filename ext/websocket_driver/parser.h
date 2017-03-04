@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include "constants.h"
+#include "extensions.h"
 #include "message.h"
 #include "observer.h"
 #include "read_buffer.h"
@@ -11,7 +12,7 @@
 
 typedef struct wsd_Parser wsd_Parser;
 
-wsd_Parser *    wsd_Parser_create(wsd_Observer *observer, int require_masking);
+wsd_Parser *    wsd_Parser_create(wsd_Extensions *extensions, wsd_Observer *observer, int require_masking);
 void            wsd_Parser_destroy(wsd_Parser *parser);
 int             wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data);
 void            wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk);

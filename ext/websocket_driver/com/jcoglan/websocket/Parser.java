@@ -38,6 +38,7 @@ public class Parser {
     private boolean requireMasking;
 
     private ReadBuffer buffer;
+    private Extensions extensions;
     private Observer observer;
 
     private int stage;
@@ -47,10 +48,11 @@ public class Parser {
     private int errorCode;
     private String errorReason;
 
-    public Parser(Observer observer, boolean requireMasking) {
+    public Parser(Extensions extensions, Observer observer, boolean requireMasking) {
         buffer = new ReadBuffer();
 
         this.requireMasking = requireMasking;
+        this.extensions = extensions;
         this.observer = observer;
 
         stage = 1;
@@ -117,8 +119,7 @@ public class Parser {
         frame.masked = (chunk[1] & MASK) == MASK;
         frame.length = (chunk[1] & LENGTH);
 
-        // TODO check RSV bits by calling back the ruby driver (requires extensions)
-        if (frame.rsv1 || frame.rsv2 || frame.rsv3) {
+        if (!extensions.validFrameRsv(frame.rsv1, frame.rsv2, frame.rsv3, frame.opcode)) {
             parseError(PROTOCOL_ERROR, 
                 String.format("One or more reserved bits are on: reserved1 = %d, reserved2 = %d, reserved3 = %d",
                     frame.rsv1 ? 1 : 0,
