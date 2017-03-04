@@ -46,7 +46,6 @@ module WebSocket
     autoload :EventEmitter, root + '/event_emitter'
     autoload :Headers,      root + '/headers'
     autoload :Hybi,         root + '/hybi'
-    autoload :Native,       root + '/native'
     autoload :Proxy,        root + '/proxy'
     autoload :Server,       root + '/server'
     autoload :StreamReader, root + '/stream_reader'
