@@ -7,7 +7,6 @@ struct wsd_Observer {
     wsd_cb_on_close on_close;
     wsd_cb_on_frame on_ping;
     wsd_cb_on_frame on_pong;
-    wsd_cb_on_frame on_frame;
 };
 
 wsd_Observer * wsd_Observer_create(void *receiver,
@@ -15,8 +14,7 @@ wsd_Observer * wsd_Observer_create(void *receiver,
                                    wsd_cb_on_message on_message,
                                    wsd_cb_on_close on_close,
                                    wsd_cb_on_frame on_ping,
-                                   wsd_cb_on_frame on_pong,
-                                   wsd_cb_on_frame on_frame)
+                                   wsd_cb_on_frame on_pong)
 {
     wsd_Observer *observer = calloc(1, sizeof(wsd_Observer));
     if (observer == NULL) return NULL;
@@ -27,7 +25,6 @@ wsd_Observer * wsd_Observer_create(void *receiver,
     observer->on_close   = on_close;
     observer->on_ping    = on_ping;
     observer->on_pong    = on_pong;
-    observer->on_frame   = on_frame;
 
     return observer;
 }
@@ -42,7 +39,6 @@ void wsd_Observer_destroy(wsd_Observer *observer)
     observer->on_close   = NULL;
     observer->on_ping    = NULL;
     observer->on_pong    = NULL;
-    observer->on_frame   = NULL;
 
     free(observer);
 }
@@ -94,15 +90,5 @@ void wsd_Observer_on_pong(wsd_Observer *observer, wsd_Frame *frame)
     if (observer == NULL) return;
 
     cb = observer->on_pong;
-    if (cb) cb(observer->receiver, frame);
-}
-
-void wsd_Observer_on_frame(wsd_Observer *observer, wsd_Frame *frame)
-{
-    wsd_cb_on_frame cb = NULL;
-
-    if (observer == NULL) return;
-
-    cb = observer->on_frame;
     if (cb) cb(observer->receiver, frame);
 }

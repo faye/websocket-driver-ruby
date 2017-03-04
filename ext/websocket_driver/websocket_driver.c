@@ -17,7 +17,6 @@ void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
 void    wsd_Driver_on_close(VALUE driver, int code, uint64_t length, uint8_t *reason);
 void    wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame);
 void    wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame);
-void    wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame);
 
 void Init_websocket_driver()
 {
@@ -51,8 +50,7 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_mas
             (wsd_cb_on_message) wsd_Driver_on_message,
             (wsd_cb_on_close) wsd_Driver_on_close,
             (wsd_cb_on_frame) wsd_Driver_on_ping,
-            (wsd_cb_on_frame) wsd_Driver_on_pong,
-            (wsd_cb_on_frame) wsd_Driver_on_frame);
+            (wsd_cb_on_frame) wsd_Driver_on_pong);
 
     if (observer == NULL) {
         wsd_Extensions_destroy(extensions);
@@ -163,22 +161,6 @@ void wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame)
     VALUE argv[1] = { string };
 
     wsd_safe_rb_funcall2(driver, rb_intern("handle_pong"), argc, argv);
-}
-
-void wsd_Driver_on_frame(VALUE driver, wsd_Frame *frame)
-{
-    char *msg = NULL;
-
-    printf("------------------------------------------------------------------------\n");
-    printf(" final: %d, rsv: [%d,%d,%d], opcode: %d, masked: %d, length: %" PRIu64 "\n",
-            frame->final, frame->rsv1, frame->rsv2, frame->rsv3,
-            frame->opcode, frame->masked, frame->length);
-    printf("------------------------------------------------------------------------\n");
-
-    msg = calloc(frame->length + 1, sizeof(char));
-    memcpy(msg, frame->payload, frame->length);
-    printf("[PAYLOAD] %s\n\n", msg);
-    free(msg);
 }
 
 VALUE wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking)
