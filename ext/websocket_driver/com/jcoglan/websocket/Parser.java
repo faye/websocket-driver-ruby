@@ -240,6 +240,7 @@ public class Parser {
             case OPCODE_CLOSE:
                 if (frame.length == 0) {
                     code   = DEFAULT_ERROR_CODE;
+                    reason = new byte[0];
                 } else if (frame.length >= 2) {
                     code   = bitshift(frame.payload[0], 8) | bitshift(frame.payload[1], 0);
                     reason = Arrays.copyOfRange(frame.payload, 2, (int)frame.length);
@@ -247,7 +248,6 @@ public class Parser {
 
                 if (!validCloseCode(code)) {
                     code = PROTOCOL_ERROR;
-                    // TODO emit error on invalid code
                 }
                 observer.onClose(code, reason);
                 break;

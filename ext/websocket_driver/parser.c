@@ -291,7 +291,6 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
 
             if (!wsd_Parser_valid_close_code(code)) {
                 code = WSD_PROTOCOL_ERROR;
-                // TODO emit error on invalid code
             }
             wsd_Observer_on_close(parser->observer, code, length, reason);
             break;

@@ -135,6 +135,9 @@ module WebSocket
 
           @frame = nil
 
+          code   = 0
+          reason = nil
+
           case opcode
             when OPCODES[:continuation] then
               return parser_error(:protocol_error, 'Received unexpected continuation frame') unless @message
@@ -145,21 +148,20 @@ module WebSocket
               @message << frame
 
             when OPCODES[:close] then
-              code   = (bytesize >= 2) ? payload.unpack(PACK_FORMATS[2]).first : nil
-              reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], UNICODE) : nil
+              if frame.length == 0
+                code   = DEFAULT_ERROR_CODE
+                reason = ''
+              elsif frame.length >= 2
+                code   = payload.unpack(PACK_FORMATS[2]).first
+                reason = bytes[2..-1]
+              end
 
-              unless (bytesize == 0) or
-                     (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
-                     ERROR_CODES.include?(code)
+              unless ERROR_CODES.include?(code) or
+                     (code >= MIN_RESERVED_ERROR and code <= MAX_RESERVED_ERROR)
                 code = ERRORS[:protocol_error]
               end
 
-              if bytesize > 125 or (bytesize > 2 and reason.nil?)
-                code = ERRORS[:protocol_error]
-                # TODO emit error on invalid code
-              end
-
-              @driver.__send__(:handle_close, code || DEFAULT_ERROR_CODE, reason || '')
+              @driver.__send__(:handle_close, code, reason || '')
 
             when OPCODES[:ping] then
               @driver.__send__(:handle_ping, payload)
