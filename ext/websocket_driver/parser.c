@@ -65,12 +65,12 @@ int wsd_Parser_parse(wsd_Parser *parser, uint64_t length, uint8_t *data)
 
     pushed = wsd_ReadBuffer_push(parser->buffer, length, data);
     if (pushed != length) {
-        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to push chunk[%" PRIu64 "] to read buffer", length);
+        WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to push chunk[%" PRIu64 "] to read buffer", length);
     }
 
     chunk = calloc(8, sizeof(uint8_t));
     if (chunk == NULL) {
-        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate memory for frame header");
+        WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate memory for frame header");
     }
 
     while (readlen == n) {
@@ -110,7 +110,7 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
 {
     wsd_Frame *frame = wsd_Frame_create();
     if (frame == NULL) {
-        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame");
+        WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame");
         return;
     }
 
@@ -125,34 +125,34 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
     parser->frame = frame;
 
     if (!wsd_Extensions_valid_frame_rsv(parser->extensions, frame)) {
-        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR,
+        WSD_PARSER_ERROR(parser, WSD_PROTOCOL_ERROR,
                 "One or more reserved bits are on: reserved1 = %d, reserved2 = %d, reserved3 = %d",
                 frame->rsv1, frame->rsv2, frame->rsv3);
         return;
     }
 
     if (!wsd_Parser_valid_opcode(frame->opcode)) {
-        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Unrecognized frame opcode: %d", frame->opcode);
+        WSD_PARSER_ERROR(parser, WSD_PROTOCOL_ERROR, "Unrecognized frame opcode: %d", frame->opcode);
         return;
     }
 
     if (wsd_Parser_control_opcode(frame->opcode) && !frame->final) {
-        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received fragmented control frame: opcode = %d", frame->opcode);
+        WSD_PARSER_ERROR(parser, WSD_PROTOCOL_ERROR, "Received fragmented control frame: opcode = %d", frame->opcode);
         return;
     }
 
     if (parser->message == NULL && frame->opcode == WSD_OPCODE_CONTINUTATION) {
-        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received unexpected continuation frame");
+        WSD_PARSER_ERROR(parser, WSD_PROTOCOL_ERROR, "Received unexpected continuation frame");
         return;
     }
 
     if (parser->message != NULL && wsd_Parser_opening_opcode(frame->opcode)) {
-        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received new data frame but previous continuous frame is unfinished");
+        WSD_PARSER_ERROR(parser, WSD_PROTOCOL_ERROR, "Received new data frame but previous continuous frame is unfinished");
         return;
     }
 
     if (parser->require_masking && !frame->masked) {
-        wsd_Parser_error(parser, WSD_UNACCEPTABLE, "Received unmasked frame but masking is required");
+        WSD_PARSER_ERROR(parser, WSD_UNACCEPTABLE, "Received unmasked frame but masking is required");
         return;
     }
 
@@ -210,7 +210,7 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
     }
 
     if (wsd_Parser_control_opcode(frame->opcode) && frame->length > 125) {
-        wsd_Parser_error(parser, WSD_PROTOCOL_ERROR, "Received control frame having too long payload: %" PRIu64, frame->length);
+        WSD_PARSER_ERROR(parser, WSD_PROTOCOL_ERROR, "Received control frame having too long payload: %" PRIu64, frame->length);
         return;
     }
 
@@ -222,7 +222,7 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
 int wsd_Parser_check_frame_length(wsd_Parser *parser)
 {
     if (wsd_Message_would_overflow(parser->message, parser->frame)) {
-        wsd_Parser_error(parser, WSD_TOO_LARGE, "WebSocket frame length too large");
+        WSD_PARSER_ERROR(parser, WSD_TOO_LARGE, "WebSocket frame length too large");
         return 0;
     } else {
         return 1;
@@ -239,7 +239,7 @@ uint64_t wsd_Parser_parse_payload(wsd_Parser *parser)
 
     frame->payload = calloc(n, sizeof(uint8_t));
     if (frame->payload == NULL) {
-        wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame payload[%" PRIu64 "]", n);
+        WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate frame payload[%" PRIu64 "]", n);
         return 0;
     }
 
@@ -262,7 +262,7 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
     switch (frame->opcode) {
         case WSD_OPCODE_CONTINUTATION:
             if (!wsd_Message_push_frame(parser->message, frame)) {
-                wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to add frame to message");
+                WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to add frame to message");
                 return;
             }
             break;
@@ -271,7 +271,7 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
         case WSD_OPCODE_BINARY:
             parser->message = wsd_Message_create(frame);
             if (parser->message == NULL) {
-                wsd_Parser_error(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate message");
+                WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to allocate message");
                 return;
             }
             break;

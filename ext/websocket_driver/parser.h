@@ -27,7 +27,7 @@ void            wsd_Parser_emit_frame(wsd_Parser *parser);
 int             wsd_Parser_valid_close_code(int code);
 void            wsd_Parser_emit_message(wsd_Parser *parser);
 
-#define wsd_Parser_error(P, C, M, ...) \
+#define WSD_PARSER_ERROR(P, C, M, ...) \
     if (P->error_code == 0) { \
         P->stage = 0; \
         P->error_code = C; \
