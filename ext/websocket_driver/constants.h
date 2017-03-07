@@ -30,6 +30,4 @@
 #define WSD_MIN_RESERVED_ERROR      3000
 #define WSD_MAX_RESERVED_ERROR      4999
 
-#define WSD_MAX_MESSAGE_LENGTH      0x3ffffff
-
 #endif

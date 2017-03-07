@@ -31,9 +31,7 @@ public class Parser {
 
         DEFAULT_ERROR_CODE    = 1000,
         MIN_RESERVED_ERROR    = 3000,
-        MAX_RESERVED_ERROR    = 4999,
-
-        MAX_MESSAGE_LENGTH    = 0x3ffffff;
+        MAX_RESERVED_ERROR    = 4999;
 
     private boolean requireMasking;
 
@@ -154,7 +152,7 @@ public class Parser {
         }
 
         if (frame.length <= 125) {
-            if (!checkLength()) return;
+            if (!checkFrameLength()) return;
             stage = frame.masked ? 3 : 4;
         } else {
             stage = 2;
@@ -202,15 +200,13 @@ public class Parser {
             return;
         }
 
-        if (!checkLength()) return;
+        if (!checkFrameLength()) return;
 
         stage = frame.masked ? 3 : 4;
     }
 
-    private boolean checkLength() {
-        long length = (message == null) ? 0 : message.length;
-
-        if (length + frame.length > MAX_MESSAGE_LENGTH) {
+    private boolean checkFrameLength() {
+        if (Message.wouldOverflow(message, frame)) {
             parseError(TOO_LARGE, "WebSocket frame length too large");
             return false;
         } else {

@@ -21,7 +21,7 @@ int             wsd_Parser_control_opcode(int opcode);
 int             wsd_Parser_message_opcode(int opcode);
 int             wsd_Parser_opening_opcode(int opcode);
 void            wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk);
-int             wsd_Parser_check_length(wsd_Parser *parser);
+int             wsd_Parser_check_frame_length(wsd_Parser *parser);
 uint64_t        wsd_Parser_parse_payload(wsd_Parser *parser);
 void            wsd_Parser_emit_frame(wsd_Parser *parser);
 int             wsd_Parser_valid_close_code(int code);

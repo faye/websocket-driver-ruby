@@ -72,6 +72,8 @@ uint64_t wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *d
     wsd_Chunk *chunk = wsd_Chunk_create(length, data);
     if (chunk == NULL) return 0;
 
+    if (length > WSD_MAX_READBUFFER_CAPACITY - buffer->capacity) return 0;
+
     if (wsd_Queue_push(buffer->queue, chunk) != 1) {
         wsd_Chunk_destroy(chunk);
         return 0;

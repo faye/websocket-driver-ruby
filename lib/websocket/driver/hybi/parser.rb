@@ -118,7 +118,7 @@ module WebSocket
         def check_frame_length
           length = @message ? @message.data.bytesize : 0
 
-          if length + @frame.length > MAX_MESSAGE_LENGTH
+          if length > MAX_MESSAGE_LENGTH - @frame.length
             parser_error(:too_large, 'WebSocket frame length too large')
             false
           else

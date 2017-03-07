@@ -12,6 +12,8 @@ wsd_Chunk * wsd_Chunk_create(uint64_t length, uint8_t *data);
 void        wsd_Chunk_destroy(wsd_Chunk *chunk);
 
 
+#define WSD_MAX_READBUFFER_CAPACITY 0xfffffff
+
 typedef struct wsd_ReadBuffer wsd_ReadBuffer;
 
 wsd_ReadBuffer *    wsd_ReadBuffer_create();

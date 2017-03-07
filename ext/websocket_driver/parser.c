@@ -157,7 +157,7 @@ void wsd_Parser_parse_head(wsd_Parser *parser, uint8_t *chunk)
     }
 
     if (frame->length <= 125) {
-        if (!wsd_Parser_check_length(parser)) return;
+        if (!wsd_Parser_check_frame_length(parser)) return;
         parser->stage = frame->masked ? 3 : 4;
     } else {
         parser->stage = 2;
@@ -214,16 +214,14 @@ void wsd_Parser_parse_extended_length(wsd_Parser *parser, uint8_t *chunk)
         return;
     }
 
-    if (!wsd_Parser_check_length(parser)) return;
+    if (!wsd_Parser_check_frame_length(parser)) return;
 
     parser->stage = frame->masked ? 3 : 4;
 }
 
-int wsd_Parser_check_length(wsd_Parser *parser)
+int wsd_Parser_check_frame_length(wsd_Parser *parser)
 {
-    uint64_t length = parser->message ? parser->message->length : 0;
-
-    if (length + parser->frame->length > WSD_MAX_MESSAGE_LENGTH) {
+    if (wsd_Message_would_overflow(parser->message, parser->frame)) {
         wsd_Parser_error(parser, WSD_TOO_LARGE, "WebSocket frame length too large");
         return 0;
     } else {

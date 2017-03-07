@@ -37,6 +37,14 @@ void wsd_Message_destroy(wsd_Message *message)
     free(message);
 }
 
+int wsd_Message_would_overflow(wsd_Message *message, wsd_Frame *frame)
+{
+    uint64_t mlen = (message == NULL) ? 0 : message->length,
+             flen = frame->length;
+
+    return flen > WSD_MAX_MESSAGE_LENGTH - mlen;
+}
+
 int wsd_Message_push_frame(wsd_Message *message, wsd_Frame *frame)
 {
     if (!wsd_Queue_push(message->frames, frame)) return 0;

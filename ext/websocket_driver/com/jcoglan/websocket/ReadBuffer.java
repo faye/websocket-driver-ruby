@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 class ReadBuffer {
+    static int MAX_CAPACITY = 0xfffffff;
+
     private Queue<byte[]> queue;
     private int capacity;
     private int cursor;
@@ -15,8 +17,11 @@ class ReadBuffer {
     }
 
     boolean push(byte[] chunk) {
+        if (chunk.length > MAX_CAPACITY - capacity) return false;
+
         queue.add(chunk);
-        capacity += chunk.length; // TODO check for int overflow
+        capacity += chunk.length;
+
         return true;
     }
 
