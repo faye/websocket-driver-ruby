@@ -6,7 +6,7 @@ require 'websocket/driver'
 require File.expand_path('../generator', __FILE__)
 
 socket = Object.new
-driver = WebSocket::Driver::Native.new(socket)
+driver = WebSocket::Driver::Hybi.new(socket, :native => true)
 
 driver.on :message do |message|
   s = message.data
