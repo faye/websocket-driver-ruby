@@ -1,16 +1,9 @@
 #ifndef _wsd_read_buffer_h
 #define _wsd_read_buffer_h
 
-#include <string.h>
+#include "chunk.h"
 #include "queue.h"
 #include "util.h"
-
-
-typedef struct wsd_Chunk wsd_Chunk;
-
-wsd_Chunk * wsd_Chunk_create(uint64_t length, uint8_t *data);
-void        wsd_Chunk_destroy(wsd_Chunk *chunk);
-
 
 #define WSD_MAX_READBUFFER_CAPACITY 0xfffffff
 
@@ -18,8 +11,8 @@ typedef struct wsd_ReadBuffer wsd_ReadBuffer;
 
 wsd_ReadBuffer *    wsd_ReadBuffer_create();
 void                wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer);
-uint64_t            wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *data);
-int                 wsd_ReadBuffer_has_capacity(wsd_ReadBuffer *buffer, uint64_t length);
-uint64_t            wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target);
+int                 wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, wsd_Chunk *chunk);
+int                 wsd_ReadBuffer_has_capacity(wsd_ReadBuffer *buffer, size_t length);
+size_t              wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, size_t length, wsd_Chunk *target);
 
 #endif

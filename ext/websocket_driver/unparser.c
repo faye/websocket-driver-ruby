@@ -21,24 +21,23 @@ void wsd_Unparser_destroy(wsd_Unparser *unparser)
     free(unparser);
 }
 
-uint64_t wsd_Unparser_frame(wsd_Unparser *unparser, wsd_Frame *frame, uint8_t **out)
+wsd_Chunk *wsd_Unparser_frame(wsd_Unparser *unparser, wsd_Frame *frame)
 {
-    uint64_t flen    = frame->length;
-    uint64_t lenlen  = (flen <= 125) ? 0 : (flen <= 65535 ? 2 : 8);
-    uint64_t masklen = unparser->masking ? 4 : 0;
-    uint64_t buflen  = 2 + lenlen + masklen + flen;
+    size_t flen    = wsd_Chunk_length(frame->payload);
+    size_t lenlen  = (flen <= 125) ? 0 : (flen <= 65535 ? 2 : 8);
+    size_t masklen = unparser->masking ? 4 : 0;
+    size_t buflen  = 2 + lenlen + masklen + flen;
 
-    uint8_t *buf = NULL;
     uint8_t mask = 0;
 
-    buf = calloc(buflen, sizeof(uint8_t));
-    if (buf == NULL) return 0;
+    wsd_Chunk *chunk = wsd_Chunk_alloc(buflen);
+    if (chunk == NULL) return NULL;
 
-    buf[0] = (frame->final ? WSD_FIN  : 0)
-           | (frame->rsv1  ? WSD_RSV1 : 0)
-           | (frame->rsv2  ? WSD_RSV2 : 0)
-           | (frame->rsv3  ? WSD_RSV3 : 0)
-           | frame->opcode;
+    wsd_Chunk_set(chunk, 0, (frame->final ? WSD_FIN  : 0)
+                          | (frame->rsv1  ? WSD_RSV1 : 0)
+                          | (frame->rsv2  ? WSD_RSV2 : 0)
+                          | (frame->rsv3  ? WSD_RSV3 : 0)
+                          | frame->opcode);
 
     if (unparser->masking) {
         frame->masked = 1;
@@ -47,28 +46,17 @@ uint64_t wsd_Unparser_frame(wsd_Unparser *unparser, wsd_Frame *frame, uint8_t **
     }
 
     if (lenlen == 0) {
-        buf[1] = mask | flen;
-
+        wsd_Chunk_set(chunk, 1, mask | flen);
     } else if (lenlen == 2) {
-        buf[1] = mask | 126;
-        buf[2] = flen >> 8 & 0xff;
-        buf[3] = flen      & 0xff;
-
+        wsd_Chunk_set(chunk, 1, mask | 126);
+        wsd_Chunk_write_uint16(chunk, 2, flen);
     } else {
-        buf[1] = mask | 127;
-        buf[2] = flen >> 56 & 0xff;
-        buf[3] = flen >> 48 & 0xff;
-        buf[4] = flen >> 40 & 0xff;
-        buf[5] = flen >> 32 & 0xff;
-        buf[6] = flen >> 24 & 0xff;
-        buf[7] = flen >> 16 & 0xff;
-        buf[8] = flen >>  8 & 0xff;
-        buf[9] = flen       & 0xff;
+        wsd_Chunk_set(chunk, 1, mask | 127);
+        wsd_Chunk_write_uint64(chunk, 2, flen);
     }
 
-    memcpy(buf + 2 + lenlen, frame->masking_key, masklen);
-    memcpy(buf + 2 + lenlen + masklen, frame->payload, flen);
+    wsd_Chunk_copy(frame->masking_key, 0, chunk, 2 + lenlen, masklen);
+    wsd_Chunk_copy(frame->payload, 0, chunk, 2 + lenlen + masklen, flen);
 
-    *out = buf;
-    return buflen;
+    return chunk;
 }

@@ -14,9 +14,10 @@ int     wsd_Driver_valid_frame_rsv(VALUE driver, wsd_Frame *frame);
 
 void    wsd_Driver_on_error(VALUE driver, int code, char *reason);
 void    wsd_Driver_on_message(VALUE driver, wsd_Message *message);
-void    wsd_Driver_on_close(VALUE driver, int code, uint64_t length, uint8_t *reason);
-void    wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame);
-void    wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame);
+void    wsd_Driver_on_close(VALUE driver, int code, wsd_Chunk *reason);
+void    wsd_Driver_on_ping(VALUE driver, wsd_Chunk *payload);
+void    wsd_Driver_on_pong(VALUE driver, wsd_Chunk *payload);
+
 
 void Init_websocket_driver()
 {
@@ -30,6 +31,7 @@ void Init_websocket_driver()
     rb_define_method(Unparser, "initialize", wsd_WebSocketUnparser_initialize, 2);
     rb_define_method(Unparser, "frame", wsd_WebSocketUnparser_frame, 3);
 }
+
 
 VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_masking)
 {
@@ -49,8 +51,8 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_mas
             (wsd_cb_on_error) wsd_Driver_on_error,
             (wsd_cb_on_message) wsd_Driver_on_message,
             (wsd_cb_on_close) wsd_Driver_on_close,
-            (wsd_cb_on_frame) wsd_Driver_on_ping,
-            (wsd_cb_on_frame) wsd_Driver_on_pong);
+            (wsd_cb_on_chunk) wsd_Driver_on_ping,
+            (wsd_cb_on_chunk) wsd_Driver_on_pong);
 
     if (observer == NULL) {
         wsd_Extensions_destroy(extensions);
@@ -72,7 +74,7 @@ VALUE wsd_WebSocketParser_initialize(VALUE self, VALUE driver, VALUE require_mas
 
 VALUE wsd_WebSocketParser_parse(VALUE self, VALUE chunk)
 {
-    uint64_t length = RSTRING_LEN(chunk);
+    size_t length = RSTRING_LEN(chunk);
     char *data = RSTRING_PTR(chunk);
 
     wsd_Parser *parser;
@@ -120,24 +122,21 @@ void wsd_Driver_on_message(VALUE driver, wsd_Message *message)
     int argc = 5;
     VALUE argv[5] = { opcode, rsv1, rsv2, rsv3 };
 
-    uint8_t *data = NULL;
-    uint64_t copied = 0;
+    wsd_Chunk *chunk = wsd_Chunk_alloc(message->length);
+    if (chunk == NULL) return; // TODO signal error back to the parser
 
-    data = calloc(message->length, sizeof(uint8_t));
-    if (data == NULL) return; // TODO signal error back to the parser
+    wsd_Message_copy(message, chunk);
+    argv[argc - 1] = (VALUE)wsd_Chunk_to_string(chunk, (wsd_cb_to_string)rb_str_new);
 
-    copied = wsd_Message_copy(message, data);
-    argv[argc - 1] = rb_str_new((char *)data, copied);
-
-    free(data);
+    wsd_Chunk_destroy(chunk);
 
     wsd_safe_rb_funcall2(driver, rb_intern("handle_message"), argc, argv);
 }
 
-void wsd_Driver_on_close(VALUE driver, int code, uint64_t length, uint8_t *reason)
+void wsd_Driver_on_close(VALUE driver, int code, wsd_Chunk *reason)
 {
     VALUE rcode = INT2FIX(code);
-    VALUE rmsg  = (reason == NULL) ? rb_str_new2("") : rb_str_new((char *)reason, length);
+    VALUE rmsg  = (reason == NULL) ? rb_str_new2("") : (VALUE)wsd_Chunk_to_string(reason, (wsd_cb_to_string)rb_str_new);
 
     int argc = 2;
     VALUE argv[2] = { rcode, rmsg };
@@ -145,23 +144,24 @@ void wsd_Driver_on_close(VALUE driver, int code, uint64_t length, uint8_t *reaso
     wsd_safe_rb_funcall2(driver, rb_intern("handle_close"), argc, argv);
 }
 
-void wsd_Driver_on_ping(VALUE driver, wsd_Frame *frame)
+void wsd_Driver_on_ping(VALUE driver, wsd_Chunk *payload)
 {
     int argc = 1;
-    VALUE string = rb_str_new((char *)frame->payload, frame->length);
+    VALUE string = (VALUE)wsd_Chunk_to_string(payload, (wsd_cb_to_string)rb_str_new);
     VALUE argv[1] = { string };
 
     wsd_safe_rb_funcall2(driver, rb_intern("handle_ping"), argc, argv);
 }
 
-void wsd_Driver_on_pong(VALUE driver, wsd_Frame *frame)
+void wsd_Driver_on_pong(VALUE driver, wsd_Chunk *payload)
 {
     int argc = 1;
-    VALUE string = rb_str_new((char *)frame->payload, frame->length);
+    VALUE string = (VALUE)wsd_Chunk_to_string(payload, (wsd_cb_to_string)rb_str_new);
     VALUE argv[1] = { string };
 
     wsd_safe_rb_funcall2(driver, rb_intern("handle_pong"), argc, argv);
 }
+
 
 VALUE wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking)
 {
@@ -179,12 +179,11 @@ VALUE wsd_WebSocketUnparser_initialize(VALUE self, VALUE driver, VALUE masking)
 
 VALUE wsd_WebSocketUnparser_frame(VALUE self, VALUE head, VALUE masking_key, VALUE payload)
 {
-    uint64_t length = RSTRING_LEN(payload);
+    size_t length = RSTRING_LEN(payload);
     char *data = RSTRING_PTR(payload);
 
+    wsd_Chunk *chunk = NULL;
     wsd_Frame *frame = NULL;
-    uint64_t buflen = 0;
-    uint8_t *buf = NULL;
     VALUE string;
 
     wsd_Unparser *unparser;
@@ -194,12 +193,6 @@ VALUE wsd_WebSocketUnparser_frame(VALUE self, VALUE head, VALUE masking_key, VAL
     frame = wsd_Frame_create();
     if (frame == NULL) return Qnil;
 
-    frame->payload = calloc(length, sizeof(uint8_t));
-    if (frame->payload == NULL) {
-        wsd_Frame_destroy(frame);
-        return Qnil;
-    }
-
     frame->final  = (rb_ary_entry(head, 0) == Qtrue);
     frame->rsv1   = (rb_ary_entry(head, 1) == Qtrue);
     frame->rsv2   = (rb_ary_entry(head, 2) == Qtrue);
@@ -207,14 +200,24 @@ VALUE wsd_WebSocketUnparser_frame(VALUE self, VALUE head, VALUE masking_key, VAL
     frame->opcode = NUM2INT(rb_ary_entry(head, 4));
     frame->length = length;
 
-    memcpy(frame->masking_key, RSTRING_PTR(masking_key), 4);
-    memcpy(frame->payload, data, length);
+    wsd_Chunk_fill(frame->masking_key, 4, (uint8_t *)RSTRING_PTR(masking_key));
 
-    buflen = wsd_Unparser_frame(unparser, frame, &buf);
+    frame->payload = wsd_Chunk_create(length, (uint8_t *)data);
+    if (frame->payload == NULL) {
+        wsd_Frame_destroy(frame);
+        return Qnil;
+    }
+
+    chunk = wsd_Unparser_frame(unparser, frame);
+    if (chunk == NULL) {
+        wsd_Frame_destroy(frame);
+        return Qnil;
+    }
+
+    string = (VALUE)wsd_Chunk_to_string(chunk, (wsd_cb_to_string)rb_str_new);
+
+    wsd_Chunk_destroy(chunk);
     wsd_Frame_destroy(frame);
-
-    string = rb_str_new((char *)buf, buflen);
-    free(buf);
 
     return string;
 }

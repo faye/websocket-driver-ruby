@@ -5,16 +5,16 @@ struct wsd_Observer {
     wsd_cb_on_error on_error;
     wsd_cb_on_message on_message;
     wsd_cb_on_close on_close;
-    wsd_cb_on_frame on_ping;
-    wsd_cb_on_frame on_pong;
+    wsd_cb_on_chunk on_ping;
+    wsd_cb_on_chunk on_pong;
 };
 
 wsd_Observer * wsd_Observer_create(void *receiver,
                                    wsd_cb_on_error on_error,
                                    wsd_cb_on_message on_message,
                                    wsd_cb_on_close on_close,
-                                   wsd_cb_on_frame on_ping,
-                                   wsd_cb_on_frame on_pong)
+                                   wsd_cb_on_chunk on_ping,
+                                   wsd_cb_on_chunk on_pong)
 {
     wsd_Observer *observer = calloc(1, sizeof(wsd_Observer));
     if (observer == NULL) return NULL;
@@ -63,32 +63,32 @@ void wsd_Observer_on_message(wsd_Observer *observer, wsd_Message *message)
     if (cb) cb(observer->receiver, message);
 }
 
-void wsd_Observer_on_close(wsd_Observer *observer, int code, uint64_t length, uint8_t *reason)
+void wsd_Observer_on_close(wsd_Observer *observer, int code, wsd_Chunk *reason)
 {
     wsd_cb_on_close cb = NULL;
 
     if (observer == NULL) return;
 
     cb = observer->on_close;
-    if (cb) cb(observer->receiver, code, length, reason);
+    if (cb) cb(observer->receiver, code, reason);
 }
 
-void wsd_Observer_on_ping(wsd_Observer *observer, wsd_Frame *frame)
+void wsd_Observer_on_ping(wsd_Observer *observer, wsd_Chunk *payload)
 {
-    wsd_cb_on_frame cb = NULL;
+    wsd_cb_on_chunk cb = NULL;
 
     if (observer == NULL) return;
 
     cb = observer->on_ping;
-    if (cb) cb(observer->receiver, frame);
+    if (cb) cb(observer->receiver, payload);
 }
 
-void wsd_Observer_on_pong(wsd_Observer *observer, wsd_Frame *frame)
+void wsd_Observer_on_pong(wsd_Observer *observer, wsd_Chunk *payload)
 {
-    wsd_cb_on_frame cb = NULL;
+    wsd_cb_on_chunk cb = NULL;
 
     if (observer == NULL) return;
 
     cb = observer->on_pong;
-    if (cb) cb(observer->receiver, frame);
+    if (cb) cb(observer->receiver, payload);
 }

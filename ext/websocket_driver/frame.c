@@ -5,6 +5,12 @@ wsd_Frame *wsd_Frame_create()
     wsd_Frame *frame = calloc(1, sizeof(wsd_Frame));
     if (frame == NULL) return NULL;
 
+    frame->masking_key = wsd_Chunk_alloc(4);
+    if (frame->masking_key == NULL) {
+        free(frame);
+        return NULL;
+    }
+
     frame->payload = NULL;
 
     return frame;
@@ -14,26 +20,22 @@ void wsd_Frame_destroy(wsd_Frame *frame)
 {
     if (frame == NULL) return;
 
-    wsd_clear_pointer(free, frame->payload);
+    wsd_clear_pointer(wsd_Chunk_destroy, frame->masking_key);
+    wsd_clear_pointer(wsd_Chunk_destroy, frame->payload);
 
     free(frame);
 }
 
 void wsd_Frame_mask(wsd_Frame *frame)
 {
-    uint64_t i = 0;
-
     if (!frame->masked) return;
 
-    for (i = 0; i < frame->length; i++) {
-        frame->payload[i] ^= frame->masking_key[i % 4];
-    }
+    wsd_Chunk_mask(frame->payload, frame->masking_key);
 }
 
-uint64_t wsd_Frame_copy(wsd_Frame *frame, uint8_t *target, uint64_t offset)
+size_t wsd_Frame_copy(wsd_Frame *frame, wsd_Chunk *target, size_t offset)
 {
-    uint64_t n = frame->length;
-
-    memcpy(target + offset, frame->payload, n);
+    size_t n = (size_t)frame->length;
+    wsd_Chunk_copy(frame->payload, 0, target, offset, n);
     return offset + n;
 }

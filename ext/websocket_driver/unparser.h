@@ -8,6 +8,6 @@ typedef struct wsd_Unparser wsd_Unparser;
 
 wsd_Unparser *  wsd_Unparser_create(int masking);
 void            wsd_Unparser_destroy(wsd_Unparser *unparser);
-uint64_t        wsd_Unparser_frame(wsd_Unparser *unparser, wsd_Frame *frame, uint8_t **out);
+wsd_Chunk *     wsd_Unparser_frame(wsd_Unparser *unparser, wsd_Frame *frame);
 
 #endif

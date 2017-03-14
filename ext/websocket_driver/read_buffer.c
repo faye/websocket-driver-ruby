@@ -1,42 +1,9 @@
 #include "read_buffer.h"
 
-
-struct wsd_Chunk {
-    uint64_t length;
-    uint8_t *data;
-};
-
-wsd_Chunk *wsd_Chunk_create(uint64_t length, uint8_t *data)
-{
-    wsd_Chunk *chunk = calloc(1, sizeof(wsd_Chunk));
-    if (chunk == NULL) return NULL;
-
-    chunk->data = calloc(length, sizeof(uint8_t));
-    if (chunk->data == NULL) {
-        free(chunk);
-        return NULL;
-    }
-
-    chunk->length = length;
-    memcpy(chunk->data, data, length);
-
-    return chunk;
-}
-
-void wsd_Chunk_destroy(wsd_Chunk *chunk)
-{
-    if (chunk == NULL) return;
-
-    wsd_clear_pointer(free, chunk->data);
-
-    free(chunk);
-}
-
-
 struct wsd_ReadBuffer {
     wsd_Queue *queue;
-    uint64_t capacity;
-    uint64_t cursor;
+    size_t capacity;
+    size_t cursor;
 };
 
 wsd_ReadBuffer *wsd_ReadBuffer_create()
@@ -67,42 +34,45 @@ void wsd_ReadBuffer_destroy(wsd_ReadBuffer *buffer)
     free(buffer);
 }
 
-uint64_t wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *data)
+int wsd_ReadBuffer_push(wsd_ReadBuffer *buffer, wsd_Chunk *chunk)
 {
-    wsd_Chunk *chunk = wsd_Chunk_create(length, data);
-    if (chunk == NULL) return 0;
+    size_t length = wsd_Chunk_length(chunk);
 
     if (length > WSD_MAX_READBUFFER_CAPACITY - buffer->capacity) return 0;
 
-    if (wsd_Queue_push(buffer->queue, chunk) != 1) {
-        wsd_Chunk_destroy(chunk);
-        return 0;
-    }
+    if (wsd_Queue_push(buffer->queue, chunk) != 1) return 0;
 
     buffer->capacity += length;
-    return length;
+    return 1;
 }
 
-int wsd_ReadBuffer_has_capacity(wsd_ReadBuffer *buffer, uint64_t length)
+int wsd_ReadBuffer_has_capacity(wsd_ReadBuffer *buffer, size_t length)
 {
     return buffer->capacity >= length;
 }
 
-uint64_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *target)
+size_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, size_t length, wsd_Chunk *target)
 {
-    uint64_t offset = 0;
+    size_t offset     = 0;
+    size_t available  = 0;
+    size_t required   = 0;
+    size_t take_bytes = 0;
 
     if (buffer->capacity < length) return 0;
 
     while (offset < length) {
         wsd_Chunk *chunk = wsd_Queue_peek(buffer->queue);
 
-        uint64_t available  = chunk->length - buffer->cursor;
-        uint64_t required   = length - offset;
-        uint64_t take_bytes = (available < required) ? available : required;
+        available  = wsd_Chunk_length(chunk) - buffer->cursor;
+        required   = length - offset;
+        take_bytes = (available < required) ? available : required;
 
-        memcpy(target + offset, chunk->data + buffer->cursor, take_bytes);
+        if (!wsd_Chunk_copy(chunk, buffer->cursor, target, offset, take_bytes)) {
+            return offset;
+        }
+
         offset += take_bytes;
+        buffer->capacity -= take_bytes;
 
         if (take_bytes == available) {
             buffer->cursor = 0;
@@ -113,6 +83,5 @@ uint64_t wsd_ReadBuffer_read(wsd_ReadBuffer *buffer, uint64_t length, uint8_t *t
         }
     }
 
-    buffer->capacity -= length;
-    return length;
+    return offset;
 }

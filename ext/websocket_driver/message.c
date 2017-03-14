@@ -53,14 +53,14 @@ int wsd_Message_push_frame(wsd_Message *message, wsd_Frame *frame)
     return 1;
 }
 
-uint64_t wsd_Message_copy(wsd_Message *message, uint8_t *target)
+size_t wsd_Message_copy(wsd_Message *message, wsd_Chunk *target)
 {
-    uint64_t offset = 0;
+    size_t offset = 0;
     wsd_QueueIter *iter = wsd_QueueIter_create(message->frames);
 
     if (iter == NULL) return 0;
 
-    for (; iter->value; wsd_QueueIter_next(iter)) {
+    for (; iter->value != NULL; wsd_QueueIter_next(iter)) {
         offset = wsd_Frame_copy(iter->value, target, offset);
     }
 
