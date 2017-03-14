@@ -14,7 +14,7 @@ module WebSocket
         end
 
         def parse(chunk)
-          @reader.put(chunk)
+          @reader.push(chunk)
           buffer = true
 
           while buffer

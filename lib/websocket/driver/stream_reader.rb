@@ -2,52 +2,63 @@ module WebSocket
   class Driver
 
     class StreamReader
-      # Try to minimise the number of reallocations done:
-      MINIMUM_AUTOMATIC_PRUNE_OFFSET = 128
+      MAX_CAPACITY = 0xfffffff
 
       def initialize
-        @buffer = String.new('').force_encoding(BINARY)
-        @offset = 0
+        @queue    = []
+        @capacity = 0
+        @cursor   = 0
       end
 
-      def put(chunk)
-        return unless chunk and chunk.bytesize > 0
-        @buffer << chunk.force_encoding(BINARY)
+      def push(chunk)
+        if chunk.bytesize > MAX_CAPACITY - @capacity
+          return false
+        end
+
+        @queue << chunk.force_encoding(BINARY)
+        @capacity += chunk.bytesize
+
+        true
       end
 
-      # Read bytes from the data:
       def read(length)
-        return nil if (@offset + length) > @buffer.bytesize
+        return nil if @capacity < length
 
-        chunk = @buffer.byteslice(@offset, length)
-        @offset += chunk.bytesize
+        target = ("\0" * length).force_encoding(BINARY)
+        offset = 0
 
-        prune if @offset > MINIMUM_AUTOMATIC_PRUNE_OFFSET
+        while offset < length
+          chunk = @queue.first
 
-        return chunk
+          available  = chunk.bytesize - @cursor
+          required   = length - offset
+          take_bytes = (available < required) ? available : required
+
+          target[offset ... offset + take_bytes] = chunk[@cursor ... @cursor + take_bytes]
+          offset += take_bytes
+          @capacity -= take_bytes
+
+          if take_bytes == available
+            @cursor = 0
+            @queue.shift
+          else
+            @cursor += take_bytes
+          end
+        end
+
+        target
       end
 
       def each_byte
-        prune
-
-        @buffer.each_byte do |octet|
-          @offset += 1
-          yield octet
+        until @queue.empty?
+          chunk = @queue.first
+          (@cursor ... chunk.bytesize).each do |i|
+            @cursor += 1
+            yield chunk.getbyte(i)
+          end
+          @cursor = 0
+          @queue.shift
         end
-      end
-
-    private
-
-      def prune
-        buffer_size = @buffer.bytesize
-
-        if @offset > buffer_size
-          @buffer = String.new('').force_encoding(BINARY)
-        else
-          @buffer = @buffer.byteslice(@offset, buffer_size - @offset)
-        end
-
-        @offset = 0
       end
     end
 

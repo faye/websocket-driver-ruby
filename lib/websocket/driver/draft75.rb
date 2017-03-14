@@ -28,7 +28,7 @@ module WebSocket
       def parse(chunk)
         return if @ready_state > 1
 
-        @reader.put(chunk)
+        @reader.push(chunk)
 
         @reader.each_byte do |octet|
           case @stage
