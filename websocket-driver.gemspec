@@ -27,8 +27,12 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'benchmark-ips'
   s.add_development_dependency 'eventmachine'
-  s.add_development_dependency 'memory_profiler'
   s.add_development_dependency 'permessage_deflate'
   s.add_development_dependency 'rake-compiler', '~> 0.8.0'
   s.add_development_dependency 'rspec'
+
+  version = RUBY_VERSION.split('.').map { |s| s.to_i }
+  if version[0] > 2 or (version[0] == 2 and version[1] >= 1)
+    s.add_development_dependency 'memory_profiler'
+  end
 end
