@@ -1,9 +1,47 @@
 #include "parser.h"
+#include "unparser.h"
 
 void autobahn_on_error(void *receiver, int code, char *reason)
 {
     printf("[ERROR] code = %d, reason = %s\n", code, reason);
 }
+
+void autobahn_on_message(void *receiver, wsd_Message *message)
+{
+    wsd_Frame *frame = wsd_Frame_create();
+    wsd_Chunk *chunk = NULL;
+    wsd_Unparser *unparser = NULL;
+
+    frame->final  = 1;
+    frame->rsv1   = 0;
+    frame->rsv2   = 0;
+    frame->rsv3   = 0;
+    frame->opcode = 1;
+    frame->length = message->length;
+
+    frame->payload = wsd_Chunk_alloc(frame->length);
+    wsd_Message_copy(message, frame->payload);
+
+    unparser = wsd_Unparser_create(1);
+    chunk = wsd_Unparser_frame(unparser, frame);
+
+    wsd_Chunk_destroy(chunk);
+    wsd_Frame_destroy(frame);
+    wsd_Unparser_destroy(unparser);
+}
+
+void autobahn_on_close(void *receiver, int code, wsd_Chunk *reason) {
+
+}
+
+void autobahn_on_ping(void *receiver, wsd_Chunk *payload) {
+
+}
+
+void autobahn_on_pong(void *receiver, wsd_Chunk *payload) {
+
+}
+
 
 int main()
 {
@@ -11,7 +49,7 @@ int main()
     char filename[100];
     FILE *file = NULL;
 
-    uint64_t chunk_size = 512;
+    uint64_t chunk_size = 4096;
     uint8_t chunk[chunk_size];
     uint64_t read = 0;
 
@@ -20,8 +58,14 @@ int main()
     wsd_Parser *parser = NULL;
 
     for (i = 1; i <= 303; i++) {
+        observer = wsd_Observer_create(0,
+                autobahn_on_error,
+                autobahn_on_message,
+                autobahn_on_close,
+                autobahn_on_ping,
+                autobahn_on_pong);
+
         extensions = wsd_Extensions_create_default();
-        observer = wsd_Observer_create(0, autobahn_on_error, 0, 0, 0, 0, 0);
         parser = wsd_Parser_create(extensions, observer, 1);
 
         sprintf(filename, "autobahn/test-%d.log", i);
