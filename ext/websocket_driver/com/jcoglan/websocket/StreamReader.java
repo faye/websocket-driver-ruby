@@ -3,14 +3,14 @@ package com.jcoglan.websocket;
 import java.util.LinkedList;
 import java.util.Queue;
 
-class ReadBuffer {
+class StreamReader {
     static int MAX_CAPACITY = 0xfffffff;
 
     private Queue<byte[]> queue;
     private int capacity;
     private int cursor;
 
-    ReadBuffer() {
+    StreamReader() {
         queue    = new LinkedList<byte[]>();
         capacity = 0;
         cursor   = 0;

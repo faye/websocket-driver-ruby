@@ -7,7 +7,7 @@
 #include "extensions.h"
 #include "message.h"
 #include "observer.h"
-#include "read_buffer.h"
+#include "stream_reader.h"
 #include "util.h"
 
 typedef struct wsd_Parser wsd_Parser;

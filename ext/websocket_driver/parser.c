@@ -5,7 +5,7 @@
 struct wsd_Parser {
     int require_masking;
 
-    wsd_ReadBuffer *buffer;
+    wsd_StreamReader *reader;
     wsd_Extensions *extensions;
     wsd_Observer *observer;
 
@@ -22,8 +22,8 @@ wsd_Parser *wsd_Parser_create(wsd_Extensions *extensions, wsd_Observer *observer
     wsd_Parser *parser = calloc(1, sizeof(wsd_Parser));
     if (parser == NULL) return NULL;
 
-    parser->buffer = wsd_ReadBuffer_create();
-    if (parser->buffer == NULL) {
+    parser->reader = wsd_StreamReader_create();
+    if (parser->reader == NULL) {
         free(parser);
         return NULL;
     }
@@ -46,7 +46,7 @@ void wsd_Parser_destroy(wsd_Parser *parser)
 {
     if (parser == NULL) return;
 
-    wsd_clear_pointer(wsd_ReadBuffer_destroy, parser->buffer);
+    wsd_clear_pointer(wsd_StreamReader_destroy, parser->reader);
     wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
     wsd_clear_pointer(wsd_Message_destroy, parser->message);
     wsd_clear_pointer(wsd_Extensions_destroy, parser->extensions);
@@ -68,7 +68,7 @@ int wsd_Parser_parse(wsd_Parser *parser, size_t length, uint8_t *data)
         return parser->error_code;
     }
 
-    if (!wsd_ReadBuffer_push(parser->buffer, chunk)) {
+    if (!wsd_StreamReader_push(parser->reader, chunk)) {
         wsd_Chunk_destroy(chunk);
         WSD_PARSER_ERROR(parser, WSD_UNEXPECTED_CONDITION, "Failed to push chunk[%zu] to read buffer", length);
         return parser->error_code;
@@ -84,17 +84,17 @@ int wsd_Parser_parse(wsd_Parser *parser, size_t length, uint8_t *data)
         switch (parser->stage) {
             case 1:
                 n = 2;
-                readlen = wsd_ReadBuffer_read(parser->buffer, n, chunk);
+                readlen = wsd_StreamReader_read(parser->reader, n, chunk);
                 if (readlen == n) wsd_Parser_parse_head(parser, chunk);
                 break;
             case 2:
                 n = parser->frame->length_bytes;
-                readlen = wsd_ReadBuffer_read(parser->buffer, n, chunk);
+                readlen = wsd_StreamReader_read(parser->reader, n, chunk);
                 if (readlen == n) wsd_Parser_parse_extended_length(parser, chunk);
                 break;
             case 3:
                 n = 4;
-                readlen = wsd_ReadBuffer_read(parser->buffer, n, parser->frame->masking_key);
+                readlen = wsd_StreamReader_read(parser->reader, n, parser->frame->masking_key);
                 if (readlen == n) parser->stage = 4;
                 break;
             case 4:
@@ -232,11 +232,11 @@ int wsd_Parser_check_frame_length(wsd_Parser *parser)
 
 size_t  wsd_Parser_parse_payload(wsd_Parser *parser)
 {
-    wsd_ReadBuffer *buffer = parser->buffer;
+    wsd_StreamReader *reader = parser->reader;
     wsd_Frame *frame = parser->frame;
     size_t n = (size_t)frame->length;
 
-    if (!wsd_ReadBuffer_has_capacity(buffer, n)) return 0;
+    if (!wsd_StreamReader_has_capacity(reader, n)) return 0;
 
     frame->payload = wsd_Chunk_alloc(n);
     if (frame->payload == NULL) {
@@ -244,7 +244,7 @@ size_t  wsd_Parser_parse_payload(wsd_Parser *parser)
         return 0;
     }
 
-    n = wsd_ReadBuffer_read(buffer, n, frame->payload);
+    n = wsd_StreamReader_read(reader, n, frame->payload);
     wsd_Frame_mask(frame);
 
     return n;

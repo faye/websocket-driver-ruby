@@ -35,7 +35,7 @@ public class Parser {
 
     private boolean requireMasking;
 
-    private ReadBuffer buffer;
+    private StreamReader reader;
     private Extensions extensions;
     private Observer observer;
 
@@ -47,7 +47,7 @@ public class Parser {
     private String errorReason;
 
     public Parser(Extensions extensions, Observer observer, boolean requireMasking) {
-        buffer = new ReadBuffer();
+        reader = new StreamReader();
 
         this.requireMasking = requireMasking;
         this.extensions = extensions;
@@ -62,28 +62,28 @@ public class Parser {
     }
 
     public void parse(byte[] data) {
-        buffer.push(data);
+        reader.push(data);
         byte[] chunk = new byte[0];
 
         while (chunk != null) {
             switch (stage) {
                 case 1:
-                    chunk = buffer.read(2);
+                    chunk = reader.read(2);
                     if (chunk != null) parseHead(chunk);
                     break;
                 case 2:
-                    chunk = buffer.read(frame.lengthBytes);
+                    chunk = reader.read(frame.lengthBytes);
                     if (chunk != null) parseExtendedLength(chunk);
                     break;
                 case 3:
-                    chunk = buffer.read(4);
+                    chunk = reader.read(4);
                     if (chunk != null) {
                         stage = 4;
                         frame.maskingKey = chunk;
                     }
                     break;
                 case 4:
-                    chunk = buffer.read((int)frame.length);
+                    chunk = reader.read((int)frame.length);
                     if (chunk != null) {
                         stage = 1;
                         emitFrame(chunk);
