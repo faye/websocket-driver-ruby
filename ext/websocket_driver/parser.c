@@ -46,12 +46,12 @@ void wsd_Parser_destroy(wsd_Parser *parser)
 {
     if (parser == NULL) return;
 
-    wsd_clear_pointer(wsd_StreamReader_destroy, parser->reader);
-    wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
-    wsd_clear_pointer(wsd_Message_destroy, parser->message);
-    wsd_clear_pointer(wsd_Extensions_destroy, parser->extensions);
-    wsd_clear_pointer(wsd_Observer_destroy, parser->observer);
-    wsd_clear_pointer(free, parser->error_reason);
+    WSD_CLEAR_POINTER(wsd_StreamReader_destroy, parser->reader);
+    WSD_CLEAR_POINTER(wsd_Frame_destroy, parser->frame);
+    WSD_CLEAR_POINTER(wsd_Message_destroy, parser->message);
+    WSD_CLEAR_POINTER(wsd_Extensions_destroy, parser->extensions);
+    WSD_CLEAR_POINTER(wsd_Observer_destroy, parser->observer);
+    WSD_CLEAR_POINTER(free, parser->error_reason);
 
     free(parser);
 }
@@ -305,7 +305,7 @@ void wsd_Parser_emit_frame(wsd_Parser *parser)
         parser->frame = NULL;
         if (frame->final) wsd_Parser_emit_message(parser);
     } else {
-        wsd_clear_pointer(wsd_Frame_destroy, parser->frame);
+        WSD_CLEAR_POINTER(wsd_Frame_destroy, parser->frame);
     }
 }
 
@@ -327,5 +327,5 @@ void wsd_Parser_emit_message(wsd_Parser *parser)
 {
     wsd_Observer_on_message(parser->observer, parser->message);
 
-    wsd_clear_pointer(wsd_Message_destroy, parser->message);
+    WSD_CLEAR_POINTER(wsd_Message_destroy, parser->message);
 }

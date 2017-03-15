@@ -20,8 +20,8 @@ void wsd_Frame_destroy(wsd_Frame *frame)
 {
     if (frame == NULL) return;
 
-    wsd_clear_pointer(wsd_Chunk_destroy, frame->masking_key);
-    wsd_clear_pointer(wsd_Chunk_destroy, frame->payload);
+    WSD_CLEAR_POINTER(wsd_Chunk_destroy, frame->masking_key);
+    WSD_CLEAR_POINTER(wsd_Chunk_destroy, frame->payload);
 
     free(frame);
 }

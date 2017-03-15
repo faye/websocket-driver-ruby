@@ -13,7 +13,7 @@ wsd_Message *wsd_Message_create(wsd_Frame *frame)
 
     message->length = 0;
     if (!wsd_Message_push_frame(message, frame)) {
-        wsd_clear_pointer(wsd_Queue_destroy, message->frames);
+        WSD_CLEAR_POINTER(wsd_Queue_destroy, message->frames);
         free(message);
         return NULL;
     }
@@ -32,7 +32,7 @@ void wsd_Message_destroy(wsd_Message *message)
 
     wsd_Queue_each(message->frames, (wsd_Queue_cb)wsd_Frame_destroy);
 
-    wsd_clear_pointer(wsd_Queue_destroy, message->frames);
+    WSD_CLEAR_POINTER(wsd_Queue_destroy, message->frames);
 
     free(message);
 }

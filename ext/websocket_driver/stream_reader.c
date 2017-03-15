@@ -29,7 +29,7 @@ void wsd_StreamReader_destroy(wsd_StreamReader *reader)
 
     wsd_Queue_each(reader->queue, (wsd_Queue_cb)wsd_Chunk_destroy);
 
-    wsd_clear_pointer(wsd_Queue_destroy, reader->queue);
+    WSD_CLEAR_POINTER(wsd_Queue_destroy, reader->queue);
 
     free(reader);
 }
