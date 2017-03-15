@@ -45,8 +45,6 @@ wsd_Queue *wsd_Queue_create()
     return queue;
 }
 
-#define wsd_Queue_next(N) (N == NULL) ? NULL : N->next
-
 void wsd_Queue_destroy(wsd_Queue *queue)
 {
     wsd_QueueNode *node = NULL;
