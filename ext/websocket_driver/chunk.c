@@ -93,6 +93,15 @@ size_t wsd_Chunk_fill(wsd_Chunk *chunk, size_t n, uint8_t *src)
     return n;
 }
 
+int wsd_Chunk_bounds_check(wsd_Chunk *chunk, size_t start, size_t n)
+{
+    if (chunk == NULL) return 0;
+
+    size_t length = chunk->length;
+
+    return start <= length && n <= length - start;
+}
+
 size_t wsd_Chunk_copy(wsd_Chunk *src, size_t src_start, wsd_Chunk *dst, size_t dst_start, size_t n)
 {
     if (!wsd_Chunk_bounds_check(src, src_start, n)) return 0;
@@ -101,15 +110,6 @@ size_t wsd_Chunk_copy(wsd_Chunk *src, size_t src_start, wsd_Chunk *dst, size_t d
     memcpy(dst->data + dst_start, src->data + src_start, n);
 
     return n;
-}
-
-int wsd_Chunk_bounds_check(wsd_Chunk *chunk, size_t start, size_t n)
-{
-    if (chunk == NULL) return 0;
-
-    size_t length = chunk->length;
-
-    return start <= length && n <= length - start;
 }
 
 uint8_t wsd_Chunk_get(wsd_Chunk *chunk, size_t n)
@@ -129,7 +129,7 @@ int wsd_Chunk_set(wsd_Chunk *chunk, size_t n, uint8_t value)
 
 uint16_t wsd_Chunk_read_uint16(wsd_Chunk *chunk, size_t n)
 {
-    if (n > chunk->length - 2) return 0;
+    if (!wsd_Chunk_bounds_check(chunk, n, 2)) return 0;
 
     uint8_t *data = chunk->data;
 
@@ -139,7 +139,7 @@ uint16_t wsd_Chunk_read_uint16(wsd_Chunk *chunk, size_t n)
 
 uint64_t wsd_Chunk_read_uint64(wsd_Chunk *chunk, size_t n)
 {
-    if (n > chunk->length - 8) return 0;
+    if (!wsd_Chunk_bounds_check(chunk, n, 8)) return 0;
 
     uint8_t *data = chunk->data;
 
@@ -155,7 +155,7 @@ uint64_t wsd_Chunk_read_uint64(wsd_Chunk *chunk, size_t n)
 
 size_t wsd_Chunk_write_uint16(wsd_Chunk *chunk, size_t n, uint16_t value)
 {
-    if (n > chunk->length - 2) return 0;
+    if (!wsd_Chunk_bounds_check(chunk, n, 2)) return 0;
 
     uint8_t *data = chunk->data;
 
@@ -167,7 +167,7 @@ size_t wsd_Chunk_write_uint16(wsd_Chunk *chunk, size_t n, uint16_t value)
 
 size_t wsd_Chunk_write_uint64(wsd_Chunk *chunk, size_t n, uint64_t value)
 {
-    if (n > chunk->length - 8) return 0;
+    if (!wsd_Chunk_bounds_check(chunk, n, 8)) return 0;
 
     uint8_t *data = chunk->data;
 
