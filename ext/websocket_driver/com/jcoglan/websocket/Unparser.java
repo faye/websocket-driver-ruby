@@ -44,19 +44,10 @@ public class Unparser {
 
         } else if (lenlen == 2) {
             buf[1] = (byte)(mask | 126);
-            buf[2] = (byte)(length >>> 8 & 0xff);
-            buf[3] = (byte)(length       & 0xff);
-
+            Buffer.writeUInt16(buf, 2, length);
         } else {
             buf[1] = (byte)(mask | 127);
-            buf[2] = (byte)(length >>> 56 & 0xff);
-            buf[3] = (byte)(length >>> 48 & 0xff);
-            buf[4] = (byte)(length >>> 40 & 0xff);
-            buf[5] = (byte)(length >>> 32 & 0xff);
-            buf[6] = (byte)(length >>> 24 & 0xff);
-            buf[7] = (byte)(length >>> 16 & 0xff);
-            buf[8] = (byte)(length >>>  8 & 0xff);
-            buf[9] = (byte)(length        & 0xff);
+            Buffer.writeUInt64(buf, 2, length);
         }
 
         System.arraycopy(frame.maskingKey, 0, buf, 2 + lenlen, masklen);

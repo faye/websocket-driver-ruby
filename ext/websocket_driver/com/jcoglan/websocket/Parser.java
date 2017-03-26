@@ -181,18 +181,9 @@ public class Parser {
 
     private void parseExtendedLength(byte[] chunk) {
         if (frame.length == 126) {
-            frame.length = bitshift(chunk[0], 8)
-                         | bitshift(chunk[1], 0);
-
+            frame.length = Buffer.readUInt16(chunk, 0);
         } else if (frame.length == 127) {
-            frame.length = bitshift(chunk[0], 56)
-                         | bitshift(chunk[1], 48)
-                         | bitshift(chunk[2], 40)
-                         | bitshift(chunk[3], 32)
-                         | bitshift(chunk[4], 24)
-                         | bitshift(chunk[5], 16)
-                         | bitshift(chunk[6], 8)
-                         | bitshift(chunk[7], 0);
+            frame.length = Buffer.readUInt64(chunk, 0);
         }
 
         if (controlOpcode(frame.opcode) && frame.length > 125) {
@@ -238,7 +229,7 @@ public class Parser {
                     code   = DEFAULT_ERROR_CODE;
                     reason = new byte[0];
                 } else if (frame.length >= 2) {
-                    code   = bitshift(frame.payload[0], 8) | bitshift(frame.payload[1], 0);
+                    code   = (int)Buffer.readUInt16(frame.payload, 0);
                     reason = Arrays.copyOfRange(frame.payload, 2, (int)frame.length);
                 }
 
@@ -277,11 +268,5 @@ public class Parser {
     private void emitMessage() {
         observer.onMessage(message);
         message = null;
-    }
-
-    private int bitshift(byte b, int n) {
-        int c = b;
-        if (c < 0) c += 256;
-        return c << n;
     }
 }
