@@ -4,3 +4,5 @@ pkg
 tmp
 *.gem
 *.jar
+*.so
+*.bundle
