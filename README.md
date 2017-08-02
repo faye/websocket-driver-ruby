@@ -295,6 +295,14 @@ describing the error.
 Adds a callback block to execute when the socket becomes closed. The `event`
 object has `code` and `reason` attributes.
 
+#### `driver.on :ping, -> (event) { }`
+
+Adds a callback block to execute when a ping is received
+
+#### `driver.on :pong, -> (event) { }`
+
+Adds a callback block to execute when a pong is received
+
 #### `driver.add_extension(extension)`
 
 Registers a protocol extension whose operation will be negotiated via the

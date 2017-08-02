@@ -367,9 +367,11 @@ module WebSocket
             shutdown(code || DEFAULT_ERROR_CODE, reason || '')
 
           when OPCODES[:ping] then
+            emit :ping, MessageEvent.new(payload)
             frame(payload, :pong)
 
           when OPCODES[:pong] then
+            emit :pong, MessageEvent.new(payload)
             message = Driver.encode(payload, UNICODE)
             callback = @ping_callbacks[message]
             @ping_callbacks.delete(message)
