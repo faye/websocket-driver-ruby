@@ -50,6 +50,8 @@ module WebSocket
     ConnectEvent = Struct.new(nil)
     OpenEvent    = Struct.new(nil)
     MessageEvent = Struct.new(:data)
+    PingEvent    = Struct.new(:data)
+    PongEvent    = Struct.new(:data)
     CloseEvent   = Struct.new(:code, :reason)
 
     ProtocolError      = Class.new(StandardError)
