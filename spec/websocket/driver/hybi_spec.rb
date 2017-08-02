@@ -359,12 +359,15 @@ describe WebSocket::Driver::Hybi do
         expect(@bytes).to eq [0x8a, 0x04, 0x4f, 0x48, 0x41, 0x49]
       end
 
-      it "emits a :ping event when a server-sent ping arrives" do
-        driver.on(:ping) { @ping_event_fired = true }
-        driver.on(:pong) { @pong_event_fired = true }
+      it "triggers the onping event when a ping arrives" do
+        ping, pong = nil
+        driver.on(:ping) { |event| ping = event }
+        driver.on(:pong) { |event| pong = event }
+
         driver.parse [0x89, 0x04, 0x4f, 0x48, 0x41, 0x49].pack("C*")
-        expect(@ping_event_fired).to eq true
-        expect(@pong_event_fired).to_not eq true
+
+        expect(ping.data).to eq("OHAI")
+        expect(pong).to be_nil
       end
 
       describe "when a message listener raises an error" do
@@ -444,13 +447,17 @@ describe WebSocket::Driver::Hybi do
         expect(@reply).to eq true
       end
 
-      it "emits a :pong event when pong reply for ping received" do
-        driver.on(:ping) { @ping_event_fired = true }
-        driver.on(:pong) { @pong_event_fired = true }
+      it "triggers the onpong event when a pong arrives" do
+        ping, pong = nil
+        driver.on(:ping) { |event| ping = event }
+        driver.on(:pong) { |event| pong = event }
+
         driver.parse [0x8a, 0x02, 72, 105].pack("C*")
-        expect(@pong_event_fired).to eq true
-        expect(@ping_event_fired).to_not eq true
+
+        expect(ping).to be_nil
+        expect(pong.data).to eq("Hi")
       end
+
 
       it "does not run the callback on non-matching pong" do
         driver.ping("Hi") { @reply = true }

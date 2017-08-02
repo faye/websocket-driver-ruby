@@ -368,14 +368,14 @@ module WebSocket
 
           when OPCODES[:ping] then
             frame(payload, :pong)
-            emit :ping, PingEvent.new(payload)
+            emit(:ping, PingEvent.new(payload))
 
           when OPCODES[:pong] then
             message = Driver.encode(payload, UNICODE)
             callback = @ping_callbacks[message]
             @ping_callbacks.delete(message)
             callback.call if callback
-            emit :pong, PongEvent.new(payload)
+            emit(:pong, PongEvent.new(payload))
         end
 
         emit_message if frame.final and MESSAGE_OPCODES.include?(opcode)
