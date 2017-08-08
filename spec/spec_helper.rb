@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'bundler/setup'
 
 require File.expand_path('../../lib/websocket/driver', __FILE__)
