@@ -10,18 +10,9 @@ module Connection
     @driver = WebSocket::Driver.client(self)
     @driver.add_extension(PermessageDeflate)
 
-    @driver.on :open do |event|
-      @driver.text('Hello, world')
-    end
-
-    @driver.on :message do |event|
-      p [:message, event.data]
-    end
-
-    @driver.on :close do |event|
-      p [:close, event.code, event.reason]
-      close_connection
-    end
+    @driver.on(:open)    { |event| @driver.text('Hello, world') }
+    @driver.on(:message) { |event| p [:message, event.data] }
+    @driver.on(:close)   { |event| finalize(event) }
 
     @driver.start
   end
@@ -32,6 +23,11 @@ module Connection
 
   def write(data)
     send_data(data)
+  end
+
+  def finalize(event)
+    p [:close, event.code, event.reason]
+    close_connection
   end
 end
 
