@@ -1,19 +1,19 @@
 Gem::Specification.new do |s|
-  s.name              = 'websocket-driver'
-  s.version           = '0.6.5'
-  s.summary           = 'WebSocket protocol handler with pluggable I/O'
-  s.author            = 'James Coglan'
-  s.email             = 'jcoglan@gmail.com'
-  s.homepage          = 'http://github.com/faye/websocket-driver-ruby'
-  s.license           = 'MIT'
+  s.name     = 'websocket-driver'
+  s.version  = '0.7.0'
+  s.summary  = 'WebSocket protocol handler with pluggable I/O'
+  s.author   = 'James Coglan'
+  s.email    = 'jcoglan@gmail.com'
+  s.homepage = 'https://github.com/faye/websocket-driver-ruby'
+  s.license  = 'MIT'
 
-  s.extra_rdoc_files  = %w[README.md]
-  s.rdoc_options      = %w[--main README.md --markup markdown]
-  s.require_paths     = %w[lib]
+  s.extra_rdoc_files = %w[README.md]
+  s.rdoc_options     = %w[--main README.md --markup markdown]
+  s.require_paths    = %w[lib]
 
-  files = %w[README.md LICENSE.md CHANGELOG.md] +
+  files = %w[CHANGELOG.md LICENSE.md README.md] +
           Dir.glob('ext/**/*.{c,java,rb}') +
-          Dir.glob('{examples,lib}/**/*.rb')
+          Dir.glob('lib/**/*.rb')
 
   if RUBY_PLATFORM =~ /java/
     s.platform = 'java'

@@ -1,3 +1,7 @@
+### 0.7.0 / 2017-09-11
+
+* Add `ping` and `pong` to the set of events users can listen to
+
 ### 0.6.5 / 2017-01-22
 
 * Provide a pure-Ruby fallback for the native unmasking code
