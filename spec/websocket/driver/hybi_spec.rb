@@ -133,12 +133,12 @@ describe WebSocket::Driver::Hybi do
 
         it "triggers the onerror event" do
           driver.start
-          expect(@error.message).to eq "Invalid Sec-WebSocket-Extensions header: x-webkit- -frame"
+          expect(@error.message).to eq "No Sec-WebSocket-Key header"
         end
 
         it "triggers the onclose event" do
           driver.start
-          expect(@close).to eq [1002, "Invalid Sec-WebSocket-Extensions header: x-webkit- -frame"]
+          expect(@close).to eq [1002, "No Sec-WebSocket-Key header"]
         end
 
         it "changes the state to :closed" do
@@ -157,8 +157,8 @@ describe WebSocket::Driver::Hybi do
               "HTTP/1.1 101 Switching Protocols\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
-              "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
               "Authorization: Bearer WAT\r\n" +
+              "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
               "\r\n")
           driver.start
         end
