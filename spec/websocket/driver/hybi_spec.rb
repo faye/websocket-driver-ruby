@@ -116,6 +116,37 @@ describe WebSocket::Driver::Hybi do
         end
       end
 
+      describe "without Sec-WebSocket-Key" do
+        before do
+          env["HTTP_SEC_WEBSOCKET_KEY"] = nil
+        end
+
+        it "does not write a handshake" do
+          expect(socket).not_to receive(:write)
+          driver.start
+        end
+
+        it "does not trigger the onopen event" do
+          driver.start
+          expect(@open).to eq false
+        end
+
+        it "triggers the onerror event" do
+          driver.start
+          expect(@error.message).to eq "No Sec-WebSocket-Key header"
+        end
+
+        it "triggers the onclose event" do
+          driver.start
+          expect(@close).to eq [1002, "No Sec-WebSocket-Key header"]
+        end
+
+        it "changes the state to :closed" do
+          driver.start
+          expect(driver.state).to eq :closed
+        end
+      end
+
       describe "with custom headers" do
         before do
           driver.set_header "Authorization", "Bearer WAT"
@@ -126,8 +157,8 @@ describe WebSocket::Driver::Hybi do
               "HTTP/1.1 101 Switching Protocols\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
-              "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
               "Authorization: Bearer WAT\r\n" +
+              "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
               "\r\n")
           driver.start
         end

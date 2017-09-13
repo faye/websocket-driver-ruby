@@ -68,18 +68,8 @@ module WebSocket
 
         return unless @socket.respond_to?(:env)
 
-        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
-        protos  = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-
         @headers['Upgrade']              = 'websocket'
         @headers['Connection']           = 'Upgrade'
-        @headers['Sec-WebSocket-Accept'] = Hybi.generate_accept(sec_key)
-
-        if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-          protos = protos.split(/ *, */) if String === protos
-          @protocol = protos.find { |p| @protocols.include?(p) }
-          @headers['Sec-WebSocket-Protocol'] = @protocol if @protocol
-        end
       end
 
       def version
@@ -229,6 +219,20 @@ module WebSocket
       end
 
       def handshake_response
+        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
+        if sec_key.nil?
+          fail(:protocol_error, 'No Sec-WebSocket-Key header')
+          return nil
+        else
+          @headers['Sec-WebSocket-Accept'] = Hybi.generate_accept(sec_key)
+        end
+
+        if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
+          protos = protos.split(/ *, */) if String === protos
+          @protocol = protos.find { |p| @protocols.include?(p) }
+          @headers['Sec-WebSocket-Protocol'] = @protocol if @protocol
+        end
+
         begin
           extensions = @extensions.generate_response(@socket.env['HTTP_SEC_WEBSOCKET_EXTENSIONS'])
         rescue => error
