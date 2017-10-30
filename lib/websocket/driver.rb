@@ -155,14 +155,39 @@ module WebSocket
     end
 
     def self.rack(socket, options = {})
-      env = socket.env
-      if env['HTTP_SEC_WEBSOCKET_VERSION']
-        Hybi.new(socket, options.merge(:require_masking => true))
-      elsif env['HTTP_SEC_WEBSOCKET_KEY1']
-        Draft76.new(socket, options)
-      else
-        Draft75.new(socket, options)
+      env     = socket.env
+      options = options.merge(:require_masking => true)
+      klass   = get_driver_class(env)
+
+      klass && klass.new(socket, options)
+    end
+
+    def self.websocket?(env)
+      klass = get_driver_class(env)
+      !!klass
+    end
+
+    def self.get_driver_class(env)
+      connection = env['HTTP_CONNECTION'] || ''
+      key        = env['HTTP_SEC_WEBSOCKET_KEY']
+      key1       = env['HTTP_SEC_WEBSOCKET_KEY1']
+      key2       = env['HTTP_SEC_WEBSOCKET_KEY2']
+      origin     = env['HTTP_ORIGIN']
+      upgrade    = env['HTTP_UPGRADE'] || ''
+      version    = env['HTTP_SEC_WEBSOCKET_VERSION']
+
+      return nil if env['REQUEST_METHOD'] != 'GET' or
+                    !connection.downcase.split(/ *, */).include?('upgrade') or
+                    upgrade.downcase != 'websocket'
+
+      if version and key
+        return (version == '13' and key.size > 0) ? Hybi : nil
       end
+
+      return nil unless origin and origin.size > 0
+
+      return Draft76 if key1 and key2
+      return Draft75
     end
 
     def self.encode(string, encoding = nil)
@@ -186,15 +211,6 @@ module WebSocket
           raise ConfigurationError, "Unrecognized option: #{key.inspect}"
         end
       end
-    end
-
-    def self.websocket?(env)
-      connection = env['HTTP_CONNECTION'] || ''
-      upgrade    = env['HTTP_UPGRADE']    || ''
-
-      env['REQUEST_METHOD'] == 'GET' and
-      connection.downcase.split(/ *, */).include?('upgrade') and
-      upgrade.downcase == 'websocket'
     end
 
   end
