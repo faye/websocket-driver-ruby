@@ -182,10 +182,15 @@ module WebSocket
     end
 
     def self.rack(socket, options = {})
-      env = socket.env
-      if env['HTTP_SEC_WEBSOCKET_VERSION']
+      env     = socket.env
+      version = env['HTTP_SEC_WEBSOCKET_VERSION']
+      key     = env['HTTP_SEC_WEBSOCKET_KEY']
+      key1    = env['HTTP_SEC_WEBSOCKET_KEY1']
+      key2    = env['HTTP_SEC_WEBSOCKET_KEY2']
+
+      if version or key
         Hybi.new(socket, options.merge(:require_masking => true))
-      elsif env['HTTP_SEC_WEBSOCKET_KEY1']
+      elsif key1 or key2
         Draft76.new(socket, options)
       else
         Draft75.new(socket, options)
