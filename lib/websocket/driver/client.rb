@@ -31,7 +31,7 @@ module WebSocket
         @headers['Upgrade']               = 'websocket'
         @headers['Connection']            = 'Upgrade'
         @headers['Sec-WebSocket-Key']     = @key
-        @headers['Sec-WebSocket-Version'] = '13'
+        @headers['Sec-WebSocket-Version'] = VERSION
 
         if @protocols.size > 0
           @headers['Sec-WebSocket-Protocol'] = @protocols * ', '
@@ -44,7 +44,7 @@ module WebSocket
       end
 
       def version
-        'hybi-13'
+        "hybi-#{VERSION}"
       end
 
       def proxy(origin, options = {})

@@ -91,8 +91,13 @@ describe WebSocket::Driver::Draft76 do
           env["HTTP_SEC_WEBSOCKET_KEY1"] = "2 L785 8o% s9Sy9@V. 4<1P5"
         end
 
-        it "writes a closing handshake to the socket" do
-          expect(socket).to receive(:write).with([0xFF, 0x00].pack("C*"))
+        it "writes a handshake error response" do
+          expect(socket).to receive(:write).with(
+              "HTTP/1.1 400 Bad Request\r\n" +
+              "Content-Type: text/plain\r\n" +
+              "Content-Length: 45\r\n" +
+              "\r\n" +
+              "Client sent invalid Sec-WebSocket-Key headers")
           driver.start
         end
 

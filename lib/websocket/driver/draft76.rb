@@ -29,7 +29,7 @@ module WebSocket
 
       def close(reason = nil, code = nil)
         return false if @ready_state == 3
-        @socket.write([0xFF, 0x00].pack('C*'))
+        @socket.write([0xFF, 0x00].pack('C*')) if @ready_state == 1
         @ready_state = 3
         emit(:close, CloseEvent.new(nil, nil))
         true
@@ -39,19 +39,20 @@ module WebSocket
 
       def handshake_response
         env     = @socket.env
-
         key1    = env['HTTP_SEC_WEBSOCKET_KEY1']
+        key2    = env['HTTP_SEC_WEBSOCKET_KEY2']
+
+        raise ProtocolError.new('Missing required header: Sec-WebSocket-Key1') unless key1
+        raise ProtocolError.new('Missing required header: Sec-WebSocket-Key2') unless key2
+
         number1 = number_from_key(key1)
         spaces1 = spaces_in_key(key1)
 
-        key2    = env['HTTP_SEC_WEBSOCKET_KEY2']
         number2 = number_from_key(key2)
         spaces2 = spaces_in_key(key2)
 
         if number1 % spaces1 != 0 or number2 % spaces2 != 0
-          emit(:error, ProtocolError.new('Client sent invalid Sec-WebSocket-Key headers'))
-          close
-          return nil
+          raise ProtocolError.new('Client sent invalid Sec-WebSocket-Key headers')
         end
 
         @key_values = [number1 / spaces1, number2 / spaces2]

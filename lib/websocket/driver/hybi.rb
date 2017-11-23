@@ -11,7 +11,8 @@ module WebSocket
         Base64.strict_encode64(Digest::SHA1.digest(key + GUID))
       end
 
-      GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+      VERSION = '13'
+      GUID    = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
       BYTE       = 0b11111111
       FIN = MASK = 0b10000000
@@ -68,22 +69,16 @@ module WebSocket
 
         return unless @socket.respond_to?(:env)
 
-        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
-        protos  = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-
-        @headers['Upgrade']              = 'websocket'
-        @headers['Connection']           = 'Upgrade'
-        @headers['Sec-WebSocket-Accept'] = Hybi.generate_accept(sec_key)
+        protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
 
         if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
           protos = protos.split(/ *, */) if String === protos
           @protocol = protos.find { |p| @protocols.include?(p) }
-          @headers['Sec-WebSocket-Protocol'] = @protocol if @protocol
         end
       end
 
       def version
-        "hybi-#{@socket.env['HTTP_SEC_WEBSOCKET_VERSION']}"
+        "hybi-#{VERSION}"
       end
 
       def add_extension(extension)
@@ -229,13 +224,24 @@ module WebSocket
       end
 
       def handshake_response
-        begin
-          extensions = @extensions.generate_response(@socket.env['HTTP_SEC_WEBSOCKET_EXTENSIONS'])
-        rescue => error
-          fail(:protocol_error, error.message)
-          return nil
+        sec_key = @socket.env['HTTP_SEC_WEBSOCKET_KEY']
+        version = @socket.env['HTTP_SEC_WEBSOCKET_VERSION']
+
+        unless version == VERSION
+          raise ProtocolError.new("Unsupported WebSocket version: #{VERSION}")
         end
 
+        unless sec_key
+          raise ProtocolError.new('Missing handshake request header: Sec-WebSocket-Key')
+        end
+
+        @headers['Upgrade']              = 'websocket'
+        @headers['Connection']           = 'Upgrade'
+        @headers['Sec-WebSocket-Accept'] = Hybi.generate_accept(sec_key)
+
+        @headers['Sec-WebSocket-Protocol'] = @protocol if @protocol
+
+        extensions = @extensions.generate_response(@socket.env['HTTP_SEC_WEBSOCKET_EXTENSIONS'])
         @headers['Sec-WebSocket-Extensions'] = extensions if extensions
 
         start   = 'HTTP/1.1 101 Switching Protocols'

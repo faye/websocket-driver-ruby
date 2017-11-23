@@ -101,8 +101,17 @@ module WebSocket
 
     def start
       return false unless @ready_state == 0
-      response = handshake_response
-      return false unless response
+
+      unless Driver.websocket?(@socket.env)
+        return fail_handshake(ProtocolError.new('Not a WebSocket request'))
+      end
+
+      begin
+        response = handshake_response
+      rescue => error
+        return fail_handshake(error)
+      end
+
       @socket.write(response)
       open unless @stage == -1
       true
@@ -133,6 +142,24 @@ module WebSocket
     end
 
   private
+
+    def fail_handshake(error)
+      headers = Headers.new
+      headers['Content-Type'] = 'text/plain'
+      headers['Content-Length'] = error.message.bytesize
+
+      headers = ['HTTP/1.1 400 Bad Request', headers.to_s, error.message]
+      @socket.write(headers.join("\r\n"))
+      fail(:protocol_error, error.message)
+
+      false
+    end
+
+    def fail(type, message)
+      @ready_state = 2
+      emit(:error, ProtocolError.new(message))
+      close
+    end
 
     def open
       @ready_state = 1

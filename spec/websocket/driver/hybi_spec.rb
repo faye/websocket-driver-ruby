@@ -90,8 +90,13 @@ describe WebSocket::Driver::Hybi do
           env["HTTP_SEC_WEBSOCKET_EXTENSIONS"] = "x-webkit- -frame"
         end
 
-        it "does not write a handshake" do
-          expect(socket).not_to receive(:write)
+        it "writes a handshake error response" do
+          expect(socket).to receive(:write).with(
+              "HTTP/1.1 400 Bad Request\r\n" +
+              "Content-Type: text/plain\r\n" +
+              "Content-Length: 57\r\n" +
+              "\r\n" +
+              "Invalid Sec-WebSocket-Extensions header: x-webkit- -frame")
           driver.start
         end
 
@@ -121,13 +126,13 @@ describe WebSocket::Driver::Hybi do
           driver.set_header "Authorization", "Bearer WAT"
         end
 
-        it "writes the handshake with custom headers" do
+        it "writes the handshake with the custom headers" do
           expect(socket).to receive(:write).with(
               "HTTP/1.1 101 Switching Protocols\r\n" +
+              "Authorization: Bearer WAT\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
-              "Authorization: Bearer WAT\r\n" +
               "\r\n")
           driver.start
         end
