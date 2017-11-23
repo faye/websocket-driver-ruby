@@ -9,7 +9,7 @@ rvm:
   - 2.3.5
   - 2.4.2
   - jruby-19mode
-  - jruby-9
+  - jruby-head
 
 before_install:
   - '[[ "$(ruby --version)" == *"1.9.3"* ]] && gem update --system 2.4.8 || true'
