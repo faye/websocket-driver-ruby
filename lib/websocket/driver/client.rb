@@ -10,7 +10,7 @@ module WebSocket
 
       attr_reader :status, :headers
 
-      def initialize(socket, options = {})
+      def initialize(socket, **options)
         super
 
         @ready_state = -1

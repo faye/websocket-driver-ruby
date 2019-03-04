@@ -4,7 +4,7 @@ module WebSocket
     class Server < Driver
       EVENTS = %w[open message error close]
 
-      def initialize(socket, options = {})
+      def initialize(socket, **options)
         super
         @http = HTTP::Request.new
         @delegate = nil

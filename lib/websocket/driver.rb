@@ -71,14 +71,14 @@ module WebSocket
     include EventEmitter
     attr_reader :protocol, :ready_state
 
-    def initialize(socket, options = {})
+    def initialize(socket, max_length: MAX_LENGTH, **options)
       super()
-      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols])
+      Driver.validate_options(options, [:masking, :require_masking, :protocols])
 
       @socket      = socket
       @reader      = StreamReader.new
       @options     = options
-      @max_length  = options[:max_length] || MAX_LENGTH
+      @max_length  = max_length
       @headers     = Headers.new
       @queue       = []
       @ready_state = 0
