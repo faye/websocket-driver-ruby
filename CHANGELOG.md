@@ -1,3 +1,8 @@
+### 0.7.1 / 2019-05-16
+
+* If any driver encounters a validation error in the request headers, it can throw an error and Driver#start will catch that and send a 400 response to the client.
+* If any header used by Hybi is present, then pick Hybi, and likewise for Draft76.
+
 ### 0.7.0 / 2017-09-11
 
 * Add `ping` and `pong` to the set of events users can listen to
