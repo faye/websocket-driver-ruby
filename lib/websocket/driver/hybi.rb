@@ -74,6 +74,8 @@ module WebSocket
         if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
           protos = protos.split(/ *, */) if String === protos
           @protocol = protos.find { |p| @protocols.include?(p) }
+        else
+          @protocol = nil
         end
       end
 
