@@ -28,6 +28,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'eventmachine'
   s.add_development_dependency 'permessage_deflate'
-  s.add_development_dependency 'rake-compiler', '~> 0.8.0'
+  s.add_development_dependency 'rake-compiler'
   s.add_development_dependency 'rspec'
 end
