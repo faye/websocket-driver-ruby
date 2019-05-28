@@ -85,7 +85,8 @@ module WebSocket
       end
 
       def number_from_key(key)
-        key.scan(/[0-9]/).join('').to_i(10)
+        number = key.scan(/[0-9]/).join('')
+        number == '' ? Float::NAN : number.to_i(10)
       end
 
       def spaces_in_key(key)
