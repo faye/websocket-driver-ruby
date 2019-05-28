@@ -30,4 +30,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'permessage_deflate'
   s.add_development_dependency 'rake-compiler'
   s.add_development_dependency 'rspec'
+
+  if RUBY_VERSION < '2.0.0'
+    s.add_development_dependency 'rake', '< 12.3.0'
+  end
 end
