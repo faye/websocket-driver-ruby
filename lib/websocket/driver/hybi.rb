@@ -69,8 +69,6 @@ module WebSocket
 
         return unless @socket.respond_to?(:env)
 
-        protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-
         if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
           protos = protos.split(/ *, */) if String === protos
           @protocol = protos.find { |p| @protocols.include?(p) }
