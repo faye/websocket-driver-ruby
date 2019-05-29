@@ -10,21 +10,21 @@ pluggable I/O.
 Due to this design, you get a lot of things for free. In particular, if you hook
 this module up to some I/O object, it will do all of this for you:
 
-* Select the correct server-side driver to talk to the client
-* Generate and send both server- and client-side handshakes
-* Recognize when the handshake phase completes and the WS protocol begins
-* Negotiate subprotocol selection based on `Sec-WebSocket-Protocol`
-* Negotiate and use extensions via the
+- Select the correct server-side driver to talk to the client
+- Generate and send both server- and client-side handshakes
+- Recognize when the handshake phase completes and the WS protocol begins
+- Negotiate subprotocol selection based on `Sec-WebSocket-Protocol`
+- Negotiate and use extensions via the
   [websocket-extensions](https://github.com/faye/websocket-extensions-ruby)
   module
-* Buffer sent messages until the handshake process is finished
-* Deal with proxies that defer delivery of the draft-76 handshake body
-* Notify you when the socket is open and closed and when messages arrive
-* Recombine fragmented messages
-* Dispatch text, binary, ping, pong and close frames
-* Manage the socket-closing handshake process
-* Automatically reply to ping frames with a matching pong
-* Apply masking to messages sent by the client
+- Buffer sent messages until the handshake process is finished
+- Deal with proxies that defer delivery of the draft-76 handshake body
+- Notify you when the socket is open and closed and when messages arrive
+- Recombine fragmented messages
+- Dispatch text, binary, ping, pong and close frames
+- Manage the socket-closing handshake process
+- Automatically reply to ping frames with a matching pong
+- Apply masking to messages sent by the client
 
 This library was originally extracted from the [Faye](http://faye.jcoglan.com)
 project but now aims to provide simple WebSocket support for any Ruby server or
@@ -43,12 +43,12 @@ $ gem install websocket-driver
 To build either a server-side or client-side socket, the only requirement is
 that you supply a `socket` object with these methods:
 
-* `socket.url` - returns the full URL of the socket as a string.
-* `socket.write(string)` - writes the given string to a TCP stream.
+- `socket.url` - returns the full URL of the socket as a string.
+- `socket.write(string)` - writes the given string to a TCP stream.
 
 Server-side sockets require one additional method:
 
-* `socket.env` - returns a Rack-style env hash that will contain some of the
+- `socket.env` - returns a Rack-style env hash that will contain some of the
   following fields. Their values are strings containing the value of the named
   header, unless stated otherwise.
   * `HTTP_CONNECTION`
@@ -193,8 +193,8 @@ and send outgoing data.
 Client drivers have two additional methods for reading the HTTP data that was
 sent back by the server:
 
-* `driver.status` - the integer value of the HTTP status code
-* `driver.headers` - a hash-like object containing the response headers
+- `driver.status` - the integer value of the HTTP status code
+- `driver.headers` - a hash-like object containing the response headers
 
 
 ### HTTP Proxies
@@ -261,9 +261,9 @@ frames.
 The `options` argument is optional, and is a hash. It may contain the following
 keys:
 
-* `:max_length` - the maximum allowed size of incoming message frames, in bytes.
+- `:max_length` - the maximum allowed size of incoming message frames, in bytes.
   The default value is `2^26 - 1`, or 1 byte short of 64 MiB.
-* `:protocols` - an array of strings representing acceptable subprotocols for
+- `:protocols` - an array of strings representing acceptable subprotocols for
   use over the socket. The driver will negotiate one of these to use via the
   `Sec-WebSocket-Protocol` header if supported by the other peer.
 
