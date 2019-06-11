@@ -25,7 +25,7 @@ module WebSocket
         return if value.nil?
         key = HTTP.normalize_header(name)
         return unless @sent.add?(key) or ALLOWED_DUPLICATES.include?(key)
-        @lines << "#{name.strip}: #{value.to_s.strip}\r\n"
+        @lines << "#{ name.strip }: #{ value.to_s.strip }\r\n"
       end
 
       def inspect

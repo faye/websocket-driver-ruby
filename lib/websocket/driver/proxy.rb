@@ -4,7 +4,7 @@ module WebSocket
     class Proxy
       include EventEmitter
 
-      PORTS = {'ws' => 80, 'wss' => 443}
+      PORTS = { 'ws' => 80, 'wss' => 443 }
 
       attr_reader :status, :headers
 
@@ -20,7 +20,7 @@ module WebSocket
         @state   = 0
 
         @headers = Headers.new
-        @headers['Host'] = @origin.host + (@origin.port ? ":#{@origin.port}" : '')
+        @headers['Host'] = @origin.host + (@origin.port ? ":#{ @origin.port }" : '')
         @headers['Connection'] = 'keep-alive'
         @headers['Proxy-Connection'] = 'keep-alive'
 
@@ -41,7 +41,7 @@ module WebSocket
         @state = 1
 
         port    = @origin.port || PORTS[@origin.scheme]
-        start   = "CONNECT #{@origin.host}:#{port} HTTP/1.1"
+        start   = "CONNECT #{ @origin.host }:#{ port } HTTP/1.1"
         headers = [start, @headers.to_s, '']
 
         @socket.write(headers.join("\r\n"))
@@ -58,7 +58,7 @@ module WebSocket
         if @status == 200
           emit(:connect, ConnectEvent.new)
         else
-          message = "Can't establish a connection to the server at #{@socket.url}"
+          message = "Can't establish a connection to the server at #{ @socket.url }"
           emit(:error, ProtocolError.new(message))
         end
       end

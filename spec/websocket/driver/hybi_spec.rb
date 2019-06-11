@@ -18,7 +18,7 @@ describe WebSocket::Driver::Hybi do
   end
 
   let :options do
-    {:masking => false}
+    { :masking => false }
   end
 
   let :socket do

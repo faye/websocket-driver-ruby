@@ -30,11 +30,11 @@ module WebSocket
         super
         @headers.each do |name, value|
           rack_name = name.upcase.gsub(/-/, '_')
-          rack_name = "HTTP_#{rack_name}" unless RESERVED_HEADERS.include?(name)
+          rack_name = "HTTP_#{ rack_name }" unless RESERVED_HEADERS.include?(name)
           @env[rack_name] = value
         end
         if host = @env['HTTP_HOST']
-          uri = URI.parse("http://#{host}")
+          uri = URI.parse("http://#{ host }")
           @env['SERVER_NAME'] = uri.host
           @env['SERVER_PORT'] = uri.port.to_s
         end

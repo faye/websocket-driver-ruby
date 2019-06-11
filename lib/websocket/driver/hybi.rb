@@ -52,7 +52,7 @@ module WebSocket
       MIN_RESERVED_ERROR = 3000
       MAX_RESERVED_ERROR = 4999
 
-      PACK_FORMATS = {2 => 'n', 8 => 'Q>'}
+      PACK_FORMATS = { 2 => 'n', 8 => 'Q>' }
 
       def initialize(socket, options = {})
         super
@@ -78,7 +78,7 @@ module WebSocket
       end
 
       def version
-        "hybi-#{VERSION}"
+        "hybi-#{ VERSION }"
       end
 
       def add_extension(extension)
@@ -228,7 +228,7 @@ module WebSocket
         version = @socket.env['HTTP_SEC_WEBSOCKET_VERSION']
 
         unless version == VERSION
-          raise ProtocolError.new("Unsupported WebSocket version: #{VERSION}")
+          raise ProtocolError.new("Unsupported WebSocket version: #{ VERSION }")
         end
 
         unless sec_key
@@ -281,17 +281,17 @@ module WebSocket
 
         unless @extensions.valid_frame_rsv?(@frame)
           return fail(:protocol_error,
-              "One or more reserved bits are on: reserved1 = #{@frame.rsv1 ? 1 : 0}" +
-              ", reserved2 = #{@frame.rsv2 ? 1 : 0 }" +
-              ", reserved3 = #{@frame.rsv3 ? 1 : 0 }")
+              "One or more reserved bits are on: reserved1 = #{ @frame.rsv1 ? 1 : 0 }" +
+              ", reserved2 = #{ @frame.rsv2 ? 1 : 0 }" +
+              ", reserved3 = #{ @frame.rsv3 ? 1 : 0 }")
         end
 
         unless OPCODES.values.include?(@frame.opcode)
-          return fail(:protocol_error, "Unrecognized frame opcode: #{@frame.opcode}")
+          return fail(:protocol_error, "Unrecognized frame opcode: #{ @frame.opcode }")
         end
 
         unless MESSAGE_OPCODES.include?(@frame.opcode) or @frame.final
-          return fail(:protocol_error, "Received fragmented control frame: opcode = #{@frame.opcode}")
+          return fail(:protocol_error, "Received fragmented control frame: opcode = #{ @frame.opcode }")
         end
 
         if @message and OPENING_OPCODES.include?(@frame.opcode)
@@ -321,7 +321,7 @@ module WebSocket
         @stage = @frame.masked ? 3 : 4
 
         unless MESSAGE_OPCODES.include?(@frame.opcode) or @frame.length <= 125
-          return fail(:protocol_error, "Received control frame having too long payload: #{@frame.length}")
+          return fail(:protocol_error, "Received control frame having too long payload: #{ @frame.length }")
         end
 
         return unless check_frame_length

@@ -5,7 +5,7 @@ require 'socket'
 require 'uri'
 
 class WSClient
-  DEFAULT_PORTS = {'ws' => 80, 'wss' => 443}
+  DEFAULT_PORTS = { 'ws' => 80, 'wss' => 443 }
 
   attr_reader :url, :thread
 

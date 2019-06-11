@@ -11,7 +11,7 @@ describe WebSocket::Driver::Client do
   end
 
   let :options do
-    {:protocols => protocols}
+    { :protocols => protocols }
   end
 
   let :protocols do
@@ -65,7 +65,7 @@ describe WebSocket::Driver::Client do
     describe :start do
       it "writes the handshake request to the socket" do
         expect(socket).to receive(:write).with(
-            "GET /socket HTTP/1.1\r\n" + 
+            "GET /socket HTTP/1.1\r\n" +
             "Host: www.example.com\r\n" +
             "Upgrade: websocket\r\n" +
             "Connection: Upgrade\r\n" +
@@ -84,7 +84,7 @@ describe WebSocket::Driver::Client do
 
         it "writes the handshake with Sec-WebSocket-Protocol" do
           expect(socket).to receive(:write).with(
-              "GET /socket HTTP/1.1\r\n" + 
+              "GET /socket HTTP/1.1\r\n" +
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
@@ -101,7 +101,7 @@ describe WebSocket::Driver::Client do
 
         it "writes the handshake with Sec-WebSocket-Protocol" do
           expect(socket).to receive(:write).with(
-              "GET /socket HTTP/1.1\r\n" + 
+              "GET /socket HTTP/1.1\r\n" +
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
@@ -128,7 +128,7 @@ describe WebSocket::Driver::Client do
 
         it "writes the handshake with custom headers" do
           expect(socket).to receive(:write).with(
-              "GET /socket HTTP/1.1\r\n" + 
+              "GET /socket HTTP/1.1\r\n" +
               "Host: www.example.com\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
@@ -272,7 +272,7 @@ describe WebSocket::Driver::Client do
         expect(driver.state).to eq :closed
       end
     end
- 
+
     describe "with a bad Accept header" do
       before do
         resp = response.gsub(/QV3/, "wrong")

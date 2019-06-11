@@ -17,9 +17,9 @@ module WebSocket
       def url
         return nil unless e = env
 
-        url  = "ws://#{e['HTTP_HOST']}"
+        url  = "ws://#{ e['HTTP_HOST'] }"
         url << e['PATH_INFO']
-        url << "?#{e['QUERY_STRING']}" unless e['QUERY_STRING'] == ''
+        url << "?#{ e['QUERY_STRING'] }" unless e['QUERY_STRING'] == ''
         url
       end
 

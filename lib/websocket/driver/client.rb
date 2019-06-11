@@ -20,10 +20,10 @@ module WebSocket
 
         uri = URI.parse(@socket.url)
         unless VALID_SCHEMES.include?(uri.scheme)
-          raise URIError, "#{socket.url} is not a valid WebSocket URL"
+          raise URIError, "#{ socket.url } is not a valid WebSocket URL"
         end
 
-        host      = uri.host + (uri.port ? ":#{uri.port}" : '')
+        host      = uri.host + (uri.port ? ":#{ uri.port }" : '')
         path      = (uri.path == '') ? '/' : uri.path
         @pathname = path + (uri.query ? '?' + uri.query : '')
 
@@ -44,7 +44,7 @@ module WebSocket
       end
 
       def version
-        "hybi-#{VERSION}"
+        "hybi-#{ VERSION }"
       end
 
       def proxy(origin, options = {})
@@ -73,19 +73,19 @@ module WebSocket
         parse(@http.body)
       end
 
-    private 
+    private
 
       def handshake_request
         extensions = @extensions.generate_offer
         @headers['Sec-WebSocket-Extensions'] = extensions if extensions
 
-        start   = "GET #{@pathname} HTTP/1.1"
+        start   = "GET #{ @pathname } HTTP/1.1"
         headers = [start, @headers.to_s, '']
         headers.join("\r\n")
       end
 
       def fail_handshake(message)
-        message = "Error during WebSocket handshake: #{message}"
+        message = "Error during WebSocket handshake: #{ message }"
         @ready_state = 3
         emit(:error, ProtocolError.new(message))
         emit(:close, CloseEvent.new(ERRORS[:protocol_error], message))
@@ -96,7 +96,7 @@ module WebSocket
         @headers = Headers.new(@http.headers)
 
         unless @http.code == 101
-          return fail_handshake("Unexpected response code: #{@http.code}")
+          return fail_handshake("Unexpected response code: #{ @http.code }")
         end
 
         upgrade    = @http['Upgrade'] || ''
