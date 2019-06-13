@@ -5,6 +5,7 @@
 - Pick the RFC-6455 protocol version if the request contains any of the headers
   used by that version
 - Handle errors encountered while handling malformed draft-76 requests
+- Change license from MIT to Apache 2.0
 
 ### 0.7.0 / 2017-09-11
 
