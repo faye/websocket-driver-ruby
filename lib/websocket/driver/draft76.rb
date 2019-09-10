@@ -6,11 +6,10 @@ module WebSocket
 
       def initialize(socket, options = {})
         super
-        input  = @socket.env['rack.input']
+        input  = (@socket.env['rack.input'] || StringIO.new('')).read
+        input = input.dup if input.frozen?
         @stage = -1
-        input_string = (input ? input.read : String.new(''))
-        input_string = input_string.dup if input_string.frozen?
-        @body  = input_string.force_encoding(BINARY)
+        @body  = input.force_encoding(BINARY)
 
         @headers.clear
         @headers['Upgrade'] = 'WebSocket'
