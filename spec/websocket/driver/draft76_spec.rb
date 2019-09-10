@@ -226,4 +226,21 @@ describe WebSocket::Driver::Draft76 do
       end
     end
   end
+
+  describe "frozen rack.input.read" do
+    let :frozen_env do
+      # Make up a rack.input that somehow returns a frozen string on input.read
+      # We're seeing this error occasionally when using ActionCable in Rails 5.2
+      env.merge("rack.input" => Struct.new(:read).new(''.freeze))
+    end
+
+    it 'edge case where rack.input.read returns a frozen string' do
+      frozen_socket = socket
+      allow(frozen_socket).to receive(:env).and_return(frozen_env)
+
+      expect {
+        WebSocket::Driver::Draft76.new(frozen_socket)
+      }.to_not raise_error
+    end
+  end
 end
