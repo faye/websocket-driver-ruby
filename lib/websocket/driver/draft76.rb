@@ -8,7 +8,9 @@ module WebSocket
         super
         input  = @socket.env['rack.input']
         @stage = -1
-        @body  = (input ? input.read : String.new('')).force_encoding(BINARY)
+        input_string = (input ? input.read : String.new(''))
+        input_string = input_string.dup if input_string.frozen?
+        @body  = input_string.force_encoding(BINARY)
 
         @headers.clear
         @headers['Upgrade'] = 'WebSocket'
