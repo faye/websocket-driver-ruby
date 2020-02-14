@@ -2,7 +2,7 @@ module WebSocket
   class Driver
 
     class Server < Driver
-      EVENTS = %w[open message error close]
+      EVENTS = %w[open message error close ping pong]
 
       def initialize(socket, options = {})
         super
