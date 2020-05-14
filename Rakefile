@@ -9,6 +9,8 @@ if RUBY_PLATFORM =~ /java/
   require 'rake/javaextensiontask'
   Rake::JavaExtensionTask.new('websocket-driver', spec) do |ext|
     ext.name = 'websocket_mask'
+    ext.source_version = '8'
+    ext.target_version = '8'
   end
 else
   require 'rake/extensiontask'

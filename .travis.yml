@@ -1,5 +1,4 @@
 sudo: false
-dist: trusty
 language: ruby
 
 rvm:
@@ -13,11 +12,13 @@ rvm:
   - 2.6.6
   - 2.7.1
   - jruby-19mode
-  - jruby-head
+  - jruby-9.0
+  - jruby-9.1
+  - jruby-9.2
 
 before_install:
-  - '[[ "$(ruby --version)" == *"1.9.3"* ]] && gem update --system 2.4.8 || true'
+  - '[[ "$(ruby --version)" != *"1.9.3"* ]] || gem update --system 2.4.8'
 
 script:
   - bundle exec rake compile
-  - bundle exec rspec -c spec
+  - bundle exec rspec
