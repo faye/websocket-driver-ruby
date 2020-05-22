@@ -1,3 +1,8 @@
+### 0.7.2 / 2020-05-22
+
+- Emit `ping` and `pong` events from the `Server` driver
+- Handle draft-76 handshakes correctly if the request's body is a frozen string
+
 ### 0.7.1 / 2019-06-10
 
 - Catch any exceptions produced while generating a handshake response and send a
