@@ -1,3 +1,7 @@
+### 0.7.2.1 / 2020-06-05
+
+- Bump websocket-extensions dependency to 0.15 to address CVE-2020-7663
+
 ### 0.7.2 / 2020-05-22
 
 - Emit `ping` and `pong` events from the `Server` driver
