@@ -1,3 +1,8 @@
+### 0.7.3 / 2020-07-09
+
+- Let the client accept HTTP responses that have an empty reason phrase
+  following the `101` status code
+
 ### 0.7.2 / 2020-05-22
 
 - Emit `ping` and `pong` events from the `Server` driver
