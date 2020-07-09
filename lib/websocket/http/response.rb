@@ -4,7 +4,7 @@ module WebSocket
     class Response
       include Headers
 
-      STATUS_LINE = /^(HTTP\/[0-9]+\.[0-9]+) ([0-9]{3}) ([\x20-\x7e]+)$/
+      STATUS_LINE = /^(HTTP\/[0-9]+\.[0-9]+) ([0-9]{3}) ([\x20-\x7e]*)$/
 
       attr_reader :code
 
