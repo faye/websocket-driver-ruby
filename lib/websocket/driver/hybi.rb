@@ -342,8 +342,6 @@ module WebSocket
         frame    = @frame
         opcode   = frame.opcode
         payload  = frame.payload = Mask.mask(buffer, @frame.masking_key)
-        bytesize = payload.bytesize
-        bytes    = payload.bytes.to_a
 
         @frame = nil
 
@@ -357,8 +355,10 @@ module WebSocket
             @message << frame
 
           when OPCODES[:close] then
-            code   = (bytesize >= 2) ? payload.unpack(PACK_FORMATS[2]).first : nil
-            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], UNICODE) : nil
+            bytesize = payload.bytesize
+            bytes    = payload.bytes.to_a
+            code     = (bytesize >= 2) ? payload.unpack(PACK_FORMATS[2]).first : nil
+            reason   = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], UNICODE) : nil
 
             unless (bytesize == 0) or
                    (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
