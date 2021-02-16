@@ -213,14 +213,16 @@ module WebSocket
           buffer[2..9] = [length].pack(PACK_FORMATS[8]).bytes.to_a
         end
 
+        buffer = buffer.pack('C*')
+
         if frame.masked
-          buffer.concat(frame.masking_key.bytes.to_a)
-          buffer.concat(Mask.mask(frame.payload, frame.masking_key).bytes.to_a)
+          buffer << frame.masking_key.b
+          buffer << Mask.mask(frame.payload, frame.masking_key).b
         else
-          buffer.concat(frame.payload.bytes.to_a)
+          buffer << frame.payload.b
         end
 
-        @socket.write(buffer.pack('C*'))
+        @socket.write(buffer)
       end
 
       def handshake_response
