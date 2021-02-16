@@ -165,9 +165,9 @@ module WebSocket
         message.rsv1   = message.rsv2 = message.rsv3 = false
         message.opcode = OPCODES[type || (is_text ? :text : :binary)]
 
-        payload = is_text ? buffer.bytes.to_a : buffer
-        payload = [code].pack(PACK_FORMATS[2]).bytes.to_a + payload if code
-        message.data = payload.pack('C*')
+        payload = is_text ? buffer : buffer.pack('C*')
+        payload = [code].pack(PACK_FORMATS[2]) + payload if code
+        message.data = payload
 
         if MESSAGE_OPCODES.include?(message.opcode)
           message = @extensions.process_outgoing_message(message)
