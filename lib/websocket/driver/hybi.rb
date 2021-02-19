@@ -216,13 +216,23 @@ module WebSocket
         buffer = buffer.pack('C*')
 
         if frame.masked
-          buffer << frame.masking_key.b
-          buffer << Mask.mask(frame.payload, frame.masking_key).b
+          buffer << bin(frame.masking_key)
+          buffer << bin(Mask.mask(frame.payload, frame.masking_key))
         else
-          buffer << frame.payload.b
+          buffer << bin(frame.payload)
         end
 
         @socket.write(buffer)
+      end
+
+
+      # For backwards compatibility with old Rubies.
+      def bin(str)
+        if str.respond_to? :b
+          str.b
+        else
+          str
+        end
       end
 
       def handshake_response
