@@ -226,12 +226,12 @@ module WebSocket
       end
 
 
-      # For backwards compatibility with old Rubies.
+      # For backwards compatibility with Rubies that lack {String#b} (Ruby 1.9).
       def bin(str)
         if str.respond_to? :b
           str.b
         else
-          str
+          str.dup.force_encoding('ASCII-8BIT')
         end
       end
 
