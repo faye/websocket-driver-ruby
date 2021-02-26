@@ -369,11 +369,11 @@ module WebSocket
               code = ERRORS[:protocol_error]
             end
 
-            if bytesize > 125 or (bytesize > 2 and reason.nil?)
+            if bytesize > 125 or !reason.valid_encoding?
               code = ERRORS[:protocol_error]
             end
 
-            shutdown(code || DEFAULT_ERROR_CODE, reason)
+            shutdown(code || DEFAULT_ERROR_CODE, reason || '')
 
           when OPCODES[:ping] then
             frame(payload, :pong)
@@ -399,6 +399,7 @@ module WebSocket
         case message.opcode
           when OPCODES[:text] then
             payload = Driver.encode(payload, Encoding::UTF_8)
+            payload = nil unless payload.valid_encoding?
           when OPCODES[:binary]
             payload = payload.bytes.to_a
         end

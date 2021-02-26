@@ -206,7 +206,7 @@ module WebSocket
         string = string.dup if string.frozen?
         string.force_encoding(encoding)
       end
-      string.valid_encoding? ? string : nil
+      string
     end
 
     def self.validate_options(options, valid_keys)
