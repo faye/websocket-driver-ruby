@@ -52,7 +52,7 @@ module WebSocket
       MIN_RESERVED_ERROR = 3000
       MAX_RESERVED_ERROR = 4999
 
-      PACK_FORMATS = { 2 => 'n', 8 => 'Q>' }
+      PACK_FORMATS = { 2 => 'S>', 8 => 'Q>' }
 
       def initialize(socket, options = {})
         super
@@ -347,7 +347,6 @@ module WebSocket
         opcode   = frame.opcode
         payload  = frame.payload = Mask.mask(buffer, @frame.masking_key)
         bytesize = payload.bytesize
-        bytes    = payload.bytes.to_a
 
         @frame = nil
 
@@ -361,8 +360,8 @@ module WebSocket
             @message << frame
 
           when OPCODES[:close] then
-            code   = (bytesize >= 2) ? payload.unpack(PACK_FORMATS[2]).first : nil
-            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], Encoding::UTF_8) : nil
+            code, reason = payload.unpack('S>a*') if bytesize >= 2
+            reason = Driver.encode(reason || '', Encoding::UTF_8)
 
             unless (bytesize == 0) or
                    (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
@@ -374,7 +373,7 @@ module WebSocket
               code = ERRORS[:protocol_error]
             end
 
-            shutdown(code || DEFAULT_ERROR_CODE, reason || '')
+            shutdown(code || DEFAULT_ERROR_CODE, reason)
 
           when OPCODES[:ping] then
             frame(payload, :pong)
