@@ -14,7 +14,7 @@ module WebSocket
           @rsv2   = false
           @rsv3   = false
           @opcode = nil
-          @data   = String.new('').force_encoding(BINARY)
+          @data   = String.new('').force_encoding(Encoding::BINARY)
         end
 
         def <<(frame)

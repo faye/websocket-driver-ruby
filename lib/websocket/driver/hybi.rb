@@ -358,7 +358,7 @@ module WebSocket
 
           when OPCODES[:close] then
             code   = (bytesize >= 2) ? payload.unpack(PACK_FORMATS[2]).first : nil
-            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], UNICODE) : nil
+            reason = (bytesize > 2)  ? Driver.encode(bytes[2..-1] || [], Encoding::UTF_8) : nil
 
             unless (bytesize == 0) or
                    (code && code >= MIN_RESERVED_ERROR && code <= MAX_RESERVED_ERROR) or
@@ -377,7 +377,7 @@ module WebSocket
             emit(:ping, PingEvent.new(payload))
 
           when OPCODES[:pong] then
-            message = Driver.encode(payload, UNICODE)
+            message = Driver.encode(payload, Encoding::UTF_8)
             callback = @ping_callbacks[message]
             @ping_callbacks.delete(message)
             callback.call if callback
@@ -395,7 +395,7 @@ module WebSocket
 
         case message.opcode
           when OPCODES[:text] then
-            payload = Driver.encode(payload, UNICODE)
+            payload = Driver.encode(payload, Encoding::UTF_8)
           when OPCODES[:binary]
             payload = payload.bytes.to_a
         end

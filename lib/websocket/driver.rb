@@ -44,9 +44,6 @@ module WebSocket
     MAX_LENGTH = 0x3ffffff
     STATES     = [:connecting, :open, :closing, :closed]
 
-    BINARY  = 'ASCII-8BIT'
-    UNICODE = 'UTF-8'
-
     ConnectEvent = Struct.new(nil)
     OpenEvent    = Struct.new(nil)
     MessageEvent = Struct.new(:data)
@@ -118,7 +115,7 @@ module WebSocket
     end
 
     def text(message)
-      message = message.encode(UNICODE) unless message.encoding.name == UNICODE
+      message = message.encode(Encoding::UTF_8) unless message.encoding == Encoding::UTF_8
       frame(message, :text)
     end
 
@@ -201,11 +198,11 @@ module WebSocket
       case string
         when Array then
           string = string.pack('C*')
-          encoding ||= BINARY
+          encoding ||= Encoding::BINARY
         when String then
-          encoding ||= UNICODE
+          encoding ||= Encoding::UTF_8
       end
-      unless string.encoding.name == encoding
+      unless string.encoding == encoding
         string = string.dup if string.frozen?
         string.force_encoding(encoding)
       end
