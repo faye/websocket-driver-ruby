@@ -160,14 +160,13 @@ module WebSocket
 
         message = Message.new
         frame   = Frame.new
-        is_text = String === buffer
 
         message.rsv1   = message.rsv2 = message.rsv3 = false
-        message.opcode = OPCODES[type || (is_text ? :text : :binary)]
+        message.opcode = OPCODES[type || (String === buffer ? :text : :binary)]
 
-        payload = is_text ? buffer.bytes.to_a : buffer
-        payload = [code].pack(PACK_FORMATS[2]).bytes.to_a + payload if code
-        message.data = payload.pack('C*')
+        payload = Driver.encode(buffer, Encoding::BINARY)
+        payload = [code, payload].pack('S>a*') if code
+        message.data = payload
 
         if MESSAGE_OPCODES.include?(message.opcode)
           message = @extensions.process_outgoing_message(message)
@@ -194,33 +193,38 @@ module WebSocket
 
       def send_frame(frame)
         length = frame.length
-        buffer = []
+        values = []
+        format = 'C2'
         masked = frame.masked ? MASK : 0
 
-        buffer[0] = (frame.final ? FIN : 0) |
+        values[0] = (frame.final ? FIN : 0) |
                     (frame.rsv1 ? RSV1 : 0) |
                     (frame.rsv2 ? RSV2 : 0) |
                     (frame.rsv3 ? RSV3 : 0) |
                     frame.opcode
 
         if length <= 125
-          buffer[1] = masked | length
+          values[1] = masked | length
         elsif length <= 65535
-          buffer[1] = masked | 126
-          buffer[2..3] = [length].pack(PACK_FORMATS[2]).bytes.to_a
+          values[1] = masked | 126
+          values[2] = length
+          format << 'S>'
         else
-          buffer[1] = masked | 127
-          buffer[2..9] = [length].pack(PACK_FORMATS[8]).bytes.to_a
+          values[1] = masked | 127
+          values[2] = length
+          format << 'Q>'
         end
 
         if frame.masked
-          buffer.concat(frame.masking_key.bytes.to_a)
-          buffer.concat(Mask.mask(frame.payload, frame.masking_key).bytes.to_a)
+          values << frame.masking_key
+          values << Mask.mask(frame.payload, frame.masking_key)
+          format << 'a4a*'
         else
-          buffer.concat(frame.payload.bytes.to_a)
+          values << frame.payload
+          format << 'a*'
         end
 
-        @socket.write(buffer.pack('C*'))
+        @socket.write(values.pack(format))
       end
 
       def handshake_response
