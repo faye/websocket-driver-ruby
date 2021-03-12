@@ -150,7 +150,16 @@ module Connection
       if WebSocket::Driver.websocket?(@driver.env)
         @driver.start
       else
-        # handle other HTTP requests
+        # handle other HTTP requests, for example
+        body = '<h1>hello</h1>'
+        response = [
+          'HTTP/1.1 200 OK',
+          'Content-Type: text/plain',
+          "Content-Length: #{body.bytesize}",
+          '',
+          body
+        ]
+        send_data response.join("\r\n")
       end
     end
 
