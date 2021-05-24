@@ -1,3 +1,8 @@
+### 0.7.4 / 2021-05-24
+
+- Optimise conversions between strings and byte arrays and related encoding
+  operations, to reduce amount of allocation and copying
+
 ### 0.7.3 / 2020-07-09
 
 - Let the client accept HTTP responses that have an empty reason phrase
