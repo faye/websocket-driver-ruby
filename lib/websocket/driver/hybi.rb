@@ -164,7 +164,7 @@ module WebSocket
         message.rsv1   = message.rsv2 = message.rsv3 = false
         message.opcode = OPCODES[type || (String === buffer ? :text : :binary)]
 
-        payload = Driver.encode(buffer, Encoding::BINARY)
+        payload = Driver.encode(buffer)
         payload = [code, payload].pack('S>a*') if code
         message.data = payload
 

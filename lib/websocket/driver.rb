@@ -200,7 +200,7 @@ module WebSocket
           string = string.pack('C*')
           encoding ||= Encoding::BINARY
         when String then
-          encoding ||= Encoding::UTF_8
+          encoding ||= string.encoding
       end
       unless string.encoding == encoding
         string = string.dup if string.frozen?
