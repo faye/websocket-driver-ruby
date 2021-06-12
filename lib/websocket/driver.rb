@@ -115,7 +115,7 @@ module WebSocket
     end
 
     def text(message)
-      message = message.encode(Encoding::UTF_8) unless message.encoding == Encoding::UTF_8
+      message = Driver.encode(message, Encoding::UTF_8)
       frame(message, :text)
     end
 
@@ -194,19 +194,19 @@ module WebSocket
       end
     end
 
-    def self.encode(string, encoding = nil)
-      case string
-        when Array then
-          string = string.pack('C*')
-          encoding ||= Encoding::BINARY
-        when String then
-          encoding ||= string.encoding
+    def self.encode(data, encoding = nil)
+      if Array === data
+        encoding ||= Encoding::BINARY
+        return data.pack('C*').force_encoding(encoding)
       end
-      unless string.encoding == encoding
-        string = string.dup if string.frozen?
-        string.force_encoding(encoding)
-      end
-      string
+
+      encoding ||= Encoding::UTF_8
+
+      return data if data.encoding == encoding
+      return data.encode(encoding) unless data.encoding == Encoding::BINARY
+
+      data = data.dup if data.frozen?
+      data.force_encoding(encoding)
     end
 
     def self.validate_options(options, valid_keys)

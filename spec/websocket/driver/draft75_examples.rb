@@ -72,7 +72,7 @@ shared_examples_for "draft-75 protocol" do
       end
 
       it "encodes multibyte characters correctly" do
-        message = encode "Apple = "
+        message = encode("Apple = ")
         driver.frame message
         expect(@bytes).to eq [0x00, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf, 0xff]
       end

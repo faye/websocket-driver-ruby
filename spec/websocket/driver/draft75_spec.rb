@@ -90,7 +90,7 @@ describe WebSocket::Driver::Draft75 do
             "WebSocket-Origin: http://www.example.com\r\n" +
             "WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", Encoding::BINARY)
+        expect(socket).to receive(:write).with(encode "\x00Hi\xFF".bytes)
 
         driver.frame("Hi")
         driver.start

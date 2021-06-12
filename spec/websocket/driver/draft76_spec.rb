@@ -6,7 +6,7 @@ describe WebSocket::Driver::Draft76 do
   include EncodingHelper
 
   let :body do
-    WebSocket::Driver.encode [0x91, 0x25, 0x3e, 0xd3, 0xa9, 0xe7, 0x6a, 0x88]
+    encode [0x91, 0x25, 0x3e, 0xd3, 0xa9, 0xe7, 0x6a, 0x88]
   end
 
   let :response do
@@ -142,7 +142,7 @@ describe WebSocket::Driver::Draft76 do
             "Sec-WebSocket-Location: ws://www.example.com/socket\r\n" +
             "\r\n")
         expect(socket).to receive(:write).with(response)
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00Hi\xFF", Encoding::BINARY)
+        expect(socket).to receive(:write).with(encode "\x00Hi\xFF".bytes)
 
         driver.frame("Hi")
         driver.start
@@ -196,7 +196,7 @@ describe WebSocket::Driver::Draft76 do
 
           it "sends any frames queued before the handshake was complete" do
             expect(socket).to receive(:write).with(response)
-            expect(socket).to receive(:write).with(WebSocket::Driver.encode "\x00hello\xFF", Encoding::BINARY)
+            expect(socket).to receive(:write).with(encode "\x00hello\xFF".bytes)
             driver.frame("hello")
             driver.parse(body)
             expect(@bytes).to eq [0, 104, 101, 108, 108, 111, 255]

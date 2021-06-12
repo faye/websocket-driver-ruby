@@ -171,7 +171,7 @@ describe WebSocket::Driver::Hybi do
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
             "\r\n")
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode [0x81, 0x02, 72, 105])
+        expect(socket).to receive(:write).with(encode [0x81, 0x02, 72, 105])
 
         driver.frame("Hi")
         driver.start
@@ -195,7 +195,7 @@ describe WebSocket::Driver::Hybi do
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
             "\r\n")
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode [0x89, 0])
+        expect(socket).to receive(:write).with(encode [0x89, 0])
 
         driver.ping
         driver.start
@@ -219,7 +219,7 @@ describe WebSocket::Driver::Hybi do
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Accept: JdiiuafpBKRqD7eol0y4vJDTsTs=\r\n" +
             "\r\n")
-        expect(socket).to receive(:write).with(WebSocket::Driver.encode [0x8a, 0])
+        expect(socket).to receive(:write).with(encode [0x8a, 0])
 
         driver.pong
         driver.start
@@ -410,7 +410,7 @@ describe WebSocket::Driver::Hybi do
       end
 
       it "encodes multibyte characters correctly" do
-        message = encode "Apple = "
+        message = encode("Apple = ")
         driver.frame message
         expect(@bytes).to eq [0x81, 0x0b, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf]
       end

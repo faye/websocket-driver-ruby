@@ -230,7 +230,7 @@ describe WebSocket::Driver::Client do
 
     describe "with a valid response followed by a frame" do
       before do
-        resp = response + WebSocket::Driver.encode([0x81, 0x02, 72, 105])
+        resp = response + encode([0x81, 0x02, 72, 105])
         driver.parse(resp)
       end
 
