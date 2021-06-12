@@ -1,3 +1,7 @@
+### 0.7.5 / 2021-06-12
+
+- Do not change the encoding of strings passed to `Driver#text`
+
 ### 0.7.4 / 2021-05-24
 
 - Optimise conversions between strings and byte arrays and related encoding
