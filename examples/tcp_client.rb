@@ -5,16 +5,13 @@ require 'socket'
 require 'uri'
 
 class WSClient
-  DEFAULT_PORTS = { 'ws' => 80, 'wss' => 443 }
-
   attr_reader :url, :thread
 
   def initialize(url)
-    @url  = url
-    @uri  = URI.parse(url)
-    @port = @uri.port || DEFAULT_PORTS[@uri.scheme]
+    uri = URI.parse(url)
 
-    @tcp  = TCPSocket.new(@uri.host, @port)
+    @url  = url
+    @tcp  = TCPSocket.new(uri.host, uri.port)
     @dead = false
 
     @driver = WebSocket::Driver.client(self)
