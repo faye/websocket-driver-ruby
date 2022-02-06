@@ -66,7 +66,7 @@ describe WebSocket::Driver::Client do
       it "writes the handshake request to the socket" do
         expect(socket).to receive(:write).with(
             "GET /socket HTTP/1.1\r\n" +
-            "Host: www.example.com\r\n" +
+            "Host: www.example.com:80\r\n" +
             "Upgrade: websocket\r\n" +
             "Connection: Upgrade\r\n" +
             "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
@@ -85,7 +85,7 @@ describe WebSocket::Driver::Client do
         it "writes the handshake with Sec-WebSocket-Protocol" do
           expect(socket).to receive(:write).with(
               "GET /socket HTTP/1.1\r\n" +
-              "Host: www.example.com\r\n" +
+              "Host: www.example.com:80\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
@@ -102,7 +102,7 @@ describe WebSocket::Driver::Client do
         it "writes the handshake with Sec-WebSocket-Protocol" do
           expect(socket).to receive(:write).with(
               "GET /socket HTTP/1.1\r\n" +
-              "Host: www.example.com\r\n" +
+              "Host: www.example.com:80\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
@@ -129,7 +129,7 @@ describe WebSocket::Driver::Client do
         it "writes the handshake with custom headers" do
           expect(socket).to receive(:write).with(
               "GET /socket HTTP/1.1\r\n" +
-              "Host: www.example.com\r\n" +
+              "Host: www.example.com:80\r\n" +
               "Upgrade: websocket\r\n" +
               "Connection: Upgrade\r\n" +
               "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
@@ -152,7 +152,7 @@ describe WebSocket::Driver::Client do
       proxy = driver.proxy("http://proxy.example.com")
       expect(socket).to receive(:write).with(
           "CONNECT www.example.com:80 HTTP/1.1\r\n" +
-          "Host: www.example.com\r\n" +
+          "Host: www.example.com:80\r\n" +
           "Connection: keep-alive\r\n" +
           "Proxy-Connection: keep-alive\r\n" +
           "\r\n")
@@ -163,7 +163,7 @@ describe WebSocket::Driver::Client do
       proxy = driver.proxy("http://user:pass@proxy.example.com")
       expect(socket).to receive(:write).with(
           "CONNECT www.example.com:80 HTTP/1.1\r\n" +
-          "Host: www.example.com\r\n" +
+          "Host: www.example.com:80\r\n" +
           "Connection: keep-alive\r\n" +
           "Proxy-Connection: keep-alive\r\n" +
           "Proxy-Authorization: Basic dXNlcjpwYXNz\r\n" +
@@ -176,7 +176,7 @@ describe WebSocket::Driver::Client do
       proxy.set_header("User-Agent", "Chrome")
       expect(socket).to receive(:write).with(
           "CONNECT www.example.com:80 HTTP/1.1\r\n" +
-          "Host: www.example.com\r\n" +
+          "Host: www.example.com:80\r\n" +
           "Connection: keep-alive\r\n" +
           "Proxy-Connection: keep-alive\r\n" +
           "User-Agent: Chrome\r\n" +
