@@ -42,6 +42,7 @@ module WebSocket
     end
 
     MAX_LENGTH = 0x3ffffff
+    PORTS      = { 'ws' => 80, 'wss' => 443 }
     STATES     = [:connecting, :open, :closing, :closed]
 
     ConnectEvent = Struct.new(nil)
@@ -207,6 +208,14 @@ module WebSocket
 
       data = data.dup if data.frozen?
       data.force_encoding(encoding)
+    end
+
+    def self.host_header(uri)
+      host = uri.host
+      if uri.port and uri.port != PORTS[uri.scheme]
+        host += ":#{uri.port}"
+      end
+      host
     end
 
     def self.validate_options(options, valid_keys)

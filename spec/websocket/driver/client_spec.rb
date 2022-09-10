@@ -121,6 +121,54 @@ describe WebSocket::Driver::Client do
         end
       end
 
+      describe "with an explicit port" do
+        let(:url) { "ws://www.example.com:3000/socket" }
+
+        it "includes the port in the Host header" do
+          expect(socket).to receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" +
+              "Host: www.example.com:3000\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
+      describe "with a wss: URL" do
+        let(:url) { "wss://www.example.com/socket" }
+
+        it "does not include the port in the Host header" do
+          expect(socket).to receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" +
+              "Host: www.example.com\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
+      describe "with a wss: URL and explicit port" do
+        let(:url) { "wss://www.example.com:3000/socket" }
+
+        it "includes the port in the Host header" do
+          expect(socket).to receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" +
+              "Host: www.example.com:3000\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
+              "\r\n")
+          driver.start
+        end
+      end
+
       describe "with custom headers" do
         before do
           driver.set_header "User-Agent", "Chrome"

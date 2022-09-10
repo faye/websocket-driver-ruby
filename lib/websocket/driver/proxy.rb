@@ -4,8 +4,6 @@ module WebSocket
     class Proxy
       include EventEmitter
 
-      PORTS = { 'ws' => 80, 'wss' => 443 }
-
       attr_reader :status, :headers
 
       def initialize(client, origin, options)
@@ -20,7 +18,7 @@ module WebSocket
         @state   = 0
 
         @headers = Headers.new
-        @headers['Host'] = @origin.host + (@origin.port ? ":#{ @origin.port }" : '')
+        @headers['Host'] = Driver.host_header(@origin)
         @headers['Connection'] = 'keep-alive'
         @headers['Proxy-Connection'] = 'keep-alive'
 

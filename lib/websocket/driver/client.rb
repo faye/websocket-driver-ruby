@@ -23,11 +23,10 @@ module WebSocket
           raise URIError, "#{ socket.url } is not a valid WebSocket URL"
         end
 
-        host      = uri.host + (uri.port ? ":#{ uri.port }" : '')
         path      = (uri.path == '') ? '/' : uri.path
         @pathname = path + (uri.query ? '?' + uri.query : '')
 
-        @headers['Host']                  = host
+        @headers['Host']                  = Driver.host_header(uri)
         @headers['Upgrade']               = 'websocket'
         @headers['Connection']            = 'Upgrade'
         @headers['Sec-WebSocket-Key']     = @key
