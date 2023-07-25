@@ -1,3 +1,7 @@
+### 0.7.6 / 2023-07-25
+
+- Fix handling of default ports in `Host` headers on Ruby 3.1+
+
 ### 0.7.5 / 2021-06-12
 
 - Do not change the encoding of strings passed to `Driver#text`
