@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
 
   s.files = files
 
+  s.add_dependency 'base64'
   s.add_dependency 'websocket-extensions', '>= 0.1.0'
 
   s.add_development_dependency 'eventmachine'
