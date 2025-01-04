@@ -1,3 +1,7 @@
+### 0.7.7 / 2025-01-04
+
+- Add `base64` gem to the dependencies to support Ruby 3.4
+
 ### 0.7.6 / 2023-07-25
 
 - Fix handling of default ports in `Host` headers on Ruby 3.1+
