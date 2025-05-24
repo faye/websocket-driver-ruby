@@ -165,7 +165,7 @@ module WebSocket
 
         payload = Driver.encode(buffer)
         payload = [code, payload].pack('S>a*') if code
-        type  ||= (payload.encoding == Encoding::BINARY) ? :binary : :text
+        type  ||= (payload.encoding == Encoding::UTF_8) ? :text : :binary
 
         message.rsv1 = message.rsv2 = message.rsv3 = false
         message.opcode = OPCODES[type]
