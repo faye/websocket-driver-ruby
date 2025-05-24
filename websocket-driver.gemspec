@@ -7,6 +7,8 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/faye/websocket-driver-ruby'
   s.license  = 'Apache-2.0'
 
+  s.metadata['changelog_uri'] = s.homepage + '/blob/main/CHANGELOG.md'
+
   s.extra_rdoc_files = %w[README.md]
   s.rdoc_options     = %w[--main README.md --markup markdown]
   s.require_paths    = %w[lib]
@@ -35,6 +37,4 @@ Gem::Specification.new do |s|
   if RUBY_VERSION < '2.0.0'
     s.add_development_dependency 'rake', '< 12.3.0'
   end
-
-  s.metadata['changelog_uri'] = s.homepage + '/blob/main/CHANGELOG.md'
 end
