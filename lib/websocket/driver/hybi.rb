@@ -163,11 +163,12 @@ module WebSocket
         message = Message.new
         frame   = Frame.new
 
-        message.rsv1   = message.rsv2 = message.rsv3 = false
-        message.opcode = OPCODES[type || (String === buffer ? :text : :binary)]
-
         payload = Driver.encode(buffer)
         payload = [code, payload].pack('S>a*') if code
+        type  ||= (payload.encoding == Encoding::BINARY) ? :binary : :text
+
+        message.rsv1 = message.rsv2 = message.rsv3 = false
+        message.opcode = OPCODES[type]
         message.data = payload
 
         if MESSAGE_OPCODES.include?(message.opcode)
@@ -405,6 +406,8 @@ module WebSocket
           when OPCODES[:binary]
             if @binary_data_format == :array
               payload = payload.bytes.to_a
+            else
+              payload = Driver.encode(payload, Encoding::BINARY)
             end
         end
 

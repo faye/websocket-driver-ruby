@@ -31,10 +31,20 @@ describe WebSocket::Driver::Hybi do
   let :driver do
     driver = WebSocket::Driver::Hybi.new(socket, options)
     driver.on :open, -> e { @open = true }
-    driver.on(:message) { |e| @message += e.data }
+    driver.on(:message) { |e| extend_message(e.data) }
     driver.on(:error)   { |e| @error = e }
     driver.on(:close)   { |e| @close = [e.code, e.reason] }
     driver
+  end
+
+  def extend_message(data)
+    if Array === data
+      @message = @message.bytes.to_a unless Array === @message
+    else
+      @message = @message.to_s
+      @message.force_encoding(data.encoding)
+    end
+    @message += data
   end
 
   before do
@@ -265,6 +275,13 @@ describe WebSocket::Driver::Hybi do
       it "parses unmasked text frames" do
         driver.parse [0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f].pack("C*")
         expect(@message).to eq "Hello"
+        expect(@message.encoding).to eq Encoding::UTF_8
+      end
+
+      it "parses unmasked binary frames" do
+        driver.parse [0x82, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f].pack("C*")
+        expect(@message).to eq "Hello"
+        expect(@message.encoding).to eq Encoding::BINARY
       end
 
       it "parses multiple frames from the same packet" do
@@ -406,6 +423,11 @@ describe WebSocket::Driver::Hybi do
 
       it "formats a byte array as a binary WebSocket frame" do
         driver.frame [0x48, 0x65, 0x6c]
+        expect(@bytes).to eq [0x82, 0x03, 0x48, 0x65, 0x6c]
+      end
+
+      it "formats a binary string as a binary WebSocket frame" do
+        driver.frame [0x48, 0x65, 0x6c].pack("C*")
         expect(@bytes).to eq [0x82, 0x03, 0x48, 0x65, 0x6c]
       end
 

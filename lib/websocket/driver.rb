@@ -73,14 +73,15 @@ module WebSocket
       super()
       Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols, :binary_data_format])
 
-      @socket             = socket
-      @reader             = StreamReader.new
-      @options            = options
-      @max_length         = options[:max_length] || MAX_LENGTH
-      @headers            = Headers.new
-      @queue              = []
-      @ready_state        = 0
-      @binary_data_format = options[:binary_data_format] || :array
+      @socket      = socket
+      @reader      = StreamReader.new
+      @options     = options
+      @max_length  = options[:max_length] || MAX_LENGTH
+      @headers     = Headers.new
+      @queue       = []
+      @ready_state = 0
+
+      @binary_data_format = options[:binary_data_format] || :string
     end
 
     def state
@@ -198,17 +199,18 @@ module WebSocket
 
     def self.encode(data, encoding = nil)
       if Array === data
+        data = data.pack('C*')
         encoding ||= Encoding::BINARY
-        return data.pack('C*').force_encoding(encoding)
       end
 
-      encoding ||= Encoding::UTF_8
+      return data if encoding.nil? or data.encoding == encoding
 
-      return data if data.encoding == encoding
-      return data.encode(encoding) unless data.encoding == Encoding::BINARY
-
-      data = data.dup if data.frozen?
-      data.force_encoding(encoding)
+      if data.encoding == Encoding::BINARY
+        data = data.dup if data.frozen?
+        data.force_encoding(encoding)
+      else
+        data.encode(encoding)
+      end
     end
 
     def self.host_header(uri)
