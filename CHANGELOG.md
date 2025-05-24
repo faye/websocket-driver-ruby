@@ -1,3 +1,8 @@
+### 0.8.0 / 2025-05-24
+
+- Emit binary message as a string with `Encoding::BINARY` instead of an array
+- Add the option `:binary_data_format` to force the previous behaviour
+
 ### 0.7.7 / 2025-01-04
 
 - Add `base64` gem to the dependencies to support Ruby 3.4
