@@ -71,15 +71,16 @@ module WebSocket
 
     def initialize(socket, options = {})
       super()
-      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols])
+      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols, :binary_data_format])
 
-      @socket      = socket
-      @reader      = StreamReader.new
-      @options     = options
-      @max_length  = options[:max_length] || MAX_LENGTH
-      @headers     = Headers.new
-      @queue       = []
-      @ready_state = 0
+      @socket             = socket
+      @reader             = StreamReader.new
+      @options            = options
+      @max_length         = options[:max_length] || MAX_LENGTH
+      @headers            = Headers.new
+      @queue              = []
+      @ready_state        = 0
+      @binary_data_format = options[:binary_data_format] || :array
     end
 
     def state
@@ -222,6 +223,12 @@ module WebSocket
       options.keys.each do |key|
         unless valid_keys.include?(key)
           raise ConfigurationError, "Unrecognized option: #{ key.inspect }"
+        end
+      end
+
+      if options[:binary_data_format]
+        unless [:array, :string].include?(options[:binary_data_format])
+          raise ConfigurationError, "Invalid :binary_data_format: #{options[:binary_data_format].inspect}"
         end
       end
     end

@@ -403,7 +403,9 @@ module WebSocket
             payload = Driver.encode(payload, Encoding::UTF_8)
             payload = nil unless payload.valid_encoding?
           when OPCODES[:binary]
-            payload = payload.bytes.to_a
+            if @binary_data_format == :array
+              payload = payload.bytes.to_a
+            end
         end
 
         if payload
