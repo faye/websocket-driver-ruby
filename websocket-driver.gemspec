@@ -35,4 +35,6 @@ Gem::Specification.new do |s|
   if RUBY_VERSION < '2.0.0'
     s.add_development_dependency 'rake', '< 12.3.0'
   end
+
+  s.metadata['changelog_uri'] = s.homepage + '/blob/main/CHANGELOG.md'
 end
