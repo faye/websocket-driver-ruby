@@ -275,6 +275,10 @@ keys:
 - `:protocols` - an array of strings representing acceptable subprotocols for
   use over the socket. The driver will negotiate one of these to use via the
   `Sec-WebSocket-Protocol` header if supported by the other peer.
+- `:binary_data_format` - in older versions of this library, binary messages
+  were represented as arrays of bytes, whereas they're now represented as
+  strings with `Encoding::BINARY` for performance reasons. Set this option to
+  `:array` to restore the old behaviour.
 
 All drivers respond to the following API methods, but some of them are no-ops
 depending on whether the client supports the behaviour.
@@ -290,8 +294,8 @@ Adds a callback block to execute when the socket becomes open.
 #### `driver.on :message, -> (event) {}`
 
 Adds a callback block to execute when a message is received. `event` will have a
-`data` attribute containing either a string in the case of a text message or an
-array of integers in the case of a binary message.
+`data` attribute whose value is a string with the encoding `Encoding::UTF_8` for
+text message, and `Encoding::BINARY` for binary message.
 
 #### `driver.on :error, -> (event) {}`
 
@@ -346,11 +350,12 @@ Sends a text message over the socket. If the socket handshake is not yet
 complete, the message will be queued until it is. Returns `true` if the message
 was sent or queued, and `false` if the socket can no longer send messages.
 
-#### `driver.binary(array)`
+#### `driver.binary(buffer)`
 
-Takes an array of byte-sized integers and sends them as a binary message. Will
-queue and return `true` or `false` the same way as the `text` method. It will
-also return `false` if the driver does not support binary messages.
+Takes either a string with encoding `Encoding::BINARY`, or an array of
+byte-sized integers, and sends it as a binary message. Will queue and return
+`true` or `false` the same way as the `text` method. It will also return `false`
+if the driver does not support binary messages.
 
 #### `driver.ping(string = '', &callback)`
 
