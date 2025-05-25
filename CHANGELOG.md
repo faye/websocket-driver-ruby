@@ -1,4 +1,4 @@
-### 0.8.0 / 2025-05-24
+### 0.8.0 / 2025-05-25
 
 - Emit binary message as a string with `Encoding::BINARY` instead of an array
 - Add the option `:binary_data_format` to force the previous behaviour
