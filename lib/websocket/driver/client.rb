@@ -59,7 +59,7 @@ module WebSocket
 
     private
 
-      def set_headers_internal
+      def handshake_request
         @headers['Host']                  = Driver.host_header(@uri)
         @headers['Upgrade']               = 'websocket'
         @headers['Connection']            = 'Upgrade'
@@ -74,10 +74,6 @@ module WebSocket
           auth = Base64.strict_encode64([@uri.user, @uri.password] * ':')
           @headers['Authorization'] = 'Basic ' + auth
         end
-      end
-
-      def handshake_request
-        set_headers_internal
 
         extensions = @extensions.generate_offer
         @headers['Sec-WebSocket-Extensions'] = extensions if extensions
