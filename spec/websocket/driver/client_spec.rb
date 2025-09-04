@@ -61,6 +61,23 @@ describe WebSocket::Driver::Client do
         expect(@close).to eq [1000, ""]
       end
     end
+    
+    describe :set_protocols do
+      it "writes the handshake with Sec-WebSocket-Protocol" do
+          expect(socket).to receive(:write).with(
+              "GET /socket HTTP/1.1\r\n" +
+              "Host: www.example.com\r\n" +
+              "Upgrade: websocket\r\n" +
+              "Connection: Upgrade\r\n" +
+              "Sec-WebSocket-Key: 2vBVWg4Qyk3ZoM/5d3QD9Q==\r\n" +
+              "Sec-WebSocket-Version: 13\r\n" +
+              "Sec-WebSocket-Protocol: foo, bar, xmpp\r\n" +
+              "\r\n")
+
+          driver.set_protocols(["foo", "bar", "xmpp"])
+          driver.start
+        end
+    end
 
     describe :start do
       it "writes the handshake request to the socket" do

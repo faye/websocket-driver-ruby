@@ -78,6 +78,7 @@ module WebSocket
       @options     = options
       @max_length  = options[:max_length] || MAX_LENGTH
       @headers     = Headers.new
+      @custom_headers = Headers.new
       @queue       = []
       @ready_state = 0
 
@@ -95,7 +96,7 @@ module WebSocket
 
     def set_header(name, value)
       return false unless @ready_state <= 0
-      @headers[name] = value
+      @custom_headers[name] = value
       true
     end
 

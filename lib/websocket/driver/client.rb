@@ -18,28 +18,13 @@ module WebSocket
         @accept      = Hybi.generate_accept(@key)
         @http        = HTTP::Response.new
 
-        uri = URI.parse(@socket.url)
-        unless VALID_SCHEMES.include?(uri.scheme)
+        @uri = URI.parse(@socket.url)
+        unless VALID_SCHEMES.include?(@uri.scheme)
           raise URIError, "#{ socket.url } is not a valid WebSocket URL"
         end
 
-        path      = (uri.path == '') ? '/' : uri.path
-        @pathname = path + (uri.query ? '?' + uri.query : '')
-
-        @headers['Host']                  = Driver.host_header(uri)
-        @headers['Upgrade']               = 'websocket'
-        @headers['Connection']            = 'Upgrade'
-        @headers['Sec-WebSocket-Key']     = @key
-        @headers['Sec-WebSocket-Version'] = VERSION
-
-        if @protocols.size > 0
-          @headers['Sec-WebSocket-Protocol'] = @protocols * ', '
-        end
-
-        if uri.user
-          auth = Base64.strict_encode64([uri.user, uri.password] * ':')
-          @headers['Authorization'] = 'Basic ' + auth
-        end
+        path      = (@uri.path == '') ? '/' : @uri.path
+        @pathname = path + (@uri.query ? '?' + @uri.query : '')
       end
 
       def version
@@ -74,12 +59,31 @@ module WebSocket
 
     private
 
+      def set_headers_internal
+        @headers['Host']                  = Driver.host_header(@uri)
+        @headers['Upgrade']               = 'websocket'
+        @headers['Connection']            = 'Upgrade'
+        @headers['Sec-WebSocket-Key']     = @key
+        @headers['Sec-WebSocket-Version'] = VERSION
+  
+        if @protocols.size > 0
+          @headers['Sec-WebSocket-Protocol'] = @protocols * ', '
+        end
+  
+        if @uri.user
+          auth = Base64.strict_encode64([@uri.user, @uri.password] * ':')
+          @headers['Authorization'] = 'Basic ' + auth
+        end
+      end
+
       def handshake_request
+        set_headers_internal
+
         extensions = @extensions.generate_offer
         @headers['Sec-WebSocket-Extensions'] = extensions if extensions
 
         start   = "GET #{ @pathname } HTTP/1.1"
-        headers = [start, @headers.to_s, '']
+        headers = [start, @headers.merge(@custom_headers).to_s, '']
         headers.join("\r\n")
       end
 

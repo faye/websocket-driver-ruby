@@ -62,21 +62,12 @@ module WebSocket
         @extensions      = ::WebSocket::Extensions.new
         @stage           = 0
         @masking         = options[:masking]
-        @protocols       = options[:protocols] || []
-        @protocols       = @protocols.strip.split(/ *, */) if String === @protocols
         @require_masking = options[:require_masking]
         @ping_callbacks  = {}
 
         @frame = @message = nil
 
-        return unless @socket.respond_to?(:env)
-
-        if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
-          protos = protos.split(/ *, */) if String === protos
-          @protocol = protos.find { |p| @protocols.include?(p) }
-        else
-          @protocol = nil
-        end
+        set_protocols(options[:protocols] || [])
       end
 
       def version
@@ -86,6 +77,22 @@ module WebSocket
       def add_extension(extension)
         @extensions.add(extension)
         true
+      end
+
+      def set_protocols(protocols)
+        return false unless @ready_state <= 0
+
+        @protocols = protocols
+        @protocols = @protocols.strip.split(/ *, */) if String === @protocols
+
+        return unless @socket.respond_to?(:env)
+          
+        if protos = @socket.env['HTTP_SEC_WEBSOCKET_PROTOCOL']
+          protos = protos.split(/ *, */) if String === protos
+          @protocol = protos.find { |p| @protocols.include?(p) }
+        else
+          @protocol = nil
+        end
       end
 
       def parse(chunk)
@@ -253,7 +260,7 @@ module WebSocket
         @headers['Sec-WebSocket-Extensions'] = extensions if extensions
 
         start   = 'HTTP/1.1 101 Switching Protocols'
-        headers = [start, @headers.to_s, '']
+        headers = [start, @custom_headers.merge(@headers).to_s, '']
         headers.join("\r\n")
       end
 
