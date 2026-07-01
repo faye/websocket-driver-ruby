@@ -14,7 +14,7 @@ module WebSocket
 
       def clear
         @sent  = Set.new
-        @lines = []
+        @headers = {}
       end
 
       def [](name)
@@ -25,7 +25,17 @@ module WebSocket
         return if value.nil?
         key = HTTP.normalize_header(name)
         return unless @sent.add?(key) or ALLOWED_DUPLICATES.include?(key)
-        @lines << "#{ name.strip }: #{ value.to_s.strip }\r\n"
+
+        header = name.strip
+        unless @headers.include? header
+          @headers[header] = []
+        end
+
+        @headers[header] << value.to_s.strip
+      end
+
+      def headers_set
+        @headers
       end
 
       def inspect
@@ -36,8 +46,24 @@ module WebSocket
         @raw.dup
       end
 
+      def merge(other)
+        other.headers_set.each {|key, value|
+          if value.is_a? Array
+            value.each {|v| self[key] = v }
+          else
+            self[key] = value
+          end
+        }
+
+        self
+      end
+
       def to_s
-        @lines.join('')
+        @headers.flat_map {|header, values|
+          values.map {|value|
+            "#{ header.strip }: #{ value.to_s.strip }\r\n"
+          }
+        }.join('')
       end
     end
 
