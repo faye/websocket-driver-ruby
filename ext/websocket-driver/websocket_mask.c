@@ -6,7 +6,14 @@ VALUE method_websocket_mask(VALUE self, VALUE payload, VALUE mask)
     long i, n;
     VALUE unmasked;
 
-    if (mask == Qnil || RSTRING_LEN(mask) != 4) {
+    if (mask == Qnil) {
+        return payload;
+    }
+
+    StringValue(payload);
+    StringValue(mask);
+
+    if (RSTRING_LEN(mask) != 4) {
         return payload;
     }
 
