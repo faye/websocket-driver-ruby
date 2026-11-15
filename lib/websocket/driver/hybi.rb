@@ -59,7 +59,7 @@ module WebSocket
       def initialize(socket, options = {})
         super
 
-        @extensions      = ::WebSocket::Extensions.new
+        @extensions      = ::WebSocket::Extensions.new(:max_length => @max_length)
         @stage           = 0
         @masking         = options[:masking]
         @protocols       = options[:protocols] || []
@@ -190,7 +190,7 @@ module WebSocket
         true
 
       rescue ::WebSocket::Extensions::ExtensionError => error
-        fail(:extension_error, error.message)
+        fail(error.type || :extension_error, error.message)
       end
 
     private
@@ -271,7 +271,8 @@ module WebSocket
 
       def fail(type, message)
         return if @ready_state > 1
-        shutdown(ERRORS[type], message, true)
+        code = (Symbol === type) ? ERRORS[type] : type
+        shutdown(code, message, true)
       end
 
       def parse_opcode(octet)
@@ -422,7 +423,7 @@ module WebSocket
           fail(:encoding_error, 'Could not decode a text frame as UTF-8')
         end
       rescue ::WebSocket::Extensions::ExtensionError => error
-        fail(:extension_error, error.message)
+        fail(error.type || :extension_error, error.message)
       end
     end
 
