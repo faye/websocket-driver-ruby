@@ -1,3 +1,13 @@
+### 0.9.0 / 2026-11-16
+
+- Add `allow_drafts` option to explicitly enable support for `draft75` and
+  `draft76` protocols; these are now disabled by default
+- Forward the `max_length` option to any registered extensions
+- Fix bug in `draft75` parser that could cause message corruption or crashes if
+  the byte `0xFF` appears in a byte stream following a length prefix
+- Correctly handle cases where the `Sec-WebSocket-Key1` or `Sec-WebSocket-Key2`
+  header produces an invalid value
+
 ### 0.8.2 / 2026-06-23
 
 - Gracefully handle malformed `Host` headers in the `Server` driver
