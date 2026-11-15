@@ -43,9 +43,9 @@ module WebSocket
               @length = (octet & 0x7F) + 128 * @length
               return close if @length > @max_length
 
-              if @closing and @length.zero?
-                return close
-              elsif (octet & 0x80) != 0x80
+              return close if @closing and @length.zero?
+
+              if (octet & 0x80) != 0x80
                 if @length.zero?
                   @stage = 0
                 else
@@ -55,17 +55,20 @@ module WebSocket
               end
 
             when 2 then
+              @skipped += 1
+              if @skipped == @length
+                @length  = nil
+                @skipped = nil
+                @stage   = 0
+              end
+
+            when 3 then
               if octet == 0xFF
                 @stage = 0
                 emit(:message, MessageEvent.new(Driver.encode(@buffer, Encoding::UTF_8)))
               else
-                if @length
-                  @skipped += 1
-                  @stage = 0 if @skipped == @length
-                else
-                  @buffer << octet
-                  return close if @buffer.size > @max_length
-                end
+                @buffer << octet
+                return close if @buffer.size > @max_length
               end
           end
         end
@@ -94,7 +97,7 @@ module WebSocket
           @length  = nil
           @skipped = nil
           @buffer  = []
-          @stage   = 2
+          @stage   = 3
         end
       end
     end

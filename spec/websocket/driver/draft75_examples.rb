@@ -25,6 +25,17 @@ shared_examples_for "draft-75 protocol" do
         expect(@message).to eq "Hello"
       end
 
+      it "handles length-prefixed frames containing 0xFF" do
+        driver.parse [0x80, 0x03, 0x48, 0xff, 0x6c].pack("C*")
+        expect(@message).to eq ""
+      end
+
+      it "handles length-prefixed frames containing 0xFF following another message" do
+        driver.parse [0x00, 0x41, 0x42, 0xff].pack("C*")
+        driver.parse [0x81, 0x02, 0xff, 0x00].pack("C*")
+        expect(@message).to eq "AB"
+      end
+
       it "parses multibyte text frames" do
         driver.parse [0x00, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x20, 0x3d, 0x20, 0xef, 0xa3, 0xbf, 0xff].pack("C*")
         expect(@message).to eq encode("Apple = ")
