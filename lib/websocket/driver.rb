@@ -71,7 +71,7 @@ module WebSocket
 
     def initialize(socket, options = {})
       super()
-      Driver.validate_options(options, [:max_length, :masking, :require_masking, :protocols, :binary_data_format])
+      Driver.validate_options(options, [:allow_drafts, :max_length, :masking, :require_masking, :protocols, :binary_data_format])
 
       @socket      = socket
       @reader      = StreamReader.new
@@ -188,7 +188,7 @@ module WebSocket
       key1    = env['HTTP_SEC_WEBSOCKET_KEY1']
       key2    = env['HTTP_SEC_WEBSOCKET_KEY2']
 
-      if version or key
+      if !options[:allow_drafts] or version or key
         Hybi.new(socket, options.merge(:require_masking => true))
       elsif key1 or key2
         Draft76.new(socket, options)
