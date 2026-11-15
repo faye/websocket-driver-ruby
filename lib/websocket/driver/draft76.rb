@@ -39,24 +39,14 @@ module WebSocket
     private
 
       def handshake_response
-        env     = @socket.env
-        key1    = env['HTTP_SEC_WEBSOCKET_KEY1']
-        key2    = env['HTTP_SEC_WEBSOCKET_KEY2']
+        env  = @socket.env
+        key1 = env['HTTP_SEC_WEBSOCKET_KEY1']
+        key2 = env['HTTP_SEC_WEBSOCKET_KEY2']
 
         raise ProtocolError.new('Missing required header: Sec-WebSocket-Key1') unless key1
         raise ProtocolError.new('Missing required header: Sec-WebSocket-Key2') unless key2
 
-        number1 = number_from_key(key1)
-        spaces1 = spaces_in_key(key1)
-
-        number2 = number_from_key(key2)
-        spaces2 = spaces_in_key(key2)
-
-        if number1 % spaces1 != 0 or number2 % spaces2 != 0
-          raise ProtocolError.new('Client sent invalid Sec-WebSocket-Key headers')
-        end
-
-        @key_values = [number1 / spaces1, number2 / spaces2]
+        @key_values = [get_key_value(key1), get_key_value(key2)]
 
         start   = 'HTTP/1.1 101 WebSocket Protocol Handshake'
         headers = [start, @headers.to_s, '']
@@ -85,13 +75,22 @@ module WebSocket
         @stage   = 1
       end
 
-      def number_from_key(key)
-        number = key.scan(/[0-9]/).join('')
-        number == '' ? Float::NAN : number.to_i(10)
-      end
+      def get_key_value(key)
+        digits = key.scan(/[0-9]/).join('')
+        number = (digits == '') ? 0 : digits.to_i(10)
+        spaces = key.scan(/ /).size
 
-      def spaces_in_key(key)
-        key.scan(/ /).size
+        if number == 0 or spaces == 0 or number % spaces != 0
+          raise ProtocolError.new('Client sent invalid Sec-WebSocket-Key headers')
+        end
+
+        div = number / spaces
+
+        if div <= 0xffffffff
+          div
+        else
+          raise ProtocolError.new('Client sent invalid Sec-WebSocket-Key headers')
+        end
       end
     end
 

@@ -87,39 +87,46 @@ describe WebSocket::Driver::Draft76 do
         expect(driver.version).to eq "hixie-76"
       end
 
-      describe "with an invalid key header" do
-        before do
-          env["HTTP_SEC_WEBSOCKET_KEY1"] = "2 L785 8o% s9Sy9@V. 4<1P5"
-        end
+      invalid_keys = [
+        "2 L785 8o% s9Sy9@V. 4<1P5",
+        "858 993 4592"
+      ]
 
-        it "writes a handshake error response" do
-          expect(socket).to receive(:write).with(
-              "HTTP/1.1 400 Bad Request\r\n" +
-              "Content-Type: text/plain\r\n" +
-              "Content-Length: 45\r\n" +
-              "\r\n" +
-              "Client sent invalid Sec-WebSocket-Key headers")
-          driver.start
-        end
+      invalid_keys.each do |key|
+        describe "with an invalid key header" do
+          before do
+            env["HTTP_SEC_WEBSOCKET_KEY1"] = key
+          end
 
-        it "does not trigger the onopen event" do
-          driver.start
-          expect(@open).to eq false
-        end
+          it "writes a handshake error response" do
+            expect(socket).to receive(:write).with(
+                "HTTP/1.1 400 Bad Request\r\n" +
+                "Content-Type: text/plain\r\n" +
+                "Content-Length: 45\r\n" +
+                "\r\n" +
+                "Client sent invalid Sec-WebSocket-Key headers")
+            driver.start
+          end
 
-        it "triggers the onerror event" do
-          driver.start
-          expect(@error.message).to eq "Client sent invalid Sec-WebSocket-Key headers"
-        end
+          it "does not trigger the onopen event" do
+            driver.start
+            expect(@open).to eq false
+          end
 
-        it "triggers the onclose event" do
-          driver.start
-          expect(@close).to eq true
-        end
+          it "triggers the onerror event" do
+            driver.start
+            expect(@error.message).to eq "Client sent invalid Sec-WebSocket-Key headers"
+          end
 
-        it "changes the state to closed" do
-          driver.start
-          expect(driver.state).to eq :closed
+          it "triggers the onclose event" do
+            driver.start
+            expect(@close).to eq true
+          end
+
+          it "changes the state to closed" do
+            driver.start
+            expect(driver.state).to eq :closed
+          end
         end
       end
     end
